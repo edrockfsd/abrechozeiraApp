@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\DataContext.cs" />
+    <Compile Remove="Migrations\20240117180709_InicialCreate.cs" />
+    <Compile Remove="Migrations\20240117180709_InicialCreate.Designer.cs" />
+    <Compile Remove="Migrations\20240119182957_mg19012024.cs" />
+    <Compile Remove="Migrations\20240119182957_mg19012024.Designer.cs" />
+    <Compile Remove="Migrations\20240119183452_produto_origem_add.cs" />
+    <Compile Remove="Migrations\20240119183452_produto_origem_add.Designer.cs" />
+    <Compile Remove="Migrations\20240119185050_remover_app_tarefas.cs" />
+    <Compile Remove="Migrations\20240119185050_remover_app_tarefas.Designer.cs" />
+    <Compile Remove="Migrations\20240119185442_add_tbl_status.cs" />
+    <Compile Remove="Migrations\20240119185442_add_tbl_status.Designer.cs" />
+    <Compile Remove="Migrations\20240119190257_add_rowguid_modifieddate.cs" />
+    <Compile Remove="Migrations\20240119190257_add_rowguid_modifieddate.Designer.cs" />
+    <Compile Remove="Migrations\20240119190847_remove_rowguid_modifieddate.cs" />
+    <Compile Remove="Migrations\20240119190847_remove_rowguid_modifieddate.Designer.cs" />
+    <Compile Remove="Migrations\20240119192940_table_rename.cs" />
+    <Compile Remove="Migrations\20240119192940_table_rename.Designer.cs" />
+    <Compile Remove="Migrations\20240119193358_update_produto_add_codigoestoque_codigolive.cs" />
+    <Compile Remove="Migrations\20240119193358_update_produto_add_codigoestoque_codigolive.Designer.cs" />
+    <Compile Remove="Migrations\20240120023143_alteracao_tipos_campos_string.cs" />
+    <Compile Remove="Migrations\20240120023143_alteracao_tipos_campos_string.Designer.cs" />
+    <Compile Remove="Migrations\20240120033725_newmigration.cs" />
+    <Compile Remove="Migrations\20240120033725_newmigration.Designer.cs" />
+    <Compile Remove="Migrations\20240120133059_iniciando_fks.cs" />
+    <Compile Remove="Migrations\20240120133059_iniciando_fks.Designer.cs" />
+    <Compile Remove="Migrations\20240120133432_alterando_nome_fks.cs" />
+    <Compile Remove="Migrations\20240120133432_alterando_nome_fks.Designer.cs" />
+    <Compile Remove="Migrations\DataContextModelSnapshot.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Data\abrechozeira_bkp_17012024.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+</Project>
