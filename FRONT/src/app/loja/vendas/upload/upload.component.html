@@ -1,0 +1,52 @@
+<div class="col-md-12">
+    <nb-card size="large">      
+        <nb-card-header>UPLOAD</nb-card-header>
+        
+       
+        <nb-card-body>
+          <form>
+          <h6>Live</h6><br>
+        <label for="#autoInput" class="label">Título</label><br>
+        <input #autoInput fullWidth
+        nbInput
+        type="text"
+        placeholder="Insira o título da live"/><br>
+        <label for="#autoInput" class="label">Data</label><br>
+        <input #autoInput
+        nbInput
+        type="date"
+        placeholder="Insira a data da live"/>  <br>
+        <label for="#autoInput" class="label">Observações</label><br>
+        <textarea #autoInput fullWidth
+        nbInput rows="5" cols="60" name="text" placeholder=""></textarea>   <br><br>   
+   
+        <h6>Vendas</h6><br>      
+       
+          <div class="form-group">
+            <input 
+              type="file" (change)="ReadExcel($event)"/>
+          </div>
+          <table class="table table-striped">
+            <thead>
+                <tr>
+                  
+                    <th *ngFor="let item of ExcelCols" scope="col">{{item}}</th>                    
+                </tr>
+            </thead>
+            <tbody *ngIf="isDataReady">
+                <tr *ngFor="let item of ExcelData">                    
+                    <td style="color: red;"><b>{{item.codigolive}}</b></td>
+                    <td><nb-icon *ngIf="item.codprod.toString().indexOf('**') > - 1;" icon="alert-circle" title="Produto não encontrado no sistema" status="danger"></nb-icon>{{item.codprod}}</td>
+                    <td>{{item.descricao}}</td>
+                    <td>{{item.valorvenda}}</td>
+                    <td><nb-icon *ngIf="item.comprador.indexOf('**') > - 1;" icon="alert-circle" title="Cliente não encontrado no sistema" status="danger"></nb-icon>{{item.comprador}}</td>
+                    <td>{{item.fila}}</td>
+                    <td>{{item.origem}}</td>
+                    <td>{{item.ordemvendalive}}</td>                    				
+                </tr>
+            </tbody>
+          </table>
+          <button type="button" nbButton status="primary" (click)="clicarBotao()">Enviar</button>
+        </form>
+      </nb-card-body>
+    </nb-card>
