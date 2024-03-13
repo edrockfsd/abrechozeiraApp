@@ -480,3 +480,4 @@ C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\refint\ABrechozeir
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\ABrechozeiraApp.pdb
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\ABrechozeiraApp.genruntimeconfig.cache
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\ref\ABrechozeiraApp.dll
+C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\ABrechozeiraApp.sourcelink.json
