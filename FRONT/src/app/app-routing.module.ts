@@ -48,6 +48,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'pages', pathMatch: 'full' },
   { path: 'vendas', loadChildren:() => import('./loja/vendas/vendas.module').then(m => m.VendasModule) },
   { path: 'clientes', loadChildren:() => import('./loja/clientes/clientes.module').then(m => m.ClientesModule) },
+  { path: 'estoque', loadChildren:() => import('./loja/estoque/estoque.module').then(m => m.EstoqueModule) },
   { path: '**', redirectTo: 'pages' },
 ];
 
