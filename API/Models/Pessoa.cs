@@ -29,4 +29,9 @@ public partial class Pessoa
     public int PessoaTipoId { get; set; }
     public PessoaTipo? PessoaTipo { get; set; } = null!;
 
+    [ForeignKey("PessoaStatus")]
+    public int StatusId { get; set; }
+
+    public PessoaStatus? PessoaStatus { get; set; }
+
 }

@@ -3,6 +3,7 @@ using Pomelo.EntityFrameworkCore.MySql;
 using System.Configuration;
 using ABrechozeiraApp.Models;
 using System;
+using System.Globalization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContextPool<AbrechozeiraContext>(options =>
 {
+    CultureInfo.CurrentCulture = new CultureInfo("pt-BR", false);
+
     var connetionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseMySql(connetionString, ServerVersion.AutoDetect(connetionString),
         options => options.EnableRetryOnFailure(
@@ -29,7 +32,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: myAllowSpecificOrigins,
         builder =>
         {
-            builder.WithOrigins("http://localhost:4200")
+            builder.AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
         });
@@ -38,11 +41,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 

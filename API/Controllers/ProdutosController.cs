@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace ABrechozeiraApp.Controllers
 {
@@ -108,7 +110,19 @@ namespace ABrechozeiraApp.Controllers
         [HttpGet("ProdutoExistsByCodigoEstoque")]
         public ActionResult<bool> ProdutoExistsByCodigoEstoque(int codigoEstoque)
         {
-            return _context.Produto.Any(e => e.CodigoEstoque== codigoEstoque);
+            var produto = (from prd in _context.Produto
+                           join est in _context.Estoque on prd.Id equals est.ProdutoId
+                           where est.CodigoEstoque == codigoEstoque
+                           select prd).FirstOrDefault();
+
+            if (produto == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 
@@ -118,7 +132,8 @@ namespace ABrechozeiraApp.Controllers
             try
             {
                 var produto = (from prd in _context.Produto
-                               where prd.CodigoEstoque == codigoEstoque
+                               join est in _context.Estoque on prd.Id equals est.ProdutoId
+                               where est.CodigoEstoque == codigoEstoque
                                select prd).FirstOrDefault();
 
                 if (produto == null)
@@ -133,6 +148,56 @@ namespace ABrechozeiraApp.Controllers
                 return new Produto() { Id = 0, Descricao = "Produto não encontrado" };
             }
             
+        }
+
+        [HttpGet("GetProdutosCompleto")]
+        public IActionResult GetProdutosCompleto()
+        {
+            var produtos = from prd in _context.Produto
+                         join pst in _context.ProdutoStatus on prd.StatusId equals pst.Id
+                         join est in _context.Estoque on prd.Id equals est.ProdutoId
+                         join pess in _context.Pessoa on prd.PessoaPertenceID equals pess.Id
+                         join grp in _context.Grupo on prd.GrupoID equals grp.Id
+                         join mrc in _context.Marca on prd.MarcaId equals mrc.Id
+                         select new
+                         {
+                             prd.Id,                             
+                             est.CodigoEstoque,
+                             prd.Descricao,
+                             prd.Tamanho,
+                             prd.PrecoCusto,
+                             prd.Origem,
+                             Marca = mrc.Descricao,
+                             prd.DataCompra,
+                             GrupoDescricao = grp.Descricao,
+                             PessoaPertence = pess.Nome
+                         };
+
+
+            return Ok(produtos.ToList());
+        }
+
+        [HttpGet("GetDescricaoProduto")]
+        public ActionResult<Produto> GetDescricaoProduto(int codigoEstoque)
+        {
+            try
+            {
+                var produto = (from prd in _context.Produto
+                               join est in _context.Estoque on prd.Id equals est.ProdutoId
+                               where est.CodigoEstoque == codigoEstoque
+                               select prd).FirstOrDefault();
+
+                if (produto == null)
+                {
+                    return new Produto() { Descricao = "Produto não encontrado", PrecoVenda = 0 };                    
+                }
+
+                return new Produto() { Descricao = produto.Descricao, PrecoVenda = produto.PrecoVenda};
+            }
+            catch (Exception)
+            {
+                return new Produto() { Descricao = "Erro ao buscar produto"};
+            }
         }
     }
 }

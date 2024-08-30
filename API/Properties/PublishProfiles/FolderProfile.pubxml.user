@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\eduar\Deploys\AbrechozeiraApi</_PublishTargetUrl>
+    <History>True|2024-04-26T22:01:51.0392533Z;True|2024-04-26T19:00:22.4914953-03:00;True|2024-04-26T18:56:01.0636383-03:00;True|2024-04-26T18:54:08.5829973-03:00;True|2024-04-26T18:49:52.9103029-03:00;True|2024-04-26T18:43:31.1384467-03:00;True|2024-04-26T17:32:55.7013776-03:00;True|2024-04-26T14:51:00.8417735-03:00;True|2024-04-26T14:46:30.2444068-03:00;True|2024-04-26T14:41:17.4440955-03:00;True|2024-04-26T14:39:14.6465723-03:00;True|2024-04-16T21:35:05.8939013-03:00;True|2024-04-16T21:31:30.6907255-03:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

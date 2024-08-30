@@ -14,6 +14,12 @@ public partial class Live
     
     public string? Observacoes { get; set; }
 
-    public DateTime? DataLive { get; set; }
+    public DateTime DataLive { get; set; }
+
+    public DateTime DataAlteracao { get; set; }
+
+    [ForeignKey("Usuario")]
+    public int UsuarioModificacaoId { get; set; }
+    public Usuario? UsuarioModificacao { get; set; }
 }
 

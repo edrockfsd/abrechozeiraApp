@@ -36,5 +36,15 @@ public partial class Venda
     [ForeignKey("Live")]
     public int? LiveId { get; set; }
 
-    public DateTime? DataOperacao { get; set; }
+    public Live? Live { get; set; }
+
+    public DateTime? DataVenda { get; set; }
+
+    public DateTime? DataPagamento { get; set; }    
+
+    public DateTime? DataAlteracao { get; set; }
+
+    [ForeignKey("Usuario")]
+    public int UsuarioModificacaoId { get; set; }
+    public Usuario? UsuarioModificacao { get; set; }
 }

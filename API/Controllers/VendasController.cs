@@ -25,11 +25,12 @@ namespace ABrechozeiraApp.Controllers
             var vendas = from vda in _context.Venda
                          join prod in _context.Produto on vda.ProdutoId equals prod.Id
                          join pess in _context.Pessoa on vda.ClienteId equals pess.Id
+                         join est in _context.Estoque on prod.Id equals est.ProdutoId
                          select new
                          {
                              vda.Id,
                              vda.CodigoLive,
-                             prod.CodigoEstoque,
+                             est.CodigoEstoque,
                              prod.Descricao,
                              vda.ValorVenda,
                              pess.NickName,

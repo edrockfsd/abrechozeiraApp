@@ -20,6 +20,7 @@ import {
   NbToastrModule,
   NbWindowModule,
 } from '@nebular/theme';
+import { GridModule, PagerModule } from '@syncfusion/ej2-angular-grids';
 
 
 
@@ -41,6 +42,7 @@ import {
     }),
     CoreModule.forRoot(),
     ThemeModule.forRoot(),
+    GridModule, PagerModule,
   ],
   bootstrap: [AppComponent],
 })

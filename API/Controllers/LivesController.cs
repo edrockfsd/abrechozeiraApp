@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
+using Microsoft.OpenApi.Extensions;
+using System.Globalization;
 
 namespace ABrechozeiraApp.Controllers
 {
@@ -102,6 +104,44 @@ namespace ABrechozeiraApp.Controllers
         private bool LiveExists(int id)
         {
             return _context.Live.Any(e => e.Id == id);
+        }
+
+        [HttpGet("GetLiveCompleta")]
+        public IActionResult GetLiveCompleta()
+        {
+            var lives = from liv in _context.Live
+                        select new
+                        {
+                            liv.Id,
+                            liv.Titulo,
+                            liv.Observacoes,
+                            liv.DataLive,
+                            liv.DataAlteracao,
+                            DiaSemana = DateTimeFormatInfo.CurrentInfo.GetDayName(liv.DataLive.DayOfWeek)
+                        };
+
+
+
+            return Ok(lives.ToList());
+        }
+
+        /// <summary>
+        /// Retorna os dados de ID e Descrição da live
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetLivesCombo")]
+        public IActionResult GetLivesCombo()
+        {
+            var lives = from liv in _context.Live
+                        select new
+                        {
+                            liv.Id,
+                            liv.Titulo
+                        };
+
+
+
+            return Ok(lives.ToList());
         }
     }
 }

@@ -27,12 +27,20 @@ public partial class AbrechozeiraContext : DbContext
 
     public virtual DbSet<Venda> Venda { get; set; }
 
-    public virtual DbSet<Status> Status { get; set; }
+    public virtual DbSet<PessoaStatus> PessoaStatus { get; set; }
 
-public DbSet<ABrechozeiraApp.Models.Grupo> Grupo { get; set; } = default!;
+    public virtual DbSet<ProdutoStatus> ProdutoStatus { get; set; }
 
-public DbSet<ABrechozeiraApp.Models.Origem> Origem { get; set; } = default!;
+    public virtual DbSet<Marca> Marca { get; set; }
 
-public DbSet<ABrechozeiraApp.Models.Live> Live { get; set; } = default!;
+    public virtual DbSet<Arremate> Arremate { get; set; }
+
+    public virtual DbSet<Estoque> Estoque { get; set; }
+
+    public DbSet<ABrechozeiraApp.Models.Grupo> Grupo { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.Origem> Origem { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.Live> Live { get; set; } = default!;
 
 }
