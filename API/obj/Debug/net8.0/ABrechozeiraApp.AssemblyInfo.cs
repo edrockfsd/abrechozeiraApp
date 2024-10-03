@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3a5c2fbb1d8eb6b13cbe7fe3f2208f0953bac848")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f303729d99f4920bc72449e1f297e1dbf593b69")]
 [assembly: System.Reflection.AssemblyProductAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

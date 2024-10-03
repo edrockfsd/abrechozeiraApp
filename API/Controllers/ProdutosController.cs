@@ -157,8 +157,8 @@ namespace ABrechozeiraApp.Controllers
                          join pst in _context.ProdutoStatus on prd.StatusId equals pst.Id
                          join est in _context.Estoque on prd.Id equals est.ProdutoId
                          join pess in _context.Pessoa on prd.PessoaPertenceID equals pess.Id
-                         join grp in _context.Grupo on prd.GrupoID equals grp.Id
-                         join mrc in _context.Marca on prd.MarcaId equals mrc.Id
+                         join grp in _context.ProdutoGrupo on prd.GrupoID equals grp.Id
+                         join mrc in _context.ProdutoMarca on prd.MarcaId equals mrc.Id
                          select new
                          {
                              prd.Id,                             

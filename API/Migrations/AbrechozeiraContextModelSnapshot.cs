@@ -106,24 +106,6 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Estoque");
                 });
 
-            modelBuilder.Entity("ABrechozeiraApp.Models.Grupo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Grupo");
-                });
-
             modelBuilder.Entity("ABrechozeiraApp.Models.Live", b =>
                 {
                     b.Property<int>("Id")
@@ -154,24 +136,6 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Live");
-                });
-
-            modelBuilder.Entity("ABrechozeiraApp.Models.Marca", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Marca");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.NivelAcesso", b =>
@@ -282,6 +246,47 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("PessoaCategoria");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.PessoaGenero", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Sigla")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("varchar(1)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PessoaGenero");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.PessoaPerfil", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PessoaPerfil");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -362,6 +367,9 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<decimal?>("PrecoVenda")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<int?>("ProdutoGrupoId")
+                        .HasColumnType("int");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
@@ -374,17 +382,71 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GrupoID");
-
                     b.HasIndex("MarcaId");
 
                     b.HasIndex("PessoaPertenceID");
+
+                    b.HasIndex("ProdutoGrupoId");
 
                     b.HasIndex("StatusId");
 
                     b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Produto");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoGrupo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProdutoGrupo");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoMarca", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProdutoMarca");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoPerfil", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProdutoPerfil");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoStatus", b =>
@@ -584,19 +646,17 @@ namespace ABrechozeiraApp.Migrations
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Produto", b =>
                 {
-                    b.HasOne("ABrechozeiraApp.Models.Grupo", "Grupo")
-                        .WithMany()
-                        .HasForeignKey("GrupoID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ABrechozeiraApp.Models.Marca", "Marca")
+                    b.HasOne("ABrechozeiraApp.Models.ProdutoMarca", "Marca")
                         .WithMany()
                         .HasForeignKey("MarcaId");
 
                     b.HasOne("ABrechozeiraApp.Models.Pessoa", "PessoaPertence")
                         .WithMany()
                         .HasForeignKey("PessoaPertenceID");
+
+                    b.HasOne("ABrechozeiraApp.Models.ProdutoGrupo", "ProdutoGrupo")
+                        .WithMany()
+                        .HasForeignKey("ProdutoGrupoId");
 
                     b.HasOne("ABrechozeiraApp.Models.ProdutoStatus", "ProdutoStatus")
                         .WithMany()
@@ -610,11 +670,11 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Grupo");
-
                     b.Navigation("Marca");
 
                     b.Navigation("PessoaPertence");
+
+                    b.Navigation("ProdutoGrupo");
 
                     b.Navigation("ProdutoStatus");
 
