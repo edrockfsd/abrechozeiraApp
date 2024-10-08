@@ -25,17 +25,18 @@ public partial class AbrechozeiraContext : DbContext
 
     public virtual DbSet<PessoaPerfil> PessoaPerfil { get; set; }
 
+    public virtual DbSet<PessoaStatus> PessoaStatus { get; set; }
+
     public virtual DbSet<Produto> Produto { get; set; }
 
     public virtual DbSet<Usuario> Usuario { get; set; }
 
     public virtual DbSet<Venda> Venda { get; set; }
 
-    public virtual DbSet<PessoaStatus> PessoaStatus { get; set; }
-
     public virtual DbSet<ProdutoStatus> ProdutoStatus { get; set; }
 
     public virtual DbSet<ProdutoMarca> ProdutoMarca { get; set; }
+
     public virtual DbSet<ProdutoPerfil> ProdutoPerfil { get; set; }
 
     public virtual DbSet<Arremate> Arremate { get; set; }

@@ -127,7 +127,22 @@ namespace ABrechozeiraApp.Controllers
 
                 return new Pessoa() { NickName = "Cliente não encontrado" };
             }
-            
+
+        }
+
+
+        [HttpGet("GetPessoaPertence")]
+        public IActionResult GetPessoaPertence()
+        {
+            var lstPessoa = (from pes in _context.Pessoa
+                             where pes.Id >= 2 && pes.Id <= 4
+                             select new
+                             {
+                                 pes.Id,
+                                 pes.Nome
+                             });
+
+            return Ok(lstPessoa.ToList());
         }
     }
 }
