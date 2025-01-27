@@ -342,8 +342,8 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("Genero")
-                        .HasColumnType("varchar(1)");
+                    b.Property<int>("Genero")
+                        .HasColumnType("int");
 
                     b.Property<int>("GrupoID")
                         .HasColumnType("int");
@@ -355,8 +355,8 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("Perfil")
-                        .HasColumnType("varchar(1)");
+                    b.Property<int>("Perfil")
+                        .HasColumnType("int");
 
                     b.Property<int?>("PessoaPertenceID")
                         .HasColumnType("int");
@@ -382,7 +382,11 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Genero");
+
                     b.HasIndex("MarcaId");
+
+                    b.HasIndex("Perfil");
 
                     b.HasIndex("PessoaPertenceID");
 
@@ -646,9 +650,21 @@ namespace ABrechozeiraApp.Migrations
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Produto", b =>
                 {
+                    b.HasOne("ABrechozeiraApp.Models.PessoaGenero", "PessoaGenero")
+                        .WithMany()
+                        .HasForeignKey("Genero")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ABrechozeiraApp.Models.ProdutoMarca", "Marca")
                         .WithMany()
                         .HasForeignKey("MarcaId");
+
+                    b.HasOne("ABrechozeiraApp.Models.ProdutoPerfil", "ProdutoPerfil")
+                        .WithMany()
+                        .HasForeignKey("Perfil")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ABrechozeiraApp.Models.Pessoa", "PessoaPertence")
                         .WithMany()
@@ -672,9 +688,13 @@ namespace ABrechozeiraApp.Migrations
 
                     b.Navigation("Marca");
 
+                    b.Navigation("PessoaGenero");
+
                     b.Navigation("PessoaPertence");
 
                     b.Navigation("ProdutoGrupo");
+
+                    b.Navigation("ProdutoPerfil");
 
                     b.Navigation("ProdutoStatus");
 

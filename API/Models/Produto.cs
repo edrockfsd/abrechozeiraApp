@@ -43,8 +43,14 @@ public partial class Produto
 
     public decimal? PrecoVenda { get; set; }
 
-    public char? Genero { get; set; }
+    [ForeignKey("PessoaGenero")]
+    public int GeneroID { get; set; }
 
-    public char? Perfil { get; set; }
+    public PessoaGenero? PessoaGenero { get; set; }
+    
+    [ForeignKey("ProdutoPerfil")]
+    public int PerfilID { get; set; }
+
+    public ProdutoPerfil? ProdutoPerfil { get; set; }
 
 }
