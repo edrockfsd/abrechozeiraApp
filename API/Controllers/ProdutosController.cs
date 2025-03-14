@@ -154,23 +154,28 @@ namespace ABrechozeiraApp.Controllers
         public IActionResult GetProdutosCompleto()
         {
             var produtos = from prd in _context.Produto
-                         join pst in _context.ProdutoStatus on prd.StatusId equals pst.Id
-                         join est in _context.Estoque on prd.Id equals est.ProdutoId
-                         join pess in _context.Pessoa on prd.PessoaPertenceID equals pess.Id
-                         join grp in _context.ProdutoGrupo on prd.GrupoID equals grp.Id
-                         join mrc in _context.ProdutoMarca on prd.MarcaId equals mrc.Id
-                         select new
-                         {
-                             prd.Id,                             
-                             est.CodigoEstoque,
-                             prd.Descricao,
-                             prd.Tamanho,
-                             prd.PrecoCusto,
-                             prd.Origem,
-                             Marca = mrc.Descricao,
-                             prd.DataCompra,
-                             GrupoDescricao = grp.Descricao,
-                             PessoaPertence = pess.Nome
+                           join pst in _context.ProdutoStatus on prd.StatusId equals pst.Id
+                           join est in _context.Estoque on prd.Id equals est.ProdutoId
+                           //join grp in _context.ProdutoGrupo on prd.GrupoID equals grp.Id
+                           //join mrc in _context.ProdutoMarca on prd.MarcaId equals mrc.Id
+                           //join pgn in _context.PessoaGenero on prd.GeneroID equals pgn.Id
+                           select new
+                           {
+                               prd.Id,
+                               prd.DataAlteracao,
+                               prd.DataCompra,
+                               prd.GeneroID,
+                               prd.GrupoID,
+                               prd.PerfilID,
+                               prd.MarcaId,
+                               est.CodigoEstoque,
+                               prd.Descricao,
+                               prd.Tamanho,
+                               prd.Origem,
+                               prd.PrecoCusto,
+                               prd.PrecoVenda,
+                               prd.ProdutoStatus,
+                               prd.UsuarioModificacaoId
                          };
 
 
@@ -192,7 +197,7 @@ namespace ABrechozeiraApp.Controllers
                     return new Produto() { Descricao = "Produto não encontrado", PrecoVenda = 0 };                    
                 }
 
-                return new Produto() { Descricao = produto.Descricao, PrecoVenda = produto.PrecoVenda};
+                return new Produto() { Id = produto.Id, Descricao = produto.Descricao, PrecoVenda = produto.PrecoVenda};
             }
             catch (Exception)
             {

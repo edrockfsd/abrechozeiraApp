@@ -17,8 +17,9 @@ public partial class Pessoa
     public string? Email { get; set; }
     [StringLength(13)]
     public string? Telefone { get; set; }
-    [StringLength(9)]
-    public string? Sexo { get; set; }
+    [ForeignKey("PessoaGenero")]
+    public int PessoaGeneroId { get; set; }
+    public PessoaGenero? PessoaGenero { get; set; } = null!;
     [StringLength(50)]
     public string? NickName { get; set; }
     public DateTime? DataInclusao { get; set; } = DateTime.Now;

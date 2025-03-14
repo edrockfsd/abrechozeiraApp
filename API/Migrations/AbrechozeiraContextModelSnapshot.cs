@@ -203,12 +203,11 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("PessoaCategoriaId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PessoaTipoId")
+                    b.Property<int>("PessoaGeneroId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Sexo")
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
+                    b.Property<int>("PessoaTipoId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -220,6 +219,8 @@ namespace ABrechozeiraApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PessoaCategoriaId");
+
+                    b.HasIndex("PessoaGeneroId");
 
                     b.HasIndex("PessoaTipoId");
 
@@ -342,7 +343,7 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int>("Genero")
+                    b.Property<int>("GeneroID")
                         .HasColumnType("int");
 
                     b.Property<int>("GrupoID")
@@ -355,10 +356,7 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Perfil")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PessoaPertenceID")
+                    b.Property<int>("PerfilID")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("PrecoCusto")
@@ -366,9 +364,6 @@ namespace ABrechozeiraApp.Migrations
 
                     b.Property<decimal?>("PrecoVenda")
                         .HasColumnType("decimal(65,30)");
-
-                    b.Property<int?>("ProdutoGrupoId")
-                        .HasColumnType("int");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -382,15 +377,13 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Genero");
+                    b.HasIndex("GeneroID");
+
+                    b.HasIndex("GrupoID");
 
                     b.HasIndex("MarcaId");
 
-                    b.HasIndex("Perfil");
-
-                    b.HasIndex("PessoaPertenceID");
-
-                    b.HasIndex("ProdutoGrupoId");
+                    b.HasIndex("PerfilID");
 
                     b.HasIndex("StatusId");
 
@@ -629,6 +622,12 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ABrechozeiraApp.Models.PessoaGenero", "PessoaGenero")
+                        .WithMany()
+                        .HasForeignKey("PessoaGeneroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ABrechozeiraApp.Models.PessoaTipo", "PessoaTipo")
                         .WithMany()
                         .HasForeignKey("PessoaTipoId")
@@ -643,6 +642,8 @@ namespace ABrechozeiraApp.Migrations
 
                     b.Navigation("PessoaCategoria");
 
+                    b.Navigation("PessoaGenero");
+
                     b.Navigation("PessoaStatus");
 
                     b.Navigation("PessoaTipo");
@@ -652,7 +653,13 @@ namespace ABrechozeiraApp.Migrations
                 {
                     b.HasOne("ABrechozeiraApp.Models.PessoaGenero", "PessoaGenero")
                         .WithMany()
-                        .HasForeignKey("Genero")
+                        .HasForeignKey("GeneroID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ABrechozeiraApp.Models.ProdutoGrupo", "ProdutoGrupo")
+                        .WithMany()
+                        .HasForeignKey("GrupoID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -662,17 +669,9 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasOne("ABrechozeiraApp.Models.ProdutoPerfil", "ProdutoPerfil")
                         .WithMany()
-                        .HasForeignKey("Perfil")
+                        .HasForeignKey("PerfilID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("ABrechozeiraApp.Models.Pessoa", "PessoaPertence")
-                        .WithMany()
-                        .HasForeignKey("PessoaPertenceID");
-
-                    b.HasOne("ABrechozeiraApp.Models.ProdutoGrupo", "ProdutoGrupo")
-                        .WithMany()
-                        .HasForeignKey("ProdutoGrupoId");
 
                     b.HasOne("ABrechozeiraApp.Models.ProdutoStatus", "ProdutoStatus")
                         .WithMany()
@@ -689,8 +688,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("Marca");
 
                     b.Navigation("PessoaGenero");
-
-                    b.Navigation("PessoaPertence");
 
                     b.Navigation("ProdutoGrupo");
 

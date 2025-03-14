@@ -103,5 +103,58 @@ namespace ABrechozeiraApp.Controllers
         {
             return _context.Estoque.Any(e => e.Id == id);
         }
+
+        [HttpGet("GetEstoquesCompleto")]
+        public IActionResult GetEstoquesCompleto()
+        {
+            var estoques = from prd in _context.Produto
+                           join est in _context.Estoque on prd.Id equals est.ProdutoId into estGroup
+                           from est in estGroup.DefaultIfEmpty()
+                           join pes in _context.Pessoa on prd.UsuarioModificacaoId equals pes.Id into pesGroup
+                           from pes in pesGroup.DefaultIfEmpty()
+                           select new
+                           {
+                               Id = est != null ? est.Id : (int?)null, // Handle null for est.Id
+                               Quantidade = est != null ? est.Quantidade : (int?)null, // Handle null for est.Quantidade
+                               Localizacao = est != null ? est.Localizacao : null, // Handle null for est.Localizacao
+                               ProdutoId = est != null ? est.ProdutoId : (int?)null, // Handle null for est.ProdutoId
+                               CodigoEstoque = est != null ? est.CodigoEstoque : null, // Handle null for est.CodigoEstoque
+                               Descricao = prd.Descricao, // prd is not null because it's the main table
+                               DataAlteracao = est != null ? est.DataAlteracao : (DateTime?)null, // Handle null for est.DataAlteracao
+                               Nome = pes != null ? pes.Nome : null // Handle null for pes.Nome
+                           };
+
+            return Ok(estoques.ToList());
+        }
+        [HttpGet("GetEstoqueByCodigoEstoque")]
+        public IActionResult GetEstoqueByCodigoEstoque(int codigoEstoque)
+        {
+            var estoques = from prd in _context.Produto
+                           join est in _context.Estoque on prd.Id equals est.ProdutoId
+                           join pes in _context.Pessoa on est.UsuarioModificacaoId equals pes.Id
+                           where est.CodigoEstoque == codigoEstoque
+                           select new
+                           {
+                               est.Id,
+                               est.Quantidade,
+                               est.Localizacao,
+                               est.ProdutoId,
+                               est.CodigoEstoque,
+                               prd.Descricao,
+                               est.DataAlteracao,
+                               pes.Nome
+                           };
+
+            return Ok(estoques.FirstOrDefault());
+        }
+
+        [HttpGet("GetLastCodigoEstoque")]
+        public IActionResult GetLastCodigoEstoque()
+        {
+            var maiorCodigoEstoque = _context.Estoque
+                               .Max(est => (int?)est.CodigoEstoque) ?? 0;
+
+            return Ok(maiorCodigoEstoque);
+        }
     }
 }

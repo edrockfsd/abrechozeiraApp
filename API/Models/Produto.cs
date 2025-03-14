@@ -11,7 +11,8 @@ public partial class Produto
     [StringLength(100)]
     public string Descricao { get; set; } = null!;
     [StringLength(50)]
-    public string? Tamanho { get; set; }    
+    public string? Tamanho { get; set; }
+    [ForeignKey("ProdutoGrupo")]
     public int GrupoID { get; set; }
 
     public ProdutoGrupo? ProdutoGrupo { get; set; } = null!;
@@ -19,10 +20,6 @@ public partial class Produto
     public decimal? PrecoCusto { get; set; }
     [StringLength(50)]
     public string? Origem { get; set; }       
-
-    public int? PessoaPertenceID { get; set; } = null;
-
-    public Pessoa? PessoaPertence { get; set; }
 
     public DateTime? DataCompra { get; set; }
 

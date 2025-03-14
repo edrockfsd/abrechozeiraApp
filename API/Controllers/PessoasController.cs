@@ -144,5 +144,39 @@ namespace ABrechozeiraApp.Controllers
 
             return Ok(lstPessoa.ToList());
         }
+
+        [HttpGet("GetPessoasGrid")]
+        public IActionResult GetPessoasGrid()
+        {
+            // LINQ to SQL query joining Pessoa with PessoaGenero, PessoaCategoria, and PessoaStatus
+            var query = from pessoa in _context.Pessoa
+                        join genero in _context.PessoaGenero on pessoa.PessoaGeneroId equals genero.Id
+                        join categoria in _context.PessoaCategoria on pessoa.PessoaCategoriaId equals categoria.Id
+                        join status in _context.PessoaStatus on pessoa.StatusId equals status.Id
+                        select new
+                        {
+                            // Campos da tabela Pessoa
+                            Id = pessoa.Id,
+                            Nome = pessoa.Nome,
+                            DataNascimento = pessoa.DataNascimento,
+                            Email = pessoa.Email,
+                            Telefone = pessoa.Telefone,
+                            NickName = pessoa.NickName,
+
+                            // Campos da tabela PessoaGenero
+                            GeneroId = genero.Id,
+                            GeneroDescricao = genero.Descricao,
+
+                            // Campos da tabela PessoaCategoria
+                            CategoriaId = categoria.Id,
+                            CategoriaDescricao = categoria.Descricao,
+
+                            // Campos da tabela PessoaStatus
+                            StatusId = status.Id,
+                            StatusDescricao = status.Descricao
+                        };
+
+            return Ok(query.ToList());
+        }
     }
 }
