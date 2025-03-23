@@ -1,0 +1,53 @@
+<div class="container">
+  <div class="header">
+    <h1>Produtos</h1>
+    <button ejs-button cssClass="e-primary" (click)="onNovoProduto()">
+      <i class="fas fa-plus"></i> Novo Produto
+    </button>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Categoria:</label>
+      <ejs-dropdownlist [dataSource]="categorias" placeholder="Todas as categorias"></ejs-dropdownlist>
+    </div>
+    <div class="filter-group">
+      <label>Marca:</label>
+      <ejs-dropdownlist [dataSource]="marcas" placeholder="Todas as marcas"></ejs-dropdownlist>
+    </div>
+  </div>
+
+  <ejs-grid [dataSource]="produtos" 
+            [allowPaging]="true" 
+            [allowSorting]="true" 
+            [allowFiltering]="true"
+            [pageSettings]="{ pageSize: 10 }">
+    <e-columns>
+      <e-column field="id" headerText="Código" width="100" textAlign="Right"></e-column>
+      <e-column field="descricao" headerText="Descrição" width="250"></e-column>
+      <e-column field="tamanho" headerText="Tamanho" width="100"></e-column>
+      <e-column field="origem" headerText="Origem" width="120"></e-column>
+      <e-column field="precoCusto" headerText="Preço Custo" width="130" format="c2" textAlign="Right"></e-column>
+      <e-column field="precoVenda" headerText="Preço Venda" width="130" format="c2" textAlign="Right"></e-column>
+      <e-column field="statusId" headerText="Status" width="100">
+        <ng-template #template let-data>
+          <span [class]="getStatusClass(data.statusId)">
+            {{ getStatusText(data.statusId) }}
+          </span>
+        </ng-template>
+      </e-column>
+      <e-column headerText="Ações" width="120" textAlign="Center">
+        <ng-template #template let-data>
+          <div class="action-buttons">
+            <button ejs-button cssClass="e-small e-info" (click)="onEditar(data)" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button ejs-button cssClass="e-small e-danger" (click)="onExcluir(data)" title="Excluir">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </ng-template>
+      </e-column>
+    </e-columns>
+  </ejs-grid>
+</div>

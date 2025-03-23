@@ -182,15 +182,20 @@ namespace ABrechozeiraApp.Controllers
             return Ok(produtos.ToList());
         }
 
-        [HttpGet("GetDescricaoProduto")]
-        public ActionResult<Produto> GetDescricaoProduto(int codigoEstoque)
+        [HttpGet("GetProdutoParaArremate")]
+        public ActionResult<Produto> GetProdutoParaArremate(int codigoEstoque)
         {
             try
             {
                 var produto = (from prd in _context.Produto
                                join est in _context.Estoque on prd.Id equals est.ProdutoId
                                where est.CodigoEstoque == codigoEstoque
-                               select prd).FirstOrDefault();
+                               select new
+                               {
+                                   prd.Id,
+                                   prd.Descricao,
+                                   prd.PrecoVenda
+                               }).FirstOrDefault();
 
                 if (produto == null)
                 {

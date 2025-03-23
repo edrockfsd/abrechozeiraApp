@@ -128,5 +128,30 @@ namespace ABrechozeiraApp.Controllers
 
             return Ok(arremates.ToList());
         }
+
+        [HttpGet("GetArrematesByLiveID")]
+        public IActionResult GetArrematesByLiveID(int liveID)
+        {
+            var arremates = from arr in _context.Arremate
+                            join prod in _context.Produto on arr.ProdutoId equals prod.Id
+                            join est in _context.Estoque on prod.Id equals est.ProdutoId
+                            where arr.LiveId == liveID
+                            select new
+                            {
+                                arr.Id,
+                                produtoID = prod.Id,
+                                produtoDescricao = prod.Descricao,
+                                arr.Arrematante,
+                                arr.Observacoes,
+                                arr.DataArremate,
+                                arr.CodigoLive,
+                                est.CodigoEstoque,
+                                arr.ValorArremate
+                            };
+
+
+
+            return Ok(arremates.ToList());
+        }
     }
 }

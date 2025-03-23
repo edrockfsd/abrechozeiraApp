@@ -1,0 +1,54 @@
+<div class="lista-container">
+  <ejs-toast #toast
+    [position]="toastSettings.position"
+    [showCloseButton]="toastSettings.showCloseButton"
+    [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>Pessoas</h1>
+      <button ejs-button cssClass="e-primary" (click)="onNovaPessoa()">
+        <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+        Nova Pessoa
+      </button>
+    </div>
+  </div>
+
+  <ejs-grid 
+    #grid 
+    [dataSource]="pessoas"
+    [allowPaging]="true"
+    [pageSettings]="pageSettings"
+    [toolbar]="toolbar"
+    [filterSettings]="filterSettings"
+    [allowFiltering]="true"
+    [allowSorting]="true">
+    <e-columns>
+      <e-column field="nome" headerText="Nome" width="150"></e-column>
+      <e-column field="dataNascimento" headerText="Data Nascimento" width="120">
+        <ng-template #template let-data>
+          {{formatarData(data.dataNascimento)}}
+        </ng-template>
+      </e-column>
+      <e-column field="email" headerText="E-mail" width="200"></e-column>
+      <e-column field="telefone" headerText="Telefone" width="120"></e-column>
+      <e-column field="nickName" headerText="Apelido" width="120"></e-column>
+      <e-column field="generoDescricao" headerText="Gênero" width="100"></e-column>
+      <e-column field="categoriaDescricao" headerText="Categoria" width="120"></e-column>
+      <e-column field="statusDescricao" headerText="Status" width="100"></e-column>
+      <e-column headerText="Ações" width="100" textAlign="Center">
+        <ng-template #template let-data>
+          <div class="action-buttons">
+            <button ejs-button cssClass="e-primary e-small" (click)="onEditar(data)" title="Editar">
+              <span class="e-btn-icon e-edit e-icons"></span>
+            </button>
+            <button ejs-button cssClass="e-danger e-small" (click)="onExcluir(data)" title="Excluir">
+              <span class="e-btn-icon e-delete e-icons"></span>
+            </button>
+          </div>
+        </ng-template>
+      </e-column>
+    </e-columns>
+  </ejs-grid>
+</div> 

@@ -1,0 +1,113 @@
+.cadastro-container {
+  padding: 20px;
+
+  .header {
+    margin-bottom: 20px;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        color: var(--primary-text-color);
+      }
+
+      button {
+        .e-btn-icon {
+          font-size: 16px;
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .form-container {
+    max-width: 800px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+
+    .form-section {
+      margin-bottom: 24px;
+
+      .form-row {
+        margin-bottom: 20px;
+
+        .form-field {
+          label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+
+            .required {
+              color: #e74c3c;
+              margin-left: 4px;
+            }
+          }
+
+          .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 4px;
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 32px;
+    }
+  }
+}
+
+::ng-deep {
+  .e-input-group {
+    width: 100%;
+  }
+
+  .e-textbox {
+    width: 100%;
+  }
+
+  .e-datetimepicker {
+    width: 100%;
+  }
+
+  .e-toast-success {
+    .e-toast-message {
+      background-color: #4CAF50 !important;
+      color: white !important;
+    }
+    
+    .e-toast-title {
+      color: white !important;
+    }
+
+    .e-toast-close-icon {
+      color: white !important;
+    }
+  }
+
+  .e-toast-danger {
+    .e-toast-message {
+      background-color: #f44336 !important;
+      color: white !important;
+    }
+    
+    .e-toast-title {
+      color: white !important;
+    }
+
+    .e-toast-close-icon {
+      color: white !important;
+    }
+  }
+} 

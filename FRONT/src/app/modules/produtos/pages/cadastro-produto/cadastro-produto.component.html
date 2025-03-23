@@ -1,0 +1,202 @@
+<div class="cadastro-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>{{ isEdicao ? 'Editar Produto' : 'Novo Produto' }}</h1>
+      <button ejs-button cssClass="e-info" (click)="irParaListagem()">
+        <span class="e-btn-icon e-list e-icons e-icon-left"></span>
+        Listagem de Produtos
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="produtoForm" (ngSubmit)="onSubmit()" class="form-grid">
+    <!-- Informações Básicas -->
+    <div class="form-section">
+      <h2>Informações Básicas</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="descricao">Descrição*</label>
+          <ejs-textbox id="descricao" 
+            formControlName="descricao"
+            placeholder="Digite a descrição"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="produtoForm.get('descricao')?.errors?.required && produtoForm.get('descricao')?.touched">
+            Descrição é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tamanho">Tamanho*</label>
+          <ejs-textbox id="tamanho" 
+            formControlName="tamanho"
+            placeholder="Digite o tamanho"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="produtoForm.get('tamanho')?.errors?.required && produtoForm.get('tamanho')?.touched">
+            Tamanho é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="origem">Origem*</label>
+          <ejs-textbox id="origem" 
+            formControlName="origem"
+            placeholder="Digite a origem"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="produtoForm.get('origem')?.errors?.required && produtoForm.get('origem')?.touched">
+            Origem é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dataCompra">Data da Compra*</label>
+          <ejs-datepicker id="dataCompra" 
+            formControlName="dataCompra"
+            [placeholder]="datePickerSettings.placeholder"
+            [format]="datePickerSettings.format"
+            cssClass="e-outline">
+          </ejs-datepicker>
+          <div class="error-message" *ngIf="produtoForm.get('dataCompra')?.errors?.required && produtoForm.get('dataCompra')?.touched">
+            Data da compra é obrigatória
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categorização -->
+    <div class="form-section">
+      <h2>Categorização</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="grupoId">Grupo*</label>
+          <ejs-dropdownlist id="grupoId" 
+            formControlName="grupoId"
+            [dataSource]="grupos"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="produtoForm.get('grupoId')?.errors?.required && produtoForm.get('grupoId')?.touched">
+            Grupo é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="marcaId">Marca*</label>
+          <ejs-dropdownlist id="marcaId" 
+            formControlName="marcaId"
+            [dataSource]="marcas"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="produtoForm.get('marcaId')?.errors?.required && produtoForm.get('marcaId')?.touched">
+            Marca é obrigatória
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="generoId">Gênero*</label>
+          <ejs-dropdownlist id="generoId" 
+            formControlName="generoId"
+            [dataSource]="generos"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="produtoForm.get('generoId')?.errors?.required && produtoForm.get('generoId')?.touched">
+            Gênero é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="perfilId">Perfil*</label>
+          <ejs-dropdownlist id="perfilId" 
+            formControlName="perfilId"
+            [dataSource]="perfis"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="produtoForm.get('perfilId')?.errors?.required && produtoForm.get('perfilId')?.touched">
+            Perfil é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preços -->
+    <div class="form-section">
+      <h2>Preços</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="precoCusto">Preço de Custo*</label>
+          <ejs-numerictextbox id="precoCusto" 
+            formControlName="precoCusto"
+            [format]="numericSettings.format"
+            [decimals]="numericSettings.decimals"
+            [min]="numericSettings.min"
+            [validateDecimalOnType]="numericSettings.validateDecimalOnType"
+            cssClass="e-outline">
+          </ejs-numerictextbox>
+          <div class="error-message" *ngIf="produtoForm.get('precoCusto')?.errors?.required && produtoForm.get('precoCusto')?.touched">
+            Preço de custo é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="precoVenda">Preço de Venda*</label>
+          <ejs-numerictextbox id="precoVenda" 
+            formControlName="precoVenda"
+            [format]="numericSettings.format"
+            [decimals]="numericSettings.decimals"
+            [min]="numericSettings.min"
+            [validateDecimalOnType]="numericSettings.validateDecimalOnType"
+            cssClass="e-outline">
+          </ejs-numerictextbox>
+          <div class="error-message" *ngIf="produtoForm.get('precoVenda')?.errors?.required && produtoForm.get('precoVenda')?.touched">
+            Preço de venda é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões -->
+    <div class="form-actions">
+      <button ejs-button type="button" 
+              cssClass="e-secondary" 
+              (click)="onCancel()"
+              [disabled]="salvando">
+        Cancelar
+      </button>
+      <button ejs-button type="submit" 
+              cssClass="e-primary" 
+              [disabled]="!produtoForm.valid || salvando">
+        {{ isEdicao ? 'Atualizar' : 'Salvar' }}
+      </button>
+    </div>
+  </form>
+</div> 

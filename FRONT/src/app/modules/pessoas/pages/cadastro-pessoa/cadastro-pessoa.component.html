@@ -1,0 +1,169 @@
+<div class="cadastro-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>{{ isEdicao ? 'Editar Pessoa' : 'Nova Pessoa' }}</h1>
+      <button ejs-button cssClass="e-info" (click)="irParaListagem()">
+        <span class="e-btn-icon e-list e-icons e-icon-left"></span>
+        Listagem de Pessoas
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="pessoaForm" (ngSubmit)="onSubmit()" class="form-grid">
+    <!-- Informações Básicas -->
+    <div class="form-section">
+      <h2>Informações Básicas</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome">Nome*</label>
+          <ejs-textbox id="nome" 
+            formControlName="nome"
+            placeholder="Digite o nome"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('nome')?.errors?.required && pessoaForm.get('nome')?.touched">
+            Nome é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dataNascimento">Data de Nascimento*</label>
+          <ejs-datepicker id="dataNascimento"
+            formControlName="dataNascimento"
+            placeholder="Selecione a data"
+            format="dd/MM/yyyy"
+            cssClass="e-outline">
+          </ejs-datepicker>
+          <div class="error-message" *ngIf="pessoaForm.get('dataNascimento')?.errors?.required && pessoaForm.get('dataNascimento')?.touched">
+            Data de nascimento é obrigatória
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">E-mail*</label>
+          <ejs-textbox id="email" 
+            formControlName="email"
+            placeholder="Digite o e-mail"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.required && pessoaForm.get('email')?.touched">
+            E-mail é obrigatório
+          </div>
+          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.email && pessoaForm.get('email')?.touched">
+            E-mail inválido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone*</label>
+          <ejs-textbox id="telefone" 
+            formControlName="telefone"
+            placeholder="Digite o telefone"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('telefone')?.errors?.required && pessoaForm.get('telefone')?.touched">
+            Telefone é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pessoaGeneroId">Gênero*</label>
+          <ejs-dropdownlist id="pessoaGeneroId" 
+            formControlName="pessoaGeneroId"
+            [dataSource]="generos"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pessoaForm.get('pessoaGeneroId')?.errors?.required && pessoaForm.get('pessoaGeneroId')?.touched">
+            Gênero é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nickName">Apelido</label>
+          <ejs-textbox id="nickName" 
+            formControlName="nickName"
+            placeholder="Digite o apelido"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pessoaCategoriaId">Categoria*</label>
+          <ejs-dropdownlist id="pessoaCategoriaId" 
+            formControlName="pessoaCategoriaId"
+            [dataSource]="categorias"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pessoaForm.get('pessoaCategoriaId')?.errors?.required && pessoaForm.get('pessoaCategoriaId')?.touched">
+            Categoria é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pessoaTipoId">Tipo*</label>
+          <ejs-dropdownlist id="pessoaTipoId" 
+            formControlName="pessoaTipoId"
+            [dataSource]="tipos"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pessoaForm.get('pessoaTipoId')?.errors?.required && pessoaForm.get('pessoaTipoId')?.touched">
+            Tipo é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="statusId">Status*</label>
+          <ejs-dropdownlist id="statusId" 
+            formControlName="statusId"
+            [dataSource]="status"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pessoaForm.get('statusId')?.errors?.required && pessoaForm.get('statusId')?.touched">
+            Status é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button ejs-button type="button" cssClass="e-secondary" (click)="irParaListagem()">Cancelar</button>
+      <button ejs-button type="submit" cssClass="e-primary" [disabled]="!pessoaForm.valid || salvando">
+        {{ salvando ? 'Salvando...' : (isEdicao ? 'Atualizar' : 'Salvar') }}
+      </button>
+    </div>
+  </form>
+</div> 

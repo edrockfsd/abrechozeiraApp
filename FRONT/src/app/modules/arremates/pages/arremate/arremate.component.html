@@ -1,0 +1,96 @@
+<div class="arremate-container">
+  <!-- Add toast component at the top of the template -->
+  <ejs-toast #toast [position]="toastPosition" [width]="toastWidth"></ejs-toast>
+  
+  <div class="header">
+    <div class="header-content">
+      <h1>Arremate</h1>
+    </div>
+  </div>
+
+ 
+
+  <!-- New form fields above the grid -->
+  <div class="quick-entry-form">
+    <div class="form-row">
+      <div class="form-field live-id">
+        <label for="quickCodigoEstoque" class="large-label">Live *</label>
+        <ejs-combobox
+            id="liveId"            
+            [dataSource]="lives"
+            [fields]="liveFields"
+            placeholder="Selecione uma live"
+            [allowFiltering]="true"
+            (change)="onLiveChange($event)"
+            cssClass="e-outline">
+          </ejs-combobox>
+          <div class="error-message" *ngIf="arremateForm.get('liveId')?.errors?.['required'] && arremateForm.get('liveId')?.touched">
+            Live é obrigatória
+          </div>
+      </div>
+      <div class="form-field codigo-estoque">
+        <label for="quickCodigoEstoque" class="large-label">Código Estoque</label>
+        <input type="number" id="quickCodigoEstoque" class="large-input" 
+          [disabled]="!selectedLiveId"
+          (blur)="onCodigoEstoqueBlur($event)"/>
+      </div>
+
+      <div class="form-field codigo-live">
+        <label for="quickCodigoLive" class="large-label">Cód. Live</label>
+        <input type="number" id="quickCodigoLive" class="large-input" 
+          [disabled]="!selectedLiveId"/>
+      </div>
+      
+      <div class="form-field peca">
+        <label for="quickPeca" class="large-label">Peça</label>
+        <input type="text" id="quickPeca" class="large-input" readonly 
+          [disabled]="!selectedLiveId"/>
+      </div>
+    
+      <div class="form-field preco-venda">
+        <label for="quickPrecoVenda" class="large-label">Preço Venda</label>
+        <input type="text" id="quickPrecoVenda" class="large-input" 
+          [disabled]="!selectedLiveId"/>
+      </div>
+      
+      <div class="form-field arrematante">
+        <label for="quickArrematante" class="large-label">Arrematante</label>
+        <input type="text" id="quickArrematante" class="large-input" 
+          [disabled]="!selectedLiveId"/>
+      </div>
+      
+      <div class="form-field fila">
+        <label for="quickFila" class="large-label">Fila</label>
+        <div class="input-button-group">
+          <textarea id="quickFila" class="large-input multiline" 
+            [disabled]="!selectedLiveId"></textarea>
+          <button class="add-button" [disabled]="!selectedLiveId" (click)="onAddButtonClick()">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <ejs-grid 
+      [dataSource]="arremates"
+      [toolbar]="['Search', 'Delete']"
+      [editSettings]="editSettings"
+      [allowPaging]="true"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      (actionBegin)="onActionBegin($event)">
+      <e-columns>
+        <e-column field="id" isPrimaryKey="true" [visible]="false"></e-column>
+        <e-column field="codigoEstoque" headerText="Cód. Estoque" width="120"></e-column>
+        <e-column field="codigoLive" headerText="Cód. Live" width="120"></e-column>
+        <e-column field="produtoDescricao" headerText="Peça" width="200"></e-column>
+        <e-column field="valorArremate" headerText="Preço Venda" width="120" type="number" format="C2"></e-column>
+        <e-column field="arrematante" headerText="Arrematante" width="200"></e-column>
+        <e-column field="dataArremate" headerText="Data / Hora Arremate" width="180" type="datetime" format="dd/MM/yyyy HH:mm"></e-column>
+        <e-column field="observacoes" headerText="Fila" width="250"></e-column>
+      </e-columns>
+    </ejs-grid>
+  </div>
+</div>
