@@ -38,6 +38,13 @@
           {{formatarData(data.dataAlteracao)}}
         </ng-template>
       </e-column>
+      <e-column headerText="Contabilização" width="100" textAlign="Center">
+        <ng-template #template let-data>
+          <button ejs-button cssClass="e-flat" title="Contabilizar">
+            <i class="fas fa-calculator"></i>
+          </button>
+        </ng-template>
+      </e-column>
       <e-column headerText="Ações" width="100" textAlign="Center">
         <ng-template #template let-data>
           <div class="action-buttons">
@@ -52,4 +59,4 @@
       </e-column>
     </e-columns>
   </ejs-grid>
-</div> 
+</div>

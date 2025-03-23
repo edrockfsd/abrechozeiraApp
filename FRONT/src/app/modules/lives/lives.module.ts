@@ -16,6 +16,7 @@ import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars';
 import { ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ContabilizacaoLiveComponent } from './pages/contabilizacao-live/contabilizacao-live.component';
 
 @NgModule({
   imports: [
@@ -37,4 +38,4 @@ import { ReactiveFormsModule } from '@angular/forms';
     ToolbarService
   ]
 })
-export class LivesModule { } 
+export class LivesModule { }
