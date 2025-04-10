@@ -25,10 +25,11 @@
     [allowFiltering]="true"
     [allowSorting]="true">
     <e-columns>
-      <e-column field="nome" headerText="Nome" width="150"></e-column>
-      <e-column field="dataNascimento" headerText="Data Nascimento" width="120">
+      <e-column field="nome" headerText="Nome" width="200"></e-column>
+      <e-column field="cpf" headerText="CPF" width="150"></e-column>
+      <e-column field="dataNascimento" headerText="Data de Nascimento" width="150">
         <ng-template #template let-data>
-          {{formatarData(data.dataNascimento)}}
+          {{ formatarData(data.dataNascimento) }}
         </ng-template>
       </e-column>
       <e-column field="email" headerText="E-mail" width="200"></e-column>
@@ -37,16 +38,17 @@
       <e-column field="generoDescricao" headerText="Gênero" width="100"></e-column>
       <e-column field="categoriaDescricao" headerText="Categoria" width="120"></e-column>
       <e-column field="statusDescricao" headerText="Status" width="100"></e-column>
-      <e-column headerText="Ações" width="100" textAlign="Center">
+      <e-column headerText="Ações" width="200">
         <ng-template #template let-data>
-          <div class="action-buttons">
-            <button ejs-button cssClass="e-primary e-small" (click)="onEditar(data)" title="Editar">
-              <span class="e-btn-icon e-edit e-icons"></span>
-            </button>
-            <button ejs-button cssClass="e-danger e-small" (click)="onExcluir(data)" title="Excluir">
-              <span class="e-btn-icon e-delete e-icons"></span>
-            </button>
-          </div>
+          <button ejs-button cssClass="e-flat e-primary e-small" (click)="onEditar(data)">
+            <i class="e-icons e-edit"></i>
+          </button>
+          <button ejs-button cssClass="e-flat e-danger e-small" (click)="onExcluir(data)">
+            <i class="e-icons e-delete"></i>
+          </button>
+          <button ejs-button cssClass="e-flat e-info e-small" (click)="onListarEnderecos(data)" title="Listar Endereços">
+            <i class="e-icons e-location"></i>
+          </button>
         </ng-template>
       </e-column>
     </e-columns>

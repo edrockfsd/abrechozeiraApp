@@ -49,4 +49,8 @@ public partial class AbrechozeiraContext : DbContext
 
     public DbSet<ABrechozeiraApp.Models.Live> Live { get; set; } = default!;
 
+    public DbSet<ABrechozeiraApp.Models.Endereco> Endereco { get; set; } = default!;
+    
+    public DbSet<ABrechozeiraApp.Models.TipoEndereco> TipoEndereco { get; set; } = default!;
+
 }

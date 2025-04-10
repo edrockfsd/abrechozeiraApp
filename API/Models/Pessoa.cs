@@ -21,7 +21,12 @@ public partial class Pessoa
     public int PessoaGeneroId { get; set; }
     public PessoaGenero? PessoaGenero { get; set; } = null!;
     [StringLength(50)]
+    public string? CPF { get; set; }
+    public string? RG { get; set; }
+
     public string? NickName { get; set; }
+
+    public string? Observacoes { get; set; }
     public DateTime? DataInclusao { get; set; } = DateTime.Now;
     [ForeignKey("PessoaCategoria")]  
     public int PessoaCategoriaId { get; set; }

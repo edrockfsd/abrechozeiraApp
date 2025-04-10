@@ -1,0 +1,50 @@
+<div class="lista-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>Pedidos</h1>
+      <button ejs-button cssClass="e-primary" (click)="onNovoPedido()">
+        <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+        Novo Pedido
+      </button>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <div class="loading-indicator" *ngIf="carregando">
+      <i class="e-icons e-spinner e-spin"></i>
+      <span>Carregando pedidos...</span>
+    </div>
+
+    <ejs-grid
+      #grid
+      [dataSource]="data"
+      [allowPaging]="true"
+      [pageSettings]="gridSettings.pageSettings"
+      [toolbar]="gridSettings.toolbar"
+      [searchSettings]="gridSettings.searchSettings">
+      <e-columns>
+        <e-column 
+          *ngFor="let col of gridSettings.columns"
+          [field]="col.field"
+          [headerText]="col.headerText"
+          [width]="col.width"
+          [textAlign]="col.textAlign"
+          [format]="col.format">
+        </e-column>
+        <e-column headerText="Ações" width="100">
+          <ng-template #template let-data>
+            <button class="e-btn e-flat e-primary" (click)="onEditar(data)">
+              <i class="e-icons e-edit"></i>
+            </button>
+          </ng-template>
+        </e-column>
+      </e-columns>
+    </ejs-grid>
+  </div>
+</div> 

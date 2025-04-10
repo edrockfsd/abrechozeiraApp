@@ -1,27 +1,34 @@
 export interface Pessoa {
     id: number;
     nome: string;
-    dataNascimento: Date;
+    cpf: string;
+    rg: string;
+    dataNascimento: string;
+    observacao: string;
+    usuarioCriacaoId: number;
+    usuarioModificacaoId: number;
     email: string;
     telefone: string;
-    sexo: string;
+    pessoaGeneroId: number;
     pessoaCategoriaId: number;
     pessoaTipoId: number;
-    nickName: string;
-    dataInclusao: Date;
     statusId: number;
+    nickName: string;
 }
 
 export interface PessoaCreate {
     nome: string;
-    dataNascimento: Date;
+    cpf: string;
+    rg: string;
+    dataNascimento: string;
+    observacao: string;
     email: string;
     telefone: string;
-    sexo: string;
+    pessoaGeneroId: number;
     pessoaCategoriaId: number;
     pessoaTipoId: number;
-    nickName: string;
     statusId: number;
+    nickName: string;
 }
 
 export enum PessoaStatus {

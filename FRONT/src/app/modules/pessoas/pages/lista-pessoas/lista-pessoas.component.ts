@@ -71,6 +71,10 @@ export class ListaPessoasComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/pessoas/editar', pessoa.id]);
   }
 
+  onListarEnderecos(pessoa: PessoaGrid): void {
+    this.router.navigate(['/pessoas', pessoa.id, 'endereco']);
+  }
+
   onExcluir(pessoa: PessoaGrid): void {
     if (confirm('Tem certeza que deseja excluir esta pessoa?')) {
       this.pessoaService.excluir(pessoa.id).subscribe(

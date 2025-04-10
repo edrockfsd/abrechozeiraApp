@@ -10,78 +10,80 @@
       <h1>{{ isEdicao ? 'Editar Pessoa' : 'Nova Pessoa' }}</h1>
       <button ejs-button cssClass="e-info" (click)="irParaListagem()">
         <span class="e-btn-icon e-list e-icons e-icon-left"></span>
-        Listagem de Pessoas
+        Voltar para Listagem
       </button>
     </div>
   </div>
 
   <form [formGroup]="pessoaForm" (ngSubmit)="onSubmit()" class="form-grid">
-    <!-- Informações Básicas -->
+    <!-- Dados Pessoais -->
     <div class="form-section">
-      <h2>Informações Básicas</h2>
+      <h2>Dados Pessoais</h2>
       <div class="form-row">
         <div class="form-group">
-          <label for="nome">Nome*</label>
-          <ejs-textbox id="nome" 
+          <label for="nome">Nome Completo *</label>
+          <ejs-textbox
+            id="nome"
             formControlName="nome"
-            placeholder="Digite o nome"
-            cssClass="e-outline"
-            floatLabelType="Auto">
+            placeholder="Nome completo"
+            cssClass="e-outline">
           </ejs-textbox>
           <div class="error-message" *ngIf="pessoaForm.get('nome')?.errors?.required && pessoaForm.get('nome')?.touched">
             Nome é obrigatório
           </div>
         </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cpf">CPF *</label>
+          <ejs-textbox
+            id="cpf"
+            formControlName="cpf"
+            placeholder="000.000.000-00"
+            cssClass="e-outline">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('cpf')?.errors?.required && pessoaForm.get('cpf')?.touched">
+            CPF é obrigatório
+          </div>
+          <div class="error-message" *ngIf="pessoaForm.get('cpf')?.errors?.pattern && pessoaForm.get('cpf')?.touched">
+            CPF inválido. Use o formato: 000.000.000-00
+          </div>
+        </div>
 
         <div class="form-group">
-          <label for="dataNascimento">Data de Nascimento*</label>
-          <ejs-datepicker id="dataNascimento"
-            formControlName="dataNascimento"
-            placeholder="Selecione a data"
-            format="dd/MM/yyyy"
+          <label for="rg">RG *</label>
+          <ejs-textbox
+            id="rg"
+            formControlName="rg"
+            placeholder="Digite o RG"
             cssClass="e-outline">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('rg')?.errors?.required && pessoaForm.get('rg')?.touched">
+            RG é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="dataNascimento">Data de Nascimento *</label>
+          <ejs-datepicker
+            id="dataNascimento"
+            formControlName="dataNascimento"
+            [placeholder]="'Selecione a data'"
+            cssClass="e-outline"
+            format="dd/MM/yyyy">
           </ejs-datepicker>
           <div class="error-message" *ngIf="pessoaForm.get('dataNascimento')?.errors?.required && pessoaForm.get('dataNascimento')?.touched">
             Data de nascimento é obrigatória
           </div>
         </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="email">E-mail*</label>
-          <ejs-textbox id="email" 
-            formControlName="email"
-            placeholder="Digite o e-mail"
-            cssClass="e-outline"
-            floatLabelType="Auto">
-          </ejs-textbox>
-          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.required && pessoaForm.get('email')?.touched">
-            E-mail é obrigatório
-          </div>
-          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.email && pessoaForm.get('email')?.touched">
-            E-mail inválido
-          </div>
-        </div>
 
         <div class="form-group">
-          <label for="telefone">Telefone*</label>
-          <ejs-textbox id="telefone" 
-            formControlName="telefone"
-            placeholder="Digite o telefone"
-            cssClass="e-outline"
-            floatLabelType="Auto">
-          </ejs-textbox>
-          <div class="error-message" *ngIf="pessoaForm.get('telefone')?.errors?.required && pessoaForm.get('telefone')?.touched">
-            Telefone é obrigatório
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="pessoaGeneroId">Gênero*</label>
-          <ejs-dropdownlist id="pessoaGeneroId" 
+          <label for="pessoaGeneroId">Gênero *</label>
+          <ejs-dropdownlist
+            id="pessoaGeneroId"
             formControlName="pessoaGeneroId"
             [dataSource]="generos"
             [fields]="{ text: 'descricao', value: 'id' }"
@@ -94,22 +96,64 @@
             Gênero é obrigatório
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Contato -->
+    <div class="form-section">
+      <h2>Contato</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">E-mail *</label>
+          <ejs-textbox
+            id="email"
+            formControlName="email"
+            placeholder="email@exemplo.com"
+            cssClass="e-outline">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.required && pessoaForm.get('email')?.touched">
+            E-mail é obrigatório
+          </div>
+          <div class="error-message" *ngIf="pessoaForm.get('email')?.errors?.email && pessoaForm.get('email')?.touched">
+            E-mail inválido
+          </div>
+        </div>
 
         <div class="form-group">
-          <label for="nickName">Apelido</label>
-          <ejs-textbox id="nickName" 
-            formControlName="nickName"
-            placeholder="Digite o apelido"
-            cssClass="e-outline"
-            floatLabelType="Auto">
+          <label for="telefone">Nº Contato *</label>
+          <ejs-textbox
+            id="telefone"
+            formControlName="telefone"
+            placeholder="(00) 00000-0000"
+            cssClass="e-outline">
           </ejs-textbox>
+          <div class="error-message" *ngIf="pessoaForm.get('telefone')?.errors?.required && pessoaForm.get('telefone')?.touched">
+            Número de contato é obrigatório
+          </div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="pessoaCategoriaId">Categoria*</label>
-          <ejs-dropdownlist id="pessoaCategoriaId" 
+          <label for="nickName">Apelido</label>
+          <ejs-textbox
+            id="nickName"
+            formControlName="nickName"
+            placeholder="Apelido ou nome social"
+            cssClass="e-outline">
+          </ejs-textbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classificação -->
+    <div class="form-section">
+      <h2>Classificação</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pessoaCategoriaId">Categoria *</label>
+          <ejs-dropdownlist
+            id="pessoaCategoriaId"
             formControlName="pessoaCategoriaId"
             [dataSource]="categorias"
             [fields]="{ text: 'descricao', value: 'id' }"
@@ -124,8 +168,9 @@
         </div>
 
         <div class="form-group">
-          <label for="pessoaTipoId">Tipo*</label>
-          <ejs-dropdownlist id="pessoaTipoId" 
+          <label for="pessoaTipoId">Tipo *</label>
+          <ejs-dropdownlist
+            id="pessoaTipoId"
             formControlName="pessoaTipoId"
             [dataSource]="tipos"
             [fields]="{ text: 'descricao', value: 'id' }"
@@ -142,8 +187,9 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="statusId">Status*</label>
-          <ejs-dropdownlist id="statusId" 
+          <label for="statusId">Status *</label>
+          <ejs-dropdownlist
+            id="statusId"
             formControlName="statusId"
             [dataSource]="status"
             [fields]="{ text: 'descricao', value: 'id' }"
@@ -159,10 +205,29 @@
       </div>
     </div>
 
+    <!-- Observações -->
+    <div class="form-section">
+      <h2>Observações</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <ejs-textbox
+            id="observacoes"
+            formControlName="observacoes"
+            placeholder="Observações adicionais..."
+            cssClass="e-outline"
+            multiline="true"
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
     <div class="form-actions">
-      <button ejs-button type="button" cssClass="e-secondary" (click)="irParaListagem()">Cancelar</button>
-      <button ejs-button type="submit" cssClass="e-primary" [disabled]="!pessoaForm.valid || salvando">
-        {{ salvando ? 'Salvando...' : (isEdicao ? 'Atualizar' : 'Salvar') }}
+      <button ejs-button type="button" cssClass="e-danger" (click)="irParaListagem()">Cancelar</button>
+      <button ejs-button type="submit" cssClass="e-success" [disabled]="salvando">
+        {{ salvando ? 'Salvando...' : (isEdicao ? 'Atualizar' : 'Cadastrar') }}
       </button>
     </div>
   </form>

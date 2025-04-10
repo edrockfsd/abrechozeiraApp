@@ -1,0 +1,192 @@
+<div class="cadastro-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>{{ isEditMode ? 'Editar Endereço' : 'Novo Endereço' }}</h1>
+      <button ejs-button cssClass="e-info" (click)="onVoltar()">
+        <span class="e-btn-icon e-list e-icons e-icon-left"></span>
+        Voltar para Listagem
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="enderecoForm" (ngSubmit)="onSubmit()" class="form-grid">
+    <div class="form-section">
+      <h2>Informações do Endereço</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tipoEndereco">Tipo de Endereço *</label>
+          <ejs-dropdownlist
+            id="tipoEndereco"
+            name="tipoEndereco"
+            [dataSource]="tiposEndereco"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            formControlName="tipoEndereco"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="enderecoForm.get('tipoEndereco')?.invalid && enderecoForm.get('tipoEndereco')?.touched">
+            Tipo de endereço é obrigatório
+          </div>
+          <div class="loading-indicator" *ngIf="carregandoTipos">
+            <i class="e-icons e-spinner e-spin"></i>
+            <span>Carregando tipos de endereço...</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cep">CEP</label>
+          <div class="cep-container">
+            <ejs-textbox id="cep" 
+              formControlName="cep"
+              placeholder="Digite o CEP"
+              cssClass="e-outline"
+              floatLabelType="Never"
+              (blur)="buscarCep()">
+            </ejs-textbox>
+            <div class="cep-loading" *ngIf="buscandoCep">
+              <span class="e-spinner-pane">
+                <span class="e-spinner-inner e-spin-material"></span>
+              </span>
+            </div>
+          </div>
+          <div class="error-message" *ngIf="enderecoForm.get('cep')?.errors?.required && enderecoForm.get('cep')?.touched">
+            CEP é obrigatório
+          </div>
+          <div class="error-message" *ngIf="enderecoForm.get('cep')?.errors?.pattern && enderecoForm.get('cep')?.touched">
+            CEP deve conter 8 dígitos numéricos
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="logradouro">Logradouro</label>
+          <ejs-textbox id="logradouro" 
+            formControlName="logradouro"
+            placeholder="Digite o logradouro"
+            cssClass="e-outline"
+            floatLabelType="Never">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="enderecoForm.get('logradouro')?.errors?.required && enderecoForm.get('logradouro')?.touched">
+            Logradouro é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="numero">Número</label>
+          <ejs-textbox id="numero" 
+            formControlName="numero"
+            placeholder="Digite o número"
+            cssClass="e-outline"
+            floatLabelType="Never">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="enderecoForm.get('numero')?.errors?.required && enderecoForm.get('numero')?.touched">
+            Número é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="complemento">Complemento</label>
+          <ejs-textbox id="complemento" 
+            formControlName="complemento"
+            placeholder="Digite o complemento"
+            cssClass="e-outline"
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bairro">Bairro</label>
+          <ejs-textbox id="bairro" 
+            formControlName="bairro"
+            placeholder="Digite o bairro"
+            cssClass="e-outline"
+            floatLabelType="Never">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="enderecoForm.get('bairro')?.errors?.required && enderecoForm.get('bairro')?.touched">
+            Bairro é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cidade">Cidade</label>
+          <ejs-textbox id="cidade" 
+            formControlName="cidade"
+            placeholder="Digite a cidade"
+            cssClass="e-outline"
+            floatLabelType="Never">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="enderecoForm.get('cidade')?.errors?.required && enderecoForm.get('cidade')?.touched">
+            Cidade é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado *</label>
+          <ejs-dropdownlist
+            id="estado"
+            name="estado"
+            [dataSource]="estados"
+            [fields]="{ text: 'nome', value: 'sigla' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            formControlName="estado"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="enderecoForm.get('estado')?.invalid && enderecoForm.get('estado')?.touched">
+            Estado é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pontoReferencia">Ponto de Referência</label>
+          <ejs-textbox
+            id="pontoReferencia"
+            formControlName="pontoReferencia"
+            placeholder="Digite um ponto de referência"
+            cssClass="e-outline">
+          </ejs-textbox>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <ejs-textbox
+            id="observacoes"
+            formControlName="observacoes"
+            placeholder="Observações adicionais..."
+            cssClass="e-outline"
+            multiline="true"
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button ejs-button type="button" cssClass="e-secondary" (click)="onCancelar()">Cancelar</button>
+      <button ejs-button type="submit" cssClass="e-primary" [disabled]="!enderecoForm.valid || salvando">
+        {{ salvando ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Salvar') }}
+      </button>
+    </div>
+  </form>
+</div>

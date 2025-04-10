@@ -1,0 +1,60 @@
+<div class="content-wrapper">
+  <div class="content-header">
+    <h1>Endereços da Pessoa</h1>
+    <div class="header-actions">
+      <button ejs-button cssClass="e-primary" (click)="onNovoEndereco()">
+        <i class="e-icons e-plus"></i>
+        Novo Endereço
+      </button>
+      <button ejs-button cssClass="e-outline" (click)="onVoltar()">
+        <i class="e-icons e-back"></i>
+        Voltar
+      </button>
+    </div>
+  </div>
+
+  <div class="content-body">
+    <div class="grid-container">
+      <div class="loading-indicator" *ngIf="carregando">
+        <i class="e-icons e-spinner e-spin"></i>
+        <span>Carregando endereços...</span>
+      </div>
+      
+      <ejs-grid
+        #grid
+        
+        [dataSource]="data"
+        [allowPaging]="gridSettings.allowPaging"
+        [allowSorting]="gridSettings.allowSorting"
+        [allowFiltering]="gridSettings.allowFiltering"
+        [allowGrouping]="gridSettings.allowGrouping"
+        [pageSettings]="gridSettings.pageSettings"
+        [toolbar]="gridSettings.toolbar"
+        [editSettings]="gridSettings.editSettings"
+        (actionComplete)="onActionComplete($event)"
+        [columns]="gridColumns"
+        height="100%">
+        <e-columns>
+          <e-column field="id" headerText="ID" width="120" isPrimaryKey="true"></e-column>
+          <e-column field="tipoEndereco" headerText="Tipo" width="120"></e-column>
+          <e-column field="cep" headerText="CEP" width="100"></e-column>
+          <e-column field="logradouro" headerText="Logradouro" width="200"></e-column>
+          <e-column field="unidade" headerText="Número" width="100"></e-column>
+          <e-column field="complemento" headerText="Complemento" width="150"></e-column>
+          <e-column field="bairro" headerText="Bairro" width="150"></e-column>
+          <e-column field="localidade" headerText="Cidade" width="150"></e-column>
+          <e-column field="estado" headerText="Estado" width="100"></e-column>
+          <e-column headerText="Ações" width="100">
+            <ng-template #template let-data>
+              <button class="e-btn e-flat e-primary e-edit-btn" (click)="onEditarEndereco({data: data})">
+                <i class="e-icons e-edit"></i>
+              </button>
+            </ng-template>
+          </e-column>
+        </e-columns>
+      </ejs-grid>
+    </div>
+  </div>
+</div>
+
+<ejs-toast #toast [position]="toastSettings.position" [showCloseButton]="toastSettings.showCloseButton" [timeOut]="toastSettings.timeOut"></ejs-toast> 

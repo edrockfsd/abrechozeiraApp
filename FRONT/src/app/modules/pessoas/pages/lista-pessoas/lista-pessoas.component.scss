@@ -79,5 +79,26 @@
   .e-grid {
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .e-gridheader {
+      .e-columnheader {
+        background-color: #f8f9fa;
+      }
+    }
+    
+    button {
+      margin: 0 4px;
+      min-width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+      
+      i {
+        font-size: 16px;
+      }
+    }
   }
 } 

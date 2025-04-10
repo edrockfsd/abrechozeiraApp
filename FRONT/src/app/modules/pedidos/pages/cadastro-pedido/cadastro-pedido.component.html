@@ -1,0 +1,345 @@
+<div class="cadastro-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>{{ isEditMode ? 'Editar Pedido' : 'Novo Pedido' }}</h1>
+      <button ejs-button cssClass="e-info" (click)="onVoltar()">
+        <span class="e-btn-icon e-list e-icons e-icon-left"></span>
+        Voltar para Listagem
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()" class="form-grid">
+    <!-- Cabeçalho do Pedido -->
+    <div class="form-section">
+      <h2>Dados do Pedido</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="numeroPedido">Número do Pedido *</label>
+          <ejs-textbox
+            id="numeroPedido"
+            formControlName="numeroPedido"
+            readonly="true"
+            cssClass="e-outline">
+          </ejs-textbox>
+        </div>
+
+        <div class="form-group">
+          <label for="dataPedido">Data do Pedido *</label>
+          <ejs-datepicker
+            id="dataPedido"
+            formControlName="dataPedido"
+            [placeholder]="'Selecione a data'"
+            cssClass="e-outline"
+            format="dd/MM/yyyy">
+          </ejs-datepicker>
+          <div class="error-message" *ngIf="pedidoForm.get('dataPedido')?.errors?.required && pedidoForm.get('dataPedido')?.touched">
+            Data do pedido é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="statusPedidoId">Status *</label>
+          <ejs-dropdownlist
+            id="statusPedidoId"
+            formControlName="statusPedidoId"
+            [dataSource]="statusPedido"
+            [fields]="{ text: 'descricao', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pedidoForm.get('statusPedidoId')?.errors?.required && pedidoForm.get('statusPedidoId')?.touched">
+            Status é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dados do Cliente -->
+    <div class="form-section">
+      <h2>Dados do Cliente</h2>
+      <div class="loading-indicator" *ngIf="carregandoPessoa">
+        <i class="e-icons e-spinner e-spin"></i>
+        <span>Carregando dados do cliente...</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pessoaId">Cliente *</label>
+          <ejs-dropdownlist
+            #clienteDropdown
+            id="pessoaId"
+            formControlName="pessoaId"
+            [dataSource]="clientes"
+            [fields]="{ text: 'nome', value: 'id' }"
+            [placeholder]="dropDownSettings.placeholder"
+            [allowFiltering]="dropDownSettings.allowFiltering"
+            [filterBarPlaceholder]="dropDownSettings.filterBarPlaceholder"
+            cssClass="e-outline"
+            (change)="onClienteChange($event)">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pedidoForm.get('pessoaId')?.errors?.required && pedidoForm.get('pessoaId')?.touched">
+            Cliente é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nomeCompleto">Nome Completo *</label>
+          <ejs-textbox
+            id="nomeCompleto"
+            formControlName="nomeCompleto"
+            placeholder="Nome completo do cliente"
+            cssClass="e-outline"
+            readonly="true">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pedidoForm.get('nomeCompleto')?.errors?.required && pedidoForm.get('nomeCompleto')?.touched">
+            Nome completo é obrigatório
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cpf">CPF *</label>
+          <ejs-textbox
+            id="cpf"
+            formControlName="cpf"
+            placeholder="000.000.000-00"
+            cssClass="e-outline"
+            readonly="true">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pedidoForm.get('cpf')?.errors?.required && pedidoForm.get('cpf')?.touched">
+            CPF é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">E-mail *</label>
+          <ejs-textbox
+            id="email"
+            formControlName="email"
+            placeholder="email@exemplo.com"
+            cssClass="e-outline"
+            readonly="true">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pedidoForm.get('email')?.errors?.required && pedidoForm.get('email')?.touched">
+            E-mail é obrigatório
+          </div>
+          <div class="error-message" *ngIf="pedidoForm.get('email')?.errors?.email && pedidoForm.get('email')?.touched">
+            E-mail inválido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone *</label>
+          <ejs-textbox
+            id="telefone"
+            formControlName="telefone"
+            placeholder="(00) 00000-0000"
+            cssClass="e-outline"
+            readonly="true">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="pedidoForm.get('telefone')?.errors?.required && pedidoForm.get('telefone')?.touched">
+            Telefone é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Endereço de Entrega -->
+    <div class="form-section" *ngIf="clienteSelecionado">
+      <h2>Endereço de Entrega</h2>
+      <div class="grid-container">
+        <div class="loading-indicator" *ngIf="carregandoEnderecos">
+          <i class="e-icons e-spinner e-spin"></i>
+          <span>Carregando endereços...</span>
+        </div>
+        
+        <ejs-grid
+          #gridEnderecos
+          [dataSource]="enderecos"
+          [allowPaging]="true"
+          [pageSettings]="{ pageSize: 5 }">
+          <e-columns>
+            <e-column width="70" textAlign="Center" headerText="Selecionar">
+              <ng-template #template let-data>
+                <button class="e-btn e-flat e-primary e-radio-btn" 
+                        [class.e-active]="enderecoSelecionado === data.id"
+                        (click)="onEnderecoChange({target: {value: data.id}})"
+                        [title]="'Selecionar endereço de entrega'"
+                        [attr.aria-label]="'Selecionar endereço ' + data.logradouro">
+                  <i class="e-icons" [class.e-check]="enderecoSelecionado === data.id"></i>
+                </button>
+              </ng-template>
+            </e-column>
+            <e-column field="tipoEndereco" headerText="Tipo" width="120"></e-column>
+            <e-column field="cep" headerText="CEP" width="100"></e-column>
+            <e-column field="logradouro" headerText="Logradouro" width="200"></e-column>
+            <e-column field="unidade" headerText="Número" width="100"></e-column>
+            <e-column field="complemento" headerText="Complemento" width="150"></e-column>
+            <e-column field="bairro" headerText="Bairro" width="150"></e-column>
+            <e-column field="localidade" headerText="Cidade" width="150"></e-column>
+            <e-column field="estado" headerText="Estado" width="100"></e-column>
+          </e-columns>
+        </ejs-grid>
+      </div>
+    </div>
+
+    <!-- Produtos -->
+    <div class="form-section">
+      <h2>Produtos</h2>
+      <div class="grid-container">
+        <ejs-grid
+          #gridProdutos
+          [dataSource]="itensPedido"
+          [allowPaging]="false">
+          <e-columns>
+            <e-column field="sequencial" headerText="#" width="50" textAlign="Right"></e-column>
+            <e-column field="produto" headerText="Produto" width="200">
+              <ng-template #template let-data>
+                <ejs-textbox [(value)]="data.produto"></ejs-textbox>
+              </ng-template>
+            </e-column>
+            <e-column field="condicao" headerText="Condição" width="100">
+              <ng-template #template let-data>
+                <ejs-dropdownlist [(value)]="data.condicao" [dataSource]="['Novo', 'Usado']"></ejs-dropdownlist>
+              </ng-template>
+            </e-column>
+            <e-column field="categoria" headerText="Categoria" width="120">
+              <ng-template #template let-data>
+                <ejs-dropdownlist [(value)]="data.categoria" [dataSource]="['Roupas', 'Calçados', 'Acessórios']"></ejs-dropdownlist>
+              </ng-template>
+            </e-column>
+            <e-column field="tamanho" headerText="Tamanho" width="100">
+              <ng-template #template let-data>
+                <ejs-textbox [(value)]="data.tamanho"></ejs-textbox>
+              </ng-template>
+            </e-column>
+            <e-column field="cor" headerText="Cor" width="100">
+              <ng-template #template let-data>
+                <ejs-textbox [(value)]="data.cor"></ejs-textbox>
+              </ng-template>
+            </e-column>
+            <e-column field="quantidade" headerText="Quantidade" width="100">
+              <ng-template #template let-data>
+                <ejs-textbox [(value)]="data.quantidade" (valueChange)="onQuantidadeChange(data)" type="number"></ejs-textbox>
+              </ng-template>
+            </e-column>
+            <e-column field="valorUnitario" headerText="Valor Unit." width="100">
+              <ng-template #template let-data>
+                <ejs-textbox [(value)]="data.valorUnitario" (valueChange)="onValorUnitarioChange(data)" type="number"></ejs-textbox>
+              </ng-template>
+            </e-column>
+            <e-column field="valorSubtotal" headerText="Subtotal" width="100" textAlign="Right"></e-column>
+            <e-column headerText="Ações" width="70">
+              <ng-template #template let-data>
+                <button class="e-btn e-flat e-danger" (click)="onRemoverProduto(data)">
+                  <i class="e-icons e-delete"></i>
+                </button>
+              </ng-template>
+            </e-column>
+          </e-columns>
+        </ejs-grid>
+
+        <div class="grid-footer">
+          <button ejs-button cssClass="e-success" (click)="onAdicionarProduto()">
+            <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+            Adicionar Produto
+          </button>
+
+          <div class="totais">
+            <div class="total-item">
+              <span class="label">Subtotal:</span>
+              <span class="value">{{ pedidoForm.get('valorSubtotal')?.value | currency:'BRL' }}</span>
+            </div>
+            <div class="total-item">
+              <span class="label">Frete:</span>
+              <div class="frete-input">
+                <ejs-textbox
+                  formControlName="valorFrete"
+                  (valueChange)="onFreteChange()"
+                  type="number"
+                  cssClass="e-outline">
+                </ejs-textbox>
+              </div>
+            </div>
+            <div class="total-item total-final">
+              <span class="label">Total:</span>
+              <span class="value">{{ pedidoForm.get('valorTotal')?.value | currency:'BRL' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Método de Pagamento -->
+    <div class="form-section">
+      <h2>Método de Pagamento</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="formaPagamento">Forma de Pagamento *</label>
+          <ejs-dropdownlist
+            id="formaPagamento"
+            formControlName="formaPagamento"
+            [dataSource]="formasPagamento"
+            [fields]="{ text: 'descricao', value: 'descricao' }"
+            [placeholder]="dropDownSettings.placeholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pedidoForm.get('formaPagamento')?.errors?.required && pedidoForm.get('formaPagamento')?.touched">
+            Forma de pagamento é obrigatória
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="parcelas">Parcelas *</label>
+          <ejs-dropdownlist
+            id="parcelas"
+            formControlName="parcelas"
+            [dataSource]="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"
+            [placeholder]="dropDownSettings.placeholder"
+            cssClass="e-outline">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="pedidoForm.get('parcelas')?.errors?.required && pedidoForm.get('parcelas')?.touched">
+            Número de parcelas é obrigatório
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="form-section">
+      <h2>Observações</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <ejs-textbox
+            formControlName="observacao"
+            placeholder="Observações adicionais sobre o pedido..."
+            cssClass="e-outline"
+            multiline="true"
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="form-actions">
+      <button ejs-button type="button" cssClass="e-danger" (click)="onCancelar()">Cancelar</button>
+      <button ejs-button type="button" cssClass="e-info" (click)="onSalvarRascunho()" [disabled]="salvando">
+        {{ salvando ? 'Salvando...' : 'Salvar Rascunho' }}
+      </button>
+      <button ejs-button type="button" cssClass="e-success" (click)="onFinalizarPedido()" [disabled]="salvando">
+        {{ salvando ? 'Finalizando...' : 'Finalizar Pedido' }}
+      </button>
+    </div>
+  </form>
+</div> 

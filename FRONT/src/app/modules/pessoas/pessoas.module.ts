@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { SharedModule } from '../../shared/shared.module';
 import { ListaPessoasComponent } from './pages/lista-pessoas/lista-pessoas.component';
 import { CadastroPessoaComponent } from './pages/cadastro-pessoa/cadastro-pessoa.component';
+import { CadastroEnderecoComponent } from './pages/cadastro-endereco/cadastro-endereco.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { 
@@ -27,27 +28,17 @@ import {
 } from '@syncfusion/ej2-angular-buttons';
 import { DatePickerModule } from '@syncfusion/ej2-angular-calendars';
 
-const routes: Routes = [
-  {
-    path: '',
-    component: ListaPessoasComponent
-  },
-  {
-    path: 'novo',
-    component: CadastroPessoaComponent
-  },
-  {
-    path: 'editar/:id',
-    component: CadastroPessoaComponent
-  }
-];
+import { PESSOAS_ROUTES } from './pessoas.routes';
 
 @NgModule({
+  declarations: [
+    
+  ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule.forChild(routes),
+    RouterModule.forChild(PESSOAS_ROUTES),
     SharedModule,
     GridModule,
     PagerModule,
@@ -57,7 +48,9 @@ const routes: Routes = [
     ButtonModule,
     CheckBoxModule,
     DatePickerModule,
-    ListaPessoasComponent
+    ListaPessoasComponent,
+    CadastroPessoaComponent,
+    CadastroEnderecoComponent
   ],
   providers: [
     FilterService,
@@ -67,4 +60,4 @@ const routes: Routes = [
     ToolbarService
   ]
 })
-export class PessoasModule { } 
+export class PessoasModule { }

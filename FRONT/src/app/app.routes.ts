@@ -25,6 +25,10 @@ export const routes: Routes = [
     loadChildren: () => import('./modules/arremates/arremates.module').then(m => m.ArrematesModule)
   },
   {
+    path: 'pedidos',
+    loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule)
+  },
+  {
     path: '',
     redirectTo: 'produtos',
     pathMatch: 'full'

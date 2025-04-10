@@ -70,6 +70,76 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Arremate");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.Endereco", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bairro")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("CEP")
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<int>("CodigoLocalidadeIBGE")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Complemento")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("DataAlteracao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("Localidade")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Logradouro")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Observacoes")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("PessoaID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoEnderecoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unidade")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<int>("UsuarioModificacaoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PessoaID");
+
+                    b.HasIndex("TipoEnderecoId");
+
+                    b.HasIndex("UsuarioModificacaoId");
+
+                    b.ToTable("Endereco");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.Estoque", b =>
                 {
                     b.Property<int>("Id")
@@ -182,6 +252,10 @@ namespace ABrechozeiraApp.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CPF")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<DateTime?>("DataInclusao")
                         .HasColumnType("datetime(6)");
 
@@ -193,12 +267,14 @@ namespace ABrechozeiraApp.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.Property<string>("NickName")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Observacoes")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PessoaCategoriaId")
                         .HasColumnType("int");
@@ -208,6 +284,9 @@ namespace ABrechozeiraApp.Migrations
 
                     b.Property<int>("PessoaTipoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RG")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -464,6 +543,24 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("ProdutoStatus");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.TipoEndereco", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TipoEndereco");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -580,6 +677,33 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("Live");
 
                     b.Navigation("Produto");
+
+                    b.Navigation("UsuarioModificacao");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.Endereco", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.Pessoa", "Pessoa")
+                        .WithMany()
+                        .HasForeignKey("PessoaID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ABrechozeiraApp.Models.TipoEndereco", "TipoEndereco")
+                        .WithMany()
+                        .HasForeignKey("TipoEnderecoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
+                        .WithMany()
+                        .HasForeignKey("UsuarioModificacaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pessoa");
+
+                    b.Navigation("TipoEndereco");
 
                     b.Navigation("UsuarioModificacao");
                 });

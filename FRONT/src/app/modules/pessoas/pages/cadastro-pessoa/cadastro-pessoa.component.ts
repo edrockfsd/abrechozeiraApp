@@ -74,10 +74,22 @@ export class CadastroPessoaComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (this.toastObj) {
+      this.toastService.setToastComponent(this.toastObj);
+    }
+  }
+
   private criarFormulario(): void {
     this.pessoaForm = this.formBuilder.group({
-      nome: ['', [Validators.required]],
-      dataNascimento: [null, [Validators.required]],
+      id: [null],
+      nome: ['', Validators.required],
+      cpf: ['', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]],
+      rg: ['', Validators.required],
+      dataNascimento: ['', Validators.required],
+      observacoes: [''],
+      usuarioCriacaoId: [null],
+      usuarioModificacaoId: [null],
       email: ['', [Validators.required, Validators.email]],
       telefone: ['', [Validators.required]],
       pessoaGeneroId: [null, [Validators.required]],
@@ -158,7 +170,8 @@ export class CadastroPessoaComponent implements OnInit {
         pessoaGeneroId: Number(this.pessoaForm.value.pessoaGeneroId),
         pessoaCategoriaId: Number(this.pessoaForm.value.pessoaCategoriaId),
         pessoaTipoId: Number(this.pessoaForm.value.pessoaTipoId),
-        statusId: Number(this.pessoaForm.value.statusId)
+        statusId: Number(this.pessoaForm.value.statusId),
+        observacoes: this.pessoaForm.value.observacoes || ''
       };
       console.log('Pessoa a ser salva:', pessoa);
       console.log('isEdicao:', this.isEdicao);
@@ -190,4 +203,4 @@ export class CadastroPessoaComponent implements OnInit {
   irParaListagem(): void {
     this.router.navigate(['/pessoas']);
   }
-} 
+}
