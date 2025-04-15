@@ -133,15 +133,25 @@ namespace ABrechozeiraApp.Controllers
             {
                 var produto = (from prd in _context.Produto
                                join est in _context.Estoque on prd.Id equals est.ProdutoId
+                               join pgr in _context.ProdutoGrupo on prd.GrupoID equals pgr.Id
                                where est.CodigoEstoque == codigoEstoque
-                               select prd).FirstOrDefault();
+                               select new { 
+                                   prd.Id,
+                                   prd.Descricao,
+                                   prd.Condicao,
+                                   prd.PrecoVenda,
+                                   prd.Marca,
+                                   prd.Tamanho,
+                                   Categoria = pgr.Descricao
+                               
+                               }).FirstOrDefault();
 
                 if (produto == null)
                 {
                     return new Produto() { Descricao = "Produto não encontrado", Id = 0 };
                 }
 
-                return produto;
+                return Ok(produto);
             }
             catch (Exception)
             {

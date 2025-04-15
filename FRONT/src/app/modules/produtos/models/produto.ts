@@ -14,6 +14,8 @@ export interface Produto {
     generoID: number;
     perfilID: number;
     produtoGrupoID: number;
+    condicao: string;
+    categoria: string;
 }
 
 // Enums para os status possíveis

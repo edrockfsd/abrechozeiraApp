@@ -178,5 +178,25 @@ namespace ABrechozeiraApp.Controllers
 
             return Ok(query.ToList());
         }
-    }
+
+        /// <summary>
+        /// Retorna os dados de ID e Descrição da live
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetClientesCombo")]
+        public IActionResult GetClientesCombo()
+        {
+            var clientes = from cli in _context.Pessoa
+                           where cli.PessoaCategoriaId == 2
+                           select new
+                           {
+                               cli.Id,
+                               cli.Nome
+                           };
+
+
+
+            return Ok(clientes.ToList());
+        }
+    }    
 }

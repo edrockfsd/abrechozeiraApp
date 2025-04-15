@@ -66,7 +66,12 @@ export class PessoaService {
     return this.http.get<any[]>(this.apiUrlStatus);
   }
 
+  listarClientesCombo(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/GetClientesCombo`);
+  }
+
   listarGrid(): Observable<PessoaGrid[]> {
     return this.http.get<PessoaGrid[]>(`${this.apiUrl}/GetPessoasGrid`);
-  }
+  } 
+  
 } 

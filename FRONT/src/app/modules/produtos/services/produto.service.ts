@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Produto, ProdutoFiltro } from '../models/produto';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProdutoService {
-  private apiUrl = 'https://localhost:7194/api/Produtos';
+  private apiUrl = `${environment.apiUrl}/Produtos`;
 
   constructor(private http: HttpClient) { }
 
@@ -95,5 +96,9 @@ export class ProdutoService {
 
   buscarPorGenero(generoId: number): Observable<Produto[]> {
     return this.http.get<Produto[]>(`${this.apiUrl}/genero/${generoId}`);
+  }
+
+  buscarPorCodigoEstoque(codigoEstoque: string): Observable<Produto> {
+    return this.http.get<Produto>(`${this.apiUrl}/GetProdutoByCodigoEstoque?codigoEstoque=${codigoEstoque}`);
   }
 } 

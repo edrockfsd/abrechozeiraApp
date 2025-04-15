@@ -6,7 +6,7 @@ export interface Pedido {
   pessoaId: number;
   enderecoId: number;
   observacao?: string;
-  formaPagamento: string;
+  formaPagamento: number;
   parcelas: number;
   valorSubtotal: number;
   valorFrete: number;
@@ -16,15 +16,12 @@ export interface Pedido {
 }
 
 export interface ItemPedido {
-  id?: number;
-  pedidoId?: number;
   sequencial: number;
   produtoId: number;
   produto: string;
   condicao: string;
   categoria: string;
   tamanho: string;
-  cor: string;
   quantidade: number;
   valorUnitario: number;
   valorSubtotal: number;

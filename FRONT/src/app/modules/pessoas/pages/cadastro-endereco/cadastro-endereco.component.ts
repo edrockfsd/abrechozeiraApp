@@ -130,7 +130,6 @@ export class CadastroEnderecoComponent implements OnInit {
       bairro: ['', Validators.required],
       cidade: ['', Validators.required],
       estado: ['', Validators.required],
-      pontoReferencia: [''],
       ibge: [''],
       observacoes: ['']
     });

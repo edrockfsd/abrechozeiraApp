@@ -50,4 +50,7 @@ public partial class Produto
 
     public ProdutoPerfil? ProdutoPerfil { get; set; }
 
+    // U -> Usado | N -> Novo
+    public char? Condicao { get; set; } 
+
 }

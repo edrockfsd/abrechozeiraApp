@@ -411,6 +411,9 @@ namespace ABrechozeiraApp.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Condicao")
+                        .HasColumnType("varchar(1)");
+
                     b.Property<DateTime?>("DataAlteracao")
                         .HasColumnType("datetime(6)");
 
