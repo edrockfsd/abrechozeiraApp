@@ -63,7 +63,9 @@
                   id="codigoProduto"
                   placeholder="Digite o código do produto"
                   cssClass="e-outline"
-                  floatLabelType="Never">
+                  floatLabelType="Never"
+                  [(value)]="codigoProduto"
+                  (change)="onCodigoProdutoChange($event)">
                 </ejs-textbox>
               </div>
 
@@ -74,7 +76,16 @@
                   placeholder="Descrição do produto"
                   cssClass="e-outline"
                   floatLabelType="Never"
-                  [enabled]="false">
+                  [enabled]="false"
+                  [(value)]="descricaoProduto">
+                  <ng-template #headerTemplate>
+                    <div class="loading-container" *ngIf="carregandoProduto">
+                      <span class="e-spinner-pane">
+                        <span class="e-spinner-inner"></span>
+                      </span>
+                      <span>Buscando produto...</span>
+                    </div>
+                  </ng-template>
                 </ejs-textbox>
               </div>
 
@@ -167,10 +178,6 @@
           </div>
         </div>
 
-
-        
-
-
         <div class="form-row totalizadores">
           <div class="form-group">
             <label for="descontoGeral">Desconto Geral %</label>
@@ -224,7 +231,16 @@
               [fields]="{ text: 'descricao', value: 'id' }"
               placeholder="Selecione a condição de pagamento"
               [showClearButton]="true"
+              [enabled]="!carregandoCondicoesPagamento"              
               cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoCondicoesPagamento">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando condições de pagamento...</span>
+                </div>
+              </ng-template>
             </ejs-dropdownlist>
             <small class="text-danger" *ngIf="pedidoForm.get('condicaoPagamento')?.touched && pedidoForm.get('condicaoPagamento')?.errors?.['required']">
               Condição de pagamento é obrigatória
@@ -240,7 +256,16 @@
               [fields]="{ text: 'descricao', value: 'id' }"
               placeholder="Selecione a forma de pagamento"
               [showClearButton]="true"
+              [enabled]="!carregandoFormasPagamento"
               cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoFormasPagamento">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando formas de pagamento...</span>
+                </div>
+              </ng-template>
             </ejs-dropdownlist>
             <small class="text-danger" *ngIf="pedidoForm.get('formaPagamento')?.touched && pedidoForm.get('formaPagamento')?.errors?.['required']">
               Forma de pagamento é obrigatória
@@ -270,6 +295,58 @@
                 <e-column field="estado" headerText="Estado" width="100"></e-column>
               </e-columns>
             </ejs-grid>
+          </div>
+        </div>
+
+        <!-- Campo de Observações -->
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="observacao">Observações</label>
+            <ejs-textbox
+              id="observacao"
+              formControlName="observacao"
+              placeholder="Digite as observações do pedido"
+              cssClass="e-outline"
+              multiline="true"
+              floatLabelType="Never">
+            </ejs-textbox>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-row botoes-acao">
+          <div class="form-group">
+            <button ejs-button cssClass="e-primary" (click)="onSalvar()">
+              <span class="e-btn-icon e-save e-icons e-icon-left"></span>
+              Salvar
+            </button>
+          </div>
+
+          <div class="form-group">
+            <button ejs-button cssClass="e-warning" (click)="onCancelar()">              
+              Cancelar
+            </button>
+          </div>
+
+          <div class="form-group">
+            <button ejs-button cssClass="e-info" (click)="onGerarNFe()">
+              <span class="e-btn-icon e-file e-icons e-icon-left"></span>
+              Gerar NFe
+            </button>
+          </div>
+
+          <div class="form-group">
+            <button ejs-button cssClass="e-info" (click)="onGerarNFCe()">
+              <span class="e-btn-icon e-file e-icons e-icon-left"></span>
+              Gerar NFCe
+            </button>
+          </div>
+
+          <div class="form-group">
+            <button ejs-button cssClass="e-success" (click)="onImprimir()">
+              <span class="e-btn-icon e-print e-icons e-icon-left"></span>
+              Imprimir
+            </button>
           </div>
         </div>
       </div>

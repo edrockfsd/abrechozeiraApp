@@ -53,4 +53,13 @@ public partial class AbrechozeiraContext : DbContext
     
     public DbSet<ABrechozeiraApp.Models.TipoEndereco> TipoEndereco { get; set; } = default!;
 
+    public DbSet<ABrechozeiraApp.Models.FormaPagamento> FormaPagamento { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.CondicaoPagamento> CondicaoPagamento { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.PedidoStatus> PedidoStatus { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.Pedido> Pedido { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.PedidoProduto> PedidoProduto { get; set; } = default!;
 }

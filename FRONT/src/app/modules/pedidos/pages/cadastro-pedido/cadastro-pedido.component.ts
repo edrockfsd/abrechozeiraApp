@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 import { GridModule } from '@syncfusion/ej2-angular-grids';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
@@ -11,6 +12,10 @@ import { ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { NumericTextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { PessoaService } from '../../../pessoas/services/pessoa.service';
 import { EnderecoService } from '../../../pessoas/services/endereco.service';
+import { CondicaoPagamentoService, CondicaoPagamento } from '../../services/condicao-pagamento.service';
+import { FormaPagamentoService, FormaPagamento } from '../../services/forma-pagamento.service';
+import { EstoqueService, ProdutoEstoque } from '../../services/estoque.service';
+
 interface Produto {
   id: number;
   codigo: string;
@@ -44,6 +49,7 @@ interface Endereco {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    HttpClientModule,
     GridModule,
     ButtonModule,
     TextBoxModule,
@@ -58,21 +64,28 @@ export class CadastroPedidoComponent implements OnInit {
   public clientes: any[] = [];
   public carregandoClientes = false;
   public codigoProduto: string = '';
+  public descricaoProduto: string = '';
   public quantidade: number = 1;
   public percentualDesconto: number = 0;
   public valorDesconto: number = 0;
   public valorUnitario: number = 0;
   public produtos: Produto[] = [];
-  public condicoesPagamento: any[] = [];
-  public formasPagamento: any[] = [];
+  public condicoesPagamento: CondicaoPagamento[] = [];
+  public formasPagamento: FormaPagamento[] = [];
   public enderecos: Endereco[] = [];
+  public carregandoCondicoesPagamento = false;
+  public carregandoFormasPagamento = false;
+  public carregandoProduto = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private pessoaService: PessoaService,
-    private enderecoService: EnderecoService
+    private enderecoService: EnderecoService,
+    private condicaoPagamentoService: CondicaoPagamentoService,
+    private formaPagamentoService: FormaPagamentoService,
+    private estoqueService: EstoqueService
   ) {}
 
   ngOnInit(): void {
@@ -206,21 +219,86 @@ export class CadastroPedidoComponent implements OnInit {
   }
 
   private carregarCondicoesPagamento(): void {
-    // TODO: Implementar chamada à API quando estiver disponível
-    this.condicoesPagamento = [
-      { id: 1, descricao: 'À Vista' },
-      { id: 2, descricao: '30 Dias' },
-      { id: 3, descricao: '30/60 Dias' }
-    ];
+    this.carregandoCondicoesPagamento = true;
+    console.log('Iniciando carregamento de condições de pagamento...');
+    this.condicaoPagamentoService.listar().subscribe({
+      next: (condicoes) => {
+        console.log('Condições de pagamento carregadas:', condicoes);
+        this.condicoesPagamento = condicoes;
+        this.carregandoCondicoesPagamento = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar condições de pagamento:', error);
+        this.carregandoCondicoesPagamento = false;
+      }
+    });
   }
 
   private carregarFormasPagamento(): void {
-    // TODO: Implementar chamada à API quando estiver disponível
-    this.formasPagamento = [
-      { id: 1, descricao: 'Dinheiro' },
-      { id: 2, descricao: 'Cartão de Crédito' },
-      { id: 3, descricao: 'Cartão de Débito' },
-      { id: 4, descricao: 'PIX' }
-    ];
+    this.carregandoFormasPagamento = true;
+    console.log('Iniciando carregamento de formas de pagamento...');
+    this.formaPagamentoService.listar().subscribe({
+      next: (formas) => {
+        console.log('Formas de pagamento carregadas:', formas);
+        this.formasPagamento = formas;
+        this.carregandoFormasPagamento = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar formas de pagamento:', error);
+        this.carregandoFormasPagamento = false;
+      }
+    });
+  }
+
+  onSalvar(): void {
+    if (this.pedidoForm.valid) {
+      console.log('Salvando pedido:', this.pedidoForm.value);
+      // TODO: Implementar chamada à API
+    } else {
+      this.pedidoForm.markAllAsTouched();
+    }
+  }
+
+  onCancelar(): void {
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  onGerarNFe(): void {
+    console.log('Gerando NFe...');
+    // TODO: Implementar chamada à API
+  }
+
+  onGerarNFCe(): void {
+    console.log('Gerando NFCe...');
+    // TODO: Implementar chamada à API
+  }
+
+  onImprimir(): void {
+    console.log('Imprimindo pedido...');
+    // TODO: Implementar chamada à API
+  }
+
+  onCodigoProdutoChange(event: any): void {
+    const codigo = event.value;
+    if (codigo && codigo.length > 0) {
+      this.carregandoProduto = true;
+      this.estoqueService.buscarPorCodigo(codigo).subscribe({
+        next: (produto) => {
+          console.log('Produto encontrado:', produto);
+          this.descricaoProduto = produto.descricao;
+          this.valorUnitario = produto.precoVenda;
+          this.carregandoProduto = false;
+        },
+        error: (error) => {
+          console.error('Erro ao buscar produto:', error);
+          this.descricaoProduto = '';
+          this.valorUnitario = 0;
+          this.carregandoProduto = false;
+        }
+      });
+    } else {
+      this.descricaoProduto = '';
+      this.valorUnitario = 0;
+    }
   }
 } 

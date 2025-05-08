@@ -41,6 +41,27 @@
         &:last-child {
           margin-bottom: 0;
         }
+
+        &.botoes-acao {
+          justify-content: flex-start;
+          margin-top: 30px;
+          border-top: 1px solid #eee;
+          padding-top: 20px;
+
+          .form-group {
+            flex: 0 0 auto;
+
+            button {
+              min-width: 150px;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 36px;
+              padding: 0 15px;
+            }
+          }
+        }
       }
 
       .form-group {
@@ -104,6 +125,29 @@
     color: #dc3545;
     font-size: 12px;
     margin-top: 4px;
+  }
+
+  .loading-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    color: #666;
+
+    .e-spinner-pane {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   }
 
   // Estilos para o grid de endereços
