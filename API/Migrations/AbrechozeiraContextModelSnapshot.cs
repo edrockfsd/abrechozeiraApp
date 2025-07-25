@@ -70,6 +70,37 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Arremate");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.ComentarioLive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CommentText")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CommentTimestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long?>("LiveSessionID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ComentarioLive");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.CondicaoPagamento", b =>
                 {
                     b.Property<int>("Id")
@@ -258,6 +289,33 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Live");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.LiveSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("LiveVideoId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LiveSession");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.NivelAcesso", b =>
                 {
                     b.Property<int>("Id")
@@ -305,10 +363,10 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("ClienteID")
                         .HasColumnType("int");
 
-                    b.Property<int>("CondicaoPagamentoID")
+                    b.Property<int?>("CondicaoPagamentoID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DataAlteracao")
+                    b.Property<DateTime>("DataAlteracao")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("DataLancamento")
@@ -317,10 +375,10 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<decimal?>("DescontoPorcentagem")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<int>("EnderecoEntregaID")
+                    b.Property<int?>("EnderecoEntregaID")
                         .HasColumnType("int");
 
-                    b.Property<int>("FormaPagamentoID")
+                    b.Property<int?>("FormaPagamentoID")
                         .HasColumnType("int");
 
                     b.Property<string>("Observacoes")
@@ -351,6 +409,9 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("FormaPagamentoID");
 
+                    b.HasIndex("PedidoCodigo")
+                        .IsUnique();
+
                     b.HasIndex("PedidoStatusID");
 
                     b.HasIndex("UsuarioModificacaoId");
@@ -366,7 +427,7 @@ namespace ABrechozeiraApp.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("DataAlteracao")
+                    b.Property<DateTime>("DataAlteracao")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("DescontoValor")
@@ -952,21 +1013,15 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasOne("ABrechozeiraApp.Models.CondicaoPagamento", "CondicaoPagamento")
                         .WithMany()
-                        .HasForeignKey("CondicaoPagamentoID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CondicaoPagamentoID");
 
                     b.HasOne("ABrechozeiraApp.Models.Endereco", "EnderecoEntrega")
                         .WithMany()
-                        .HasForeignKey("EnderecoEntregaID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EnderecoEntregaID");
 
                     b.HasOne("ABrechozeiraApp.Models.FormaPagamento", "FormaPagamento")
                         .WithMany()
-                        .HasForeignKey("FormaPagamentoID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FormaPagamentoID");
 
                     b.HasOne("ABrechozeiraApp.Models.PedidoStatus", "PedidoStatus")
                         .WithMany()

@@ -1,4 +1,5 @@
 <div class="cadastro-container">
+  <ejs-toast #toast [position]="{ X: 'Right', Y: 'Top' }"></ejs-toast>
   <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
     <div class="form-grid">
       <div class="form-section">
@@ -34,6 +35,31 @@
               cssClass="e-outline">
             </ejs-textbox>
           </div>
+
+          <div class="form-group">
+            <label for="statusPedidoId">Status *</label>
+            <ejs-dropdownlist
+              id="statusPedidoId"
+              formControlName="statusPedidoId"
+              [dataSource]="statusPedido"
+              [fields]="{ text: 'descricao', value: 'id' }"
+              placeholder="Selecione o status"
+              [showClearButton]="true"
+              [enabled]="!carregandoStatus"
+              cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoStatus">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando status...</span>
+                </div>
+              </ng-template>
+            </ejs-dropdownlist>
+            <small class="text-danger" *ngIf="pedidoForm.get('statusPedidoId')?.touched && pedidoForm.get('statusPedidoId')?.errors?.['required']">
+              Status é obrigatório
+            </small>
+          </div>
         </div>
 
         <div class="form-row">
@@ -58,14 +84,15 @@
           <div class="form-group">
             <div class="codigo-produto-container">
               <div class="form-group">
-                <label for="codigoProduto">Cd Produto</label>
+                <label for="codigoEstoque">Cd Estoque</label>
                 <ejs-textbox
-                  id="codigoProduto"
-                  placeholder="Digite o código do produto"
+                  id="codigoEstoque"
+                  placeholder="Digite o código de estoque"
                   cssClass="e-outline"
                   floatLabelType="Never"
-                  [(value)]="codigoProduto"
-                  (change)="onCodigoProdutoChange($event)">
+                  [(value)]="codigoEstoque"
+                  (change)="onCodigoEstoqueChange($event)"
+                  [enabled]="!camposBloqueados">
                 </ejs-textbox>
               </div>
 
@@ -76,7 +103,7 @@
                   placeholder="Descrição do produto"
                   cssClass="e-outline"
                   floatLabelType="Never"
-                  [enabled]="false"
+                  [enabled]="!camposBloqueados"
                   [(value)]="descricaoProduto">
                   <ng-template #headerTemplate>
                     <div class="loading-container" *ngIf="carregandoProduto">
@@ -99,7 +126,8 @@
                   format="N0"
                   min="1"
                   showSpinButton="false"
-                  [(value)]="quantidade">
+                  [(value)]="quantidade"
+                  [enabled]="!camposBloqueados">
                 </ejs-numerictextbox>
               </div>
 
@@ -114,7 +142,8 @@
                   min="0"
                   max="100"
                   showSpinButton="false"
-                  [(value)]="percentualDesconto">
+                  [(value)]="percentualDesconto"
+                  [enabled]="!camposBloqueados">
                 </ejs-numerictextbox>
               </div>
 
@@ -128,7 +157,8 @@
                   format="C2"
                   min="0"
                   showSpinButton="false"
-                  [(value)]="valorDesconto">
+                  [(value)]="valorDesconto"
+                  [enabled]="!camposBloqueados">
                 </ejs-numerictextbox>
               </div>
 
@@ -142,14 +172,13 @@
                   format="C2"
                   min="0"
                   showSpinButton="false"
-                  [(value)]="valorUnitario">
+                  [(value)]="valorUnitario"
+                  [enabled]="!camposBloqueados">
                 </ejs-numerictextbox>
               </div>
 
               <div class="form-group">
-                <button ejs-button cssClass="e-primary" (click)="onAdicionarProduto()">                 
-                  Adicionar
-                </button>
+                <button ejs-button cssClass="e-primary" (click)="onAdicionarProduto()" [disabled]="camposBloqueados">Adicionar</button>
               </div>
             </div>
           </div>
@@ -165,9 +194,12 @@
               [allowSorting]="true"
               [allowFiltering]="true"
               [toolbar]="['Delete']"
-              [editSettings]="{ allowDeleting: true }">
+              [editSettings]="{ allowDeleting: true }"
+              (actionComplete)="actionComplete($event)">
+              
               <e-columns>
-                <e-column field="codigo" headerText="Código" width="120"></e-column>
+                <e-column field="id" headerText="ID" [visible]="false" isPrimaryKey="true"></e-column>
+                <e-column field="codigoEstoque" headerText="Código" width="120"></e-column>
                 <e-column field="descricao" headerText="Descrição" width="200"></e-column>
                 <e-column field="quantidade" headerText="Qtd" width="100" format="N0"></e-column>
                 <e-column field="preco" headerText="Preço" width="120" format="C2"></e-column>
@@ -231,7 +263,7 @@
               [fields]="{ text: 'descricao', value: 'id' }"
               placeholder="Selecione a condição de pagamento"
               [showClearButton]="true"
-              [enabled]="!carregandoCondicoesPagamento"              
+              [enabled]="!carregandoCondicoesPagamento && !camposBloqueados"
               cssClass="e-outline">
               <ng-template #headerTemplate>
                 <div class="loading-container" *ngIf="carregandoCondicoesPagamento">
@@ -256,7 +288,7 @@
               [fields]="{ text: 'descricao', value: 'id' }"
               placeholder="Selecione a forma de pagamento"
               [showClearButton]="true"
-              [enabled]="!carregandoFormasPagamento"
+              [enabled]="!carregandoFormasPagamento && !camposBloqueados"
               cssClass="e-outline">
               <ng-template #headerTemplate>
                 <div class="loading-container" *ngIf="carregandoFormasPagamento">
@@ -308,46 +340,27 @@
               placeholder="Digite as observações do pedido"
               cssClass="e-outline"
               multiline="true"
-              floatLabelType="Never">
+              floatLabelType="Never"
+              [enabled]="!camposBloqueados">
             </ejs-textbox>
           </div>
         </div>
 
         <!-- Botões de Ação -->
-        <div class="form-row botoes-acao">
-          <div class="form-group">
-            <button ejs-button cssClass="e-primary" (click)="onSalvar()">
-              <span class="e-btn-icon e-save e-icons e-icon-left"></span>
-              Salvar
-            </button>
-          </div>
-
-          <div class="form-group">
-            <button ejs-button cssClass="e-warning" (click)="onCancelar()">              
-              Cancelar
-            </button>
-          </div>
-
-          <div class="form-group">
-            <button ejs-button cssClass="e-info" (click)="onGerarNFe()">
-              <span class="e-btn-icon e-file e-icons e-icon-left"></span>
-              Gerar NFe
-            </button>
-          </div>
-
-          <div class="form-group">
-            <button ejs-button cssClass="e-info" (click)="onGerarNFCe()">
-              <span class="e-btn-icon e-file e-icons e-icon-left"></span>
-              Gerar NFCe
-            </button>
-          </div>
-
-          <div class="form-group">
-            <button ejs-button cssClass="e-success" (click)="onImprimir()">
-              <span class="e-btn-icon e-print e-icons e-icon-left"></span>
-              Imprimir
-            </button>
-          </div>
+        <div class="form-actions">
+          <button ejs-button cssClass="e-primary" (click)="onSalvar()" [disabled]="salvando">
+            <span *ngIf="!salvando">Salvar</span>
+            <span *ngIf="salvando">
+              <span class="e-spinner-pane">
+                <span class="e-spinner-inner"></span>
+              </span>
+              Salvando...
+            </span>
+          </button>
+          <button ejs-button cssClass="e-outline" (click)="onCancelar()" [disabled]="salvando">Cancelar</button>
+          <button ejs-button cssClass="e-outline" (click)="onGerarNFe()" [disabled]="salvando">Gerar NFe</button>
+          <button ejs-button cssClass="e-outline" (click)="onGerarNFCe()" [disabled]="salvando">Gerar NFCe</button>
+          <button ejs-button cssClass="e-outline" (click)="onImprimir()" [disabled]="salvando">Imprimir</button>
         </div>
       </div>
     </div>

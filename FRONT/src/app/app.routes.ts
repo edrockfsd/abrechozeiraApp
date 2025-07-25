@@ -29,6 +29,10 @@ export const routes: Routes = [
     loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule)
   },
   {
+    path: 'live-sessions',
+    loadChildren: () => import('./modules/live-sessions/live-sessions.module').then(m => m.LiveSessionsModule)
+  },
+  {
     path: '',
     redirectTo: 'produtos',
     pathMatch: 'full'

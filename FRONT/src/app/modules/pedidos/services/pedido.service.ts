@@ -18,6 +18,8 @@ export interface Pedido {
   valorSubtotal: number;
   valorFrete: number;
   itens: any[];
+  dataLancamento?: string;
+  DataLancamento?: string;
 }
 
 @Injectable({
@@ -29,10 +31,12 @@ export class PedidoService {
   constructor(private http: HttpClient) { }
 
   criar(pedido: Pedido): Observable<Pedido> {
+    console.log('pedido', pedido);
     return this.http.post<Pedido>(this.apiUrl, pedido);
   }
 
   atualizar(id: number, pedido: Pedido): Observable<Pedido> {
+    console.log('Atualizando pedido:', pedido);
     return this.http.put<Pedido>(`${this.apiUrl}/${id}`, pedido);
   }
 
@@ -46,5 +50,9 @@ export class PedidoService {
 
   excluir(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  gerarNovoPedidoCodigo(): Observable<string> {
+    return this.http.get<string>(`${environment.apiUrl}/Pedido/GerarNovoPedidoCodigo`);
   }
 } 

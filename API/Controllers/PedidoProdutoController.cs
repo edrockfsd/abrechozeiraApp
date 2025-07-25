@@ -106,5 +106,30 @@ namespace ABrechozeiraApp.Controllers
             return _context.PedidoProduto.Any(e => e.Id == id);
         }
 
+
+        [HttpGet("GetDadosPedidoProdutoGrid")]
+        public IActionResult GetDadosPedidoProdutoGrid(int pedidoId)
+        {
+            // LINQ to SQL query joining Pessoa with PessoaGenero, PessoaCategoria, and PessoaStatus
+            var query = from est in _context.Estoque
+                        join prd in _context.Produto on est.ProdutoId equals prd.Id    
+                        join ppr in _context.PedidoProduto on prd.Id equals ppr.ProdutoId
+                        join ped in _context.Pedido on ppr.PedidoId equals ped.Id
+                        where ped.Id == pedidoId
+                        select new
+                        {
+                            ppr.Id,
+                            PedidoId = ped.Id,
+                            est.ProdutoId,
+                            est.CodigoEstoque,
+                            prd.Descricao,
+                            ppr.Quantidade,
+                            ppr.DescontoValor,
+                            prd.PrecoVenda,
+                            ppr.ValorFinalProduto
+                        };
+
+            return Ok(query.ToList());
+        }
     }
 }

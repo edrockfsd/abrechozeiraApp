@@ -24,6 +24,7 @@
     "@syncfusion/ej2-angular-dropdowns": "^28.2.9",
     "@syncfusion/ej2-angular-grids": "^28.2.9",
     "@syncfusion/ej2-angular-inputs": "^28.2.9",
+    "@syncfusion/ej2-angular-layouts": "^30.1.37",
     "@syncfusion/ej2-angular-navigations": "^28.2.6",
     "@syncfusion/ej2-angular-notifications": "^28.2.3",
     "rxjs": "~7.8.0",

@@ -25,7 +25,7 @@ public partial class PedidoProduto
 
     public decimal? ValorFinalProduto { get; set; } = 0;
 
-    public DateTime? DataAlteracao { get; set; }
+    public DateTime DataAlteracao { get; set; }
 
     [ForeignKey("Usuario")]
     public int UsuarioModificacaoId { get; set; }

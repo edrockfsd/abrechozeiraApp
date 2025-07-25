@@ -5,10 +5,12 @@ import { environment } from '../../../../environments/environment';
 
 export interface ProdutoEstoque {
   id: number;
+  produtoId: string;
   codigoEstoque: string;
   descricao: string;
   precoVenda: number;
   quantidadeDisponivel: number;
+  localizacao: string;
 }
 
 @Injectable({

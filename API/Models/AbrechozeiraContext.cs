@@ -62,4 +62,8 @@ public partial class AbrechozeiraContext : DbContext
     public DbSet<ABrechozeiraApp.Models.Pedido> Pedido { get; set; } = default!;
 
     public DbSet<ABrechozeiraApp.Models.PedidoProduto> PedidoProduto { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.ComentarioLive> ComentarioLive { get; set; } = default!;
+
+    public DbSet<ABrechozeiraApp.Models.LiveSession> LiveSession { get; set; } = default!;
 }

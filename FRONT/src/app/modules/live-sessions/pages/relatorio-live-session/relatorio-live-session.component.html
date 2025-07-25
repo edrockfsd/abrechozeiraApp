@@ -1,0 +1,19 @@
+<div class="relatorio-container">
+  <div class="live-info">
+    <h2>Relatório da Live</h2>
+    <div class="info-row">
+      <span><strong>Nome:</strong> setterbrazil</span>
+      <span><strong>Data:</strong> 25/06/2025</span>
+      <span><strong>Status:</strong> Finalizada</span>
+    </div>
+  </div>
+  <div class="comments-list">
+    <ejs-grid [dataSource]="[]">
+      <e-columns>
+        <e-column field="username" headerText="Usuário" width="200"></e-column>
+        <e-column field="commentText" headerText="Comentário" width="400"></e-column>
+        <e-column field="commentTimestamp" headerText="Data/Hora" width="180"></e-column>
+      </e-columns>
+    </ejs-grid>
+  </div>
+</div> 

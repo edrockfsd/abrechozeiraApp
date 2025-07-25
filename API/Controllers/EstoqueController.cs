@@ -141,6 +141,7 @@ namespace ABrechozeiraApp.Controllers
                                est.ProdutoId,
                                est.CodigoEstoque,
                                prd.Descricao,
+                               prd.PrecoVenda,
                                est.DataAlteracao,
                                pes.Nome
                            };

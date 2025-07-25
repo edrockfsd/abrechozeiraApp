@@ -84,6 +84,6 @@ export class ListaPedidosComponent implements OnInit {
   }
 
   onEditar(pedido: any): void {
-    this.router.navigate(['/pedidos/editar', pedido.pessoaId, pedido.id]);
+    this.router.navigate(['/pedidos/editar', pedido.id]);
   }
 } 

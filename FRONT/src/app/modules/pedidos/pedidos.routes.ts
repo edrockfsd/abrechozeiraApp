@@ -16,7 +16,7 @@ export const PEDIDOS_ROUTES: Routes = [
     component: CadastroPedidoComponent
   },
   {
-    path: 'editar/:pessoaId/:id',
+    path: 'editar/:id',
     component: CadastroPedidoComponent
   }
 ]; 

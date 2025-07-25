@@ -106,5 +106,29 @@ namespace ABrechozeiraApp.Controllers
             return _context.Pedido.Any(e => e.Id == id);
         }
 
+        /// <summary>
+        /// Obtém o último valor do campo PedidoCodigo (valor mais alto) da tabela Pedido.
+        /// </summary>
+        /// <returns>O último valor de PedidoCodigo ou 0 se não existirem registros.</returns>
+        [HttpGet("ObterUltimoPedidoCodigo")]
+        public int ObterUltimoPedidoCodigo()
+        {
+            // Busca o valor máximo do campo PedidoCodigo
+            var ultimoCodigo = _context.Pedido
+                .Max(p => p.PedidoCodigo);
+
+            return ultimoCodigo;
+        }
+
+        /// <summary>
+        /// Gera um novo código de pedido com base no último código existente.
+        /// </summary>
+        /// <returns>O novo código de pedido.</returns>
+        [HttpGet("GerarNovoPedidoCodigo")]
+        public int GerarNovoPedidoCodigo()
+        {
+            var ultimoCodigo = ObterUltimoPedidoCodigo();
+            return ultimoCodigo + 1;
+        }
     }
 }

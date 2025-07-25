@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d8e16f5a31727a737af60fe4e28a1567a8716037")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e579261a8bb123cca34b597da5a8f3b7af6de7c")]
 [assembly: System.Reflection.AssemblyProductAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ABrechozeiraApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
