@@ -27,7 +27,10 @@
       [allowPaging]="true"
       [pageSettings]="gridSettings.pageSettings"
       [toolbar]="gridSettings.toolbar"
-      [searchSettings]="gridSettings.searchSettings">
+      [searchSettings]="gridSettings.searchSettings"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      >
       <e-columns>
         <e-column 
           *ngFor="let col of gridSettings.columns"

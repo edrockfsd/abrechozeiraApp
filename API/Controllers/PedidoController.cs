@@ -130,5 +130,26 @@ namespace ABrechozeiraApp.Controllers
             var ultimoCodigo = ObterUltimoPedidoCodigo();
             return ultimoCodigo + 1;
         }
+
+        [HttpGet("GetListaPedido")]
+        public IActionResult GetListaPedido()
+        {
+            var pedidos = from ped in _context.Pedido
+                           join pst in _context.PedidoStatus on ped.PedidoStatusID equals pst.Id
+                           join pes in _context.Pessoa on ped.ClienteID equals pes.Id  
+                           orderby ped.Id descending
+                           select new
+                           {
+                               ped.Id,
+                               ClienteNome = pes.Nome,
+                               ClienteNick = pes.NickName,
+                               DataPedido = ped.DataLancamento.ToString("dd/MM/yyyy"),
+                               ValorTotal = ped.ValorTotal ?? 0,
+                               ValorFrete = ped.ValorFrete ?? 0,
+                               Status = pst.Descricao
+                           };
+
+            return Ok(pedidos.ToList());
+        }
     }
 }

@@ -7,6 +7,16 @@ import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ProdutoService } from '../../services/produto.service';
 import { Produto, ProdutoStatus } from '../../models/produto';
 
+import { L10n, loadCldr, setCulture, setCurrencyCode } from '@syncfusion/ej2-base';
+import * as cagregorian from "../../../../shared/ca-gregorian.json";
+import * as currencies from "../../../../shared/currencies.json";
+import * as numbers from "../../../../shared/numbers.json";
+import * as timeZoneNames from "../../../../shared/timeZoneNames.json";
+import * as numberingSystems from "../../../../shared/numberingSystmes.json"
+setCulture('pt');
+setCurrencyCode('BRL');
+loadCldr(numberingSystems['default'],cagregorian['default'],currencies['default'], numbers['default'], timeZoneNames['default']); 
+
 @Component({
   selector: 'app-lista-produtos',
   templateUrl: './lista-produtos.component.html',

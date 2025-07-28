@@ -315,15 +315,18 @@
               [dataSource]="enderecos"
               [allowPaging]="true"
               [pageSettings]="{ pageSize: 5 }"
-              [allowSorting]="true"
-              (rowSelected)="onEnderecoSelecionado($event)">
+              [allowSorting]="true">
               <e-columns>
-                <e-column type='radio' width='50'></e-column>
-                <e-column field="id" headerText="ID" isPrimaryKey="true" visible="false"></e-column>
+                <e-column headerText='Selecionar' width='120'>
+                    <ng-template #template let-data>                        
+                         <ejs-radiobutton name="endereco-selecionado" [value]="data.id" (change)="onEnderecoSelecionado(data.id)" [checked]="data.id === pedidoForm.get('enderecoId')?.value"></ejs-radiobutton>
+                    </ng-template>
+                </e-column>
+                 <e-column field="id" headerText="ID" isPrimaryKey="true" visible="false"></e-column>
                 <e-column field="logradouro" headerText="Logradouro" width="250"></e-column>
                 <e-column field="numeroComplemento" headerText="Número/Complemento" width="150"></e-column>
                 <e-column field="bairro" headerText="Bairro" width="150"></e-column>
-                <e-column field="cidade" headerText="Cidade" width="150"></e-column>
+                <e-column field="localidade" headerText="Cidade" width="150"></e-column>
                 <e-column field="estado" headerText="Estado" width="100"></e-column>
               </e-columns>
             </ejs-grid>
@@ -356,13 +359,14 @@
               </span>
               Salvando...
             </span>
-          </button>
-          <button ejs-button cssClass="e-outline" (click)="onCancelar()" [disabled]="salvando">Cancelar</button>
+          </button>          
+          <button ejs-button cssClass="e-outline" (click)="onNovoPedido()" [disabled]="salvando">Novo</button>
           <button ejs-button cssClass="e-outline" (click)="onGerarNFe()" [disabled]="salvando">Gerar NFe</button>
           <button ejs-button cssClass="e-outline" (click)="onGerarNFCe()" [disabled]="salvando">Gerar NFCe</button>
           <button ejs-button cssClass="e-outline" (click)="onImprimir()" [disabled]="salvando">Imprimir</button>
+          <button ejs-button cssClass="e-info" (click)="onVoltar()" [disabled]="salvando">Listagem</button>
         </div>
       </div>
     </div>
   </form>
-</div> 
+</div>

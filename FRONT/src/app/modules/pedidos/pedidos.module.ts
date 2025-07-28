@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { GridModule, FilterService, PageService, SortService, ToolbarService } from '@syncfusion/ej2-angular-grids';
-import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
+import { ButtonModule, RadioButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { DatePickerModule } from '@syncfusion/ej2-angular-calendars';
 import { DropDownListModule } from '@syncfusion/ej2-angular-dropdowns';
@@ -19,6 +19,7 @@ import { PEDIDOS_ROUTES } from './pedidos.routes';
     HttpClientModule,
     GridModule,
     ButtonModule,
+    RadioButtonModule,
     TextBoxModule,
     DatePickerModule,
     DropDownListModule,
@@ -31,4 +32,4 @@ import { PEDIDOS_ROUTES } from './pedidos.routes';
     ToolbarService
   ]
 })
-export class PedidosModule { } 
+export class PedidosModule { }
