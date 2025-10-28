@@ -1,0 +1,180 @@
+<div class="user-form-container">
+  <div class="modal-overlay" *ngIf="true" (click)="onCancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+        <button type="button" class="close-btn" (click)="onCancel()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+      <div class="form-section">
+        <h3>Informações Básicas</h3>
+        
+        <div class="form-group" >
+          <label for="pessoaId">Pessoa <span class="required">*</span></label>
+          <ejs-dropdownlist
+            id="pessoaId"
+            formControlName="pessoaId"
+            [dataSource]="pessoas"
+            [fields]="pessoaFields"
+            (change)="onPessoaChange($event)"
+            [placeholder]="'Selecione uma pessoa'"
+            [enabled]="!isEditMode">
+          </ejs-dropdownlist>
+          <div class="error-message" *ngIf="submitted && f['pessoaId'].errors">
+            <span *ngIf="f['pessoaId'].errors['required']">Pessoa é obrigatória</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="username">Usuário <span class="required">*</span></label>
+            <ejs-textbox 
+              id="username"
+              formControlName="username"
+              placeholder="Digite o nome de usuário">
+            </ejs-textbox>
+            <div class="error-message" *ngIf="submitted && f['username'].errors">
+              <span *ngIf="f['username'].errors['required']">Usuário é obrigatório</span>
+              <span *ngIf="f['username'].errors['minlength']">Mínimo 3 caracteres</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <ejs-textbox 
+              id="email"
+              formControlName="email"
+              placeholder="Digite o email"
+              type="email">
+            </ejs-textbox>
+            <div class="error-message" *ngIf="submitted && f['email'].errors">
+              <span *ngIf="f['email'].errors['required']">Email é obrigatório</span>
+              <span *ngIf="f['email'].errors['email']">Email inválido</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Nome <span class="required">*</span></label>
+            <ejs-textbox 
+              id="firstName"
+              formControlName="firstName"
+              [readonly]="true"
+              placeholder="Digite o nome">
+            </ejs-textbox>
+            <div class="error-message" *ngIf="submitted && f['firstName'].errors">
+              <span *ngIf="f['firstName'].errors['required']">Nome é obrigatório</span>
+              <span *ngIf="f['firstName'].errors['minlength']">Mínimo 2 caracteres</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="lastName">Sobrenome <span class="required">*</span></label>
+            <ejs-textbox 
+              id="lastName"
+              formControlName="lastName"
+              [readonly]="true"
+              placeholder="Digite o sobrenome">
+            </ejs-textbox>
+            <div class="error-message" *ngIf="submitted && f['lastName'].errors">
+              <span *ngIf="f['lastName'].errors['required']">Sobrenome é obrigatório</span>
+              <span *ngIf="f['lastName'].errors['minlength']">Mínimo 2 caracteres</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group" >
+          <label for="password">Senha <span class="required">*</span></label>
+          <ejs-textbox 
+            id="password"
+            formControlName="password"
+            placeholder="Digite a senha"
+            type="password">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="submitted && f['password'].errors">
+            <span *ngIf="f['password'].errors['required']">Senha é obrigatória</span>
+            <span *ngIf="f['password'].errors['minlength']">Mínimo 6 caracteres</span>
+          </div>
+        </div>
+        
+        <div class="form-group" >
+          <label for="confirmPassword">Confirmar Senha <span class="required">*</span></label>
+          <ejs-textbox 
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirme a senha"
+            type="password">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="submitted && f['confirmPassword'].errors">
+            <span *ngIf="f['confirmPassword'].errors['required']">Confirmação de senha é obrigatória</span>
+          </div>
+          <div class="error-message" *ngIf="submitted && userForm.errors?.['passwordMismatch']">
+            <span>As senhas não coincidem</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <ejs-checkbox 
+            id="isActive"
+            formControlName="isActive"
+            label="Usuário Ativo">
+          </ejs-checkbox>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Funções e Permissões</h3>
+        
+        <div class="form-group">
+          <label for="roleIds">Funções</label>
+          <ejs-multiselect 
+            id="roleIds"
+            formControlName="roleIds"
+            [dataSource]="roles"
+            [fields]="roleFields"
+            [placeholder]="'Selecione as funções'">
+          </ejs-multiselect>
+        </div>
+        
+        </div>
+      
+      <div class="form-actions">
+        <button 
+          ejs-button 
+          cssClass="e-primary"
+          type="submit"
+          [disabled]="loading"
+          [isPrimary]="true">
+          <i class="fas fa-save"></i>
+          {{ isEditMode ? 'Atualizar' : 'Salvar' }}
+        </button>
+        
+        <button 
+          ejs-button 
+          cssClass="e-outline"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="loading">
+          <i class="fas fa-times"></i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+  </div>
+  
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Processando...</p>
+  </div>
+</div>
+
+
+
+
+
+

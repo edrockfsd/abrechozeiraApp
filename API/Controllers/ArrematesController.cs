@@ -121,7 +121,7 @@ namespace ABrechozeiraApp.Controllers
                             arr.Observacoes,
                             arr.DataArremate,
                             arr.DataAlteracao,
-                            arr.UsuarioModificacaoId
+                            UsuarioModificacaoId = 1 //TODO TESTE/IMPLEMENTAR
                         };
 
 

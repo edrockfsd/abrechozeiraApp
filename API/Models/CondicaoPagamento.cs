@@ -12,8 +12,5 @@ public partial class CondicaoPagamento
     public string Descricao { get; set; } = string.Empty;
     public DateTime? DataAlteracao { get; set; }
 
-    [ForeignKey("Usuario")]
-    public int UsuarioModificacaoId { get; set; }
-    public Usuario? UsuarioModificacao { get; set; }
 
 }

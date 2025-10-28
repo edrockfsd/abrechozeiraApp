@@ -25,9 +25,7 @@ public partial class Produto
 
     public DateTime? DataAlteracao { get; set; }
 
-    [ForeignKey("Usuario")]
-    public int UsuarioModificacaoId { get; set; }
-    public Usuario? UsuarioModificacao { get; set; }
+
     [ForeignKey("ProdutoStatus")]
     public int StatusId { get; set; }
 

@@ -40,4 +40,6 @@ public partial class Pessoa
 
     public PessoaStatus? PessoaStatus { get; set; }
 
+    public virtual User? User { get; set; }
+
 }

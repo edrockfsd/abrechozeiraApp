@@ -1,0 +1,81 @@
+<ejs-toast #toast [position]="{ X: 'Right', Y: 'Top' }" [showCloseButton]="true" [timeOut]="5000"></ejs-toast>
+<div class="user-list-container">
+  <div class="header-section">
+    <div class="header-left">
+      <h2>Gerenciamento de Usuários</h2>
+      <div class="nav-tabs">
+        <button class="nav-tab active" routerLink="/user-management">
+          <i class="fas fa-users"></i> Usuários
+        </button>
+        <button class="nav-tab" routerLink="/user-management/roles">
+          <i class="fas fa-user-tag"></i> Funções
+        </button>
+      </div>
+    </div>
+    <button ejs-button cssClass="e-primary" (click)="createUser()">
+      <i class="fas fa-plus"></i> Novo Usuário
+    </button>
+  </div>
+
+  <div class="grid-section">
+    <ejs-grid 
+      *ngIf="!loading"
+      [dataSource]="users" 
+      [allowPaging]="true" 
+      [pageSettings]="pageSettings"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      [filterSettings]="filterSettings"
+      [allowGrouping]="true"
+      [toolbar]="toolbar"
+      (toolbarClick)="toolbarClickHandler($event)">
+      
+      <e-columns>
+        <e-column field="id" headerText="ID" width="80" textAlign="Right"></e-column>
+        <e-column field="username" headerText="Usuário" width="150"></e-column>
+        <e-column field="email" headerText="Email" width="200"></e-column>
+        <e-column field="firstName" headerText="Nome" width="150"></e-column>
+        <e-column field="lastName" headerText="Sobrenome" width="150"></e-column>
+        <e-column headerText="Funções" width="200">
+          <ng-template #template let-data>
+            <span>{{ getUserRoles(data) }}</span>
+          </ng-template>
+        </e-column>
+        <e-column field="isActive" headerText="Ativo" width="80">
+          <ng-template #template let-data>
+            <span [class]="data.isActive ? 'status-active' : 'status-inactive'">
+              {{ data.isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </ng-template>
+        </e-column>
+        <e-column headerText="Ações" width="120">
+          <ng-template #template let-data>
+            <div class="action-buttons">
+              <button ejs-button cssClass="e-small e-flat" (click)="editUser(data)" title="Editar">
+                <span style="font-size: 12px; font-weight: bold;">✏️</span>
+              </button>
+              <button ejs-button cssClass="e-small e-flat e-danger" (click)="deleteUser(data)" title="Excluir">
+                <span style="font-size: 12px; font-weight: bold;">🗑️</span>
+              </button>
+            </div>
+          </ng-template>
+        </e-column>
+      </e-columns>
+      
+
+    </ejs-grid>
+    
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+  </div>
+</div>
+
+<app-user-form
+  *ngIf="showUserForm"
+  [user]="selectedUser"
+  [isEditMode]="isEditMode"
+  (onClose)="onUserFormClose()">
+</app-user-form>
+

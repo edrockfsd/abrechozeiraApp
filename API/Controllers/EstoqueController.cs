@@ -110,8 +110,8 @@ namespace ABrechozeiraApp.Controllers
             var estoques = from prd in _context.Produto
                            join est in _context.Estoque on prd.Id equals est.ProdutoId into estGroup
                            from est in estGroup.DefaultIfEmpty()
-                           join pes in _context.Pessoa on prd.UsuarioModificacaoId equals pes.Id into pesGroup
-                           from pes in pesGroup.DefaultIfEmpty()
+                           //join pes in _context.Pessoa on prd.UsuarioModificacaoId equals pes.Id into pesGroup
+                           //from pes in pesGroup.DefaultIfEmpty()
                            select new
                            {
                                Id = est != null ? est.Id : (int?)null, // Handle null for est.Id
@@ -121,7 +121,8 @@ namespace ABrechozeiraApp.Controllers
                                CodigoEstoque = est != null ? est.CodigoEstoque : null, // Handle null for est.CodigoEstoque
                                Descricao = prd.Descricao, // prd is not null because it's the main table
                                DataAlteracao = est != null ? est.DataAlteracao : (DateTime?)null, // Handle null for est.DataAlteracao
-                               Nome = pes != null ? pes.Nome : null // Handle null for pes.Nome
+                               //Nome = pes != null ? pes.Nome : null // Handle null for pes.Nome
+                               Nome = "TESTE/IMPLEMENTAR"
                            };
 
             return Ok(estoques.ToList());
@@ -131,7 +132,7 @@ namespace ABrechozeiraApp.Controllers
         {
             var estoques = from prd in _context.Produto
                            join est in _context.Estoque on prd.Id equals est.ProdutoId
-                           join pes in _context.Pessoa on est.UsuarioModificacaoId equals pes.Id
+                           //join pes in _context.Pessoa on est.UsuarioModificacaoId equals pes.Id
                            where est.CodigoEstoque == codigoEstoque
                            select new
                            {
@@ -143,7 +144,7 @@ namespace ABrechozeiraApp.Controllers
                                prd.Descricao,
                                prd.PrecoVenda,
                                est.DataAlteracao,
-                               pes.Nome
+                               Nome = "TESTE/IMPLEMENTAR"
                            };
 
             return Ok(estoques.FirstOrDefault());

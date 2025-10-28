@@ -22,16 +22,16 @@ namespace ABrechozeiraApp.Controllers
 
         // GET: api/Usuarios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsuarios()
         {
-            return await _context.Usuario.ToListAsync();
+            return await _context.User.ToListAsync();
         }
 
         // GET: api/Usuarios/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(int id)
+        public async Task<ActionResult<User>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuario.FindAsync(id);
+            var usuario = await _context.User.FindAsync(id);
 
             if (usuario == null)
             {
@@ -44,7 +44,7 @@ namespace ABrechozeiraApp.Controllers
         // PUT: api/Usuarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
+        public async Task<IActionResult> PutUsuario(int id, User usuario)
         {
             if (id != usuario.Id)
             {
@@ -75,9 +75,9 @@ namespace ABrechozeiraApp.Controllers
         // POST: api/Usuarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public async Task<ActionResult<User>> PostUsuario(User usuario)
         {
-            _context.Usuario.Add(usuario);
+            _context.User.Add(usuario);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUsuario", new { id = usuario.Id }, usuario);
@@ -87,13 +87,13 @@ namespace ABrechozeiraApp.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuario.FindAsync(id);
+            var usuario = await _context.User.FindAsync(id);
             if (usuario == null)
             {
                 return NotFound();
             }
 
-            _context.Usuario.Remove(usuario);
+            _context.User.Remove(usuario);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace ABrechozeiraApp.Controllers
 
         private bool UsuarioExists(int id)
         {
-            return _context.Usuario.Any(e => e.Id == id);
+            return _context.User.Any(e => e.Id == id);
         }
     }
 }

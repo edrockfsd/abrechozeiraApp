@@ -44,7 +44,5 @@ public partial class Venda
 
     public DateTime? DataAlteracao { get; set; }
 
-    [ForeignKey("Usuario")]
-    public int UsuarioModificacaoId { get; set; }
-    public Usuario? UsuarioModificacao { get; set; }
+    
 }

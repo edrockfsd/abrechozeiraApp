@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 import { ListaProdutosComponent } from './modules/produtos/pages/lista-produtos/lista-produtos.component';
 import { CadastroProdutoComponent } from './modules/produtos/pages/cadastro-produto/cadastro-produto.component';
 import { ListaEstoqueComponent } from './modules/estoque/pages/lista-estoque/lista-estoque.component';
+import { TestDataComponent } from './test-data.component';
+import { DebugUsersComponent } from './debug-users.component';
+import { ConnectionTestComponent } from './connection-test.component';
+import { SimpleTestComponent } from './simple-test.component';
+import { DiagnosticComponent } from './diagnostic.component';
 
 export const routes: Routes = [
   {
@@ -33,8 +38,36 @@ export const routes: Routes = [
     loadChildren: () => import('./modules/live-sessions/live-sessions.module').then(m => m.LiveSessionsModule)
   },
   {
+    path: 'auth',
+    loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
+  },
+  {
+    path: 'user-management',
+    loadChildren: () => import('./modules/user-management/user-management.module').then(m => m.UserManagementModule)
+  },
+  {
+    path: 'test-data',
+    component: TestDataComponent
+  },
+  {
+    path: 'debug-users',
+    component: DebugUsersComponent
+  },
+  {
+    path: 'connection-test',
+    component: ConnectionTestComponent
+  },
+  {
+    path: 'simple-test',
+    component: SimpleTestComponent
+  },
+  {
+    path: 'diagnostic',
+    component: DiagnosticComponent
+  },
+  {
     path: '',
     redirectTo: 'produtos',
     pathMatch: 'full'
   }
-]; 
+];

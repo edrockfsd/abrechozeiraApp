@@ -185,7 +185,7 @@ namespace ABrechozeiraApp.Controllers
                                prd.PrecoCusto,
                                prd.PrecoVenda,
                                prd.ProdutoStatus,
-                               prd.UsuarioModificacaoId
+                               //prd.UsuarioModificacaoId
                          };
 
 

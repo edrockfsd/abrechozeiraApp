@@ -1,6 +1,7 @@
 export interface Pessoa {
     id: number;
     nome: string;
+    sobrenome: string;
     cpf: string;
     rg: string;
     dataNascimento: string;
@@ -14,10 +15,12 @@ export interface Pessoa {
     pessoaTipoId: number;
     statusId: number;
     nickName: string;
+    userId?: number;
 }
 
 export interface PessoaCreate {
     nome: string;
+    sobrenome: string;
     cpf: string;
     rg: string;
     dataNascimento: string;

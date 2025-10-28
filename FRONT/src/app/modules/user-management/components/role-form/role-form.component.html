@@ -1,0 +1,94 @@
+<div class="modal-overlay" *ngIf="true" (click)="onCancel()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar Função' : 'Nova Função' }}</h2>
+      <button type="button" class="close-btn" (click)="onCancel()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form [formGroup]="roleForm" (ngSubmit)="onSubmit()" class="role-form">
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Tipo da Função <span class="required">*</span></label>
+            <ejs-dropdownlist 
+              id="name"
+              formControlName="name"
+              [dataSource]="roleTypes"
+              [fields]="{ text: 'description', value: 'name' }"
+              placeholder="Selecione o tipo de função"
+              [floatLabelType]="'Never'">
+            </ejs-dropdownlist>
+            <div class="error-message" *ngIf="submitted && f['name'].errors">
+              <span *ngIf="f['name'].errors['required']">Tipo da função é obrigatório</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="description">Descrição <span class="required">*</span></label>
+            <ejs-textbox 
+              id="description"
+              formControlName="description"
+              placeholder="Digite a descrição da função"
+              [multiline]="true"
+              [floatLabelType]="'Never'">
+            </ejs-textbox>
+            <div class="error-message" *ngIf="submitted && f['description'].errors">
+              <span *ngIf="f['description'].errors['required']">Descrição é obrigatória</span>
+              <span *ngIf="f['description'].errors['minlength']">Descrição deve ter no mínimo 5 caracteres</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="permissions">Permissões</label>
+            <ejs-multiselect 
+              id="permissions"
+              formControlName="permissions"
+              [dataSource]="permissions"
+              [fields]="permissionFields"
+              [placeholder]="'Selecione as permissões'"
+              [allowFiltering]="true"
+              [filterType]="'Contains'"
+              [mode]="'Box'"
+              [showDropDownIcon]="true">
+            </ejs-multiselect>
+          </div>
+        </div>
+
+
+      </div>
+
+      <div class="form-actions">
+        <button 
+          ejs-button 
+          type="button"
+          cssClass="e-secondary"
+          (click)="onCancel()">
+          Cancelar
+        </button>
+        <button 
+          ejs-button 
+          type="submit"
+          cssClass="e-primary"
+          [disabled]="loading">
+          <span *ngIf="!loading">
+            {{ isEditMode ? 'Atualizar' : 'Criar' }}
+          </span>
+          <span *ngIf="loading">
+            <i class="fas fa-spinner fa-spin"></i> Processando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="loading-overlay" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Processando...</p>
+</div>

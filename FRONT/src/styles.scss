@@ -1,6 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+@use './styles/mixins' as mixins;
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
-@import './styles/mixins';
 @import '../node_modules/@syncfusion/ej2-base/styles/material3.css';
 @import '../node_modules/@syncfusion/ej2-buttons/styles/material3.css';
 @import '../node_modules/@syncfusion/ej2-calendars/styles/material3.css';
@@ -108,4 +108,4 @@ body {
   justify-content: flex-end;
   gap: 16px;
   margin-top: 24px;
-} 
+}

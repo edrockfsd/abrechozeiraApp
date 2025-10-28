@@ -53,9 +53,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("ProdutoId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("ValorArremate")
                         .HasColumnType("decimal(65,30)");
 
@@ -64,8 +61,6 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("LiveId");
 
                     b.HasIndex("ProdutoId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Arremate");
                 });
@@ -88,7 +83,7 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<long?>("LiveSessionID")
+                    b.Property<long?>("LiveSessionId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Username")
@@ -116,12 +111,7 @@ namespace ABrechozeiraApp.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("CondicaoPagamento");
                 });
@@ -182,16 +172,11 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("varchar(8)");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PessoaID");
 
                     b.HasIndex("TipoEnderecoId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Endereco");
                 });
@@ -220,14 +205,9 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("Quantidade")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ProdutoId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Estoque");
                 });
@@ -247,12 +227,7 @@ namespace ABrechozeiraApp.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("FormaPagamento");
                 });
@@ -279,12 +254,7 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Live");
                 });
@@ -390,9 +360,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("PedidoStatusID")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("ValorFrete")
                         .HasColumnType("decimal(65,30)");
 
@@ -413,8 +380,6 @@ namespace ABrechozeiraApp.Migrations
                         .IsUnique();
 
                     b.HasIndex("PedidoStatusID");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Pedido");
                 });
@@ -442,9 +407,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("Quantidade")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("ValorFinalProduto")
                         .HasColumnType("decimal(65,30)");
 
@@ -453,8 +415,6 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("PedidoId");
 
                     b.HasIndex("ProdutoId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("PedidoProduto");
                 });
@@ -474,14 +434,66 @@ namespace ABrechozeiraApp.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
+                    b.HasKey("Id");
+
+                    b.ToTable("PedidoStatus");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("action");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("resource");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UsuarioModificacaoId");
+                    b.HasIndex("Action");
 
-                    b.ToTable("PedidoStatus");
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Resource");
+
+                    b.ToTable("Permission");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pessoa", b =>
@@ -694,9 +706,6 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GeneroID");
@@ -708,8 +717,6 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("PerfilID");
 
                     b.HasIndex("StatusId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Produto");
                 });
@@ -786,6 +793,77 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("ProdutoStatus");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Role");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.RolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int")
+                        .HasColumnName("permission_id");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId", "PermissionId")
+                        .IsUnique();
+
+                    b.ToTable("RolePermission");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.TipoEndereco", b =>
                 {
                     b.Property<int>("Id")
@@ -804,35 +882,92 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("TipoEndereco");
                 });
 
-            modelBuilder.Entity("ABrechozeiraApp.Models.Usuario", b =>
+            modelBuilder.Entity("ABrechozeiraApp.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Login")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
 
-                    b.Property<int>("NivelAcessoID")
-                        .HasColumnType("int");
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("email");
 
-                    b.Property<int>("PessoaID")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_active");
 
-                    b.Property<string>("Senha")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("password");
+
+                    b.Property<int>("PessoaId")
+                        .HasColumnType("int")
+                        .HasColumnName("PessoaId");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NivelAcessoID");
+                    b.HasIndex("CreatedAt");
 
-                    b.HasIndex("PessoaID");
+                    b.HasIndex("Email")
+                        .IsUnique();
 
-                    b.ToTable("Usuario");
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("PessoaId");
+
+                    b.ToTable("User");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.UserRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("role_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("UserRole");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Venda", b =>
@@ -876,9 +1011,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<int>("Quantidade")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioModificacaoId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("ValorVenda")
                         .HasColumnType("decimal(65,30)");
 
@@ -891,8 +1023,6 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("OrigemID");
 
                     b.HasIndex("ProdutoId");
-
-                    b.HasIndex("UsuarioModificacaoId");
 
                     b.ToTable("Venda");
                 });
@@ -911,28 +1041,9 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Live");
 
                     b.Navigation("Produto");
-
-                    b.Navigation("UsuarioModificacao");
-                });
-
-            modelBuilder.Entity("ABrechozeiraApp.Models.CondicaoPagamento", b =>
-                {
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Endereco", b =>
@@ -949,17 +1060,9 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Pessoa");
 
                     b.Navigation("TipoEndereco");
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Estoque", b =>
@@ -970,37 +1073,7 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Produto");
-
-                    b.Navigation("UsuarioModificacao");
-                });
-
-            modelBuilder.Entity("ABrechozeiraApp.Models.FormaPagamento", b =>
-                {
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UsuarioModificacao");
-                });
-
-            modelBuilder.Entity("ABrechozeiraApp.Models.Live", b =>
-                {
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pedido", b =>
@@ -1029,12 +1102,6 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Cliente");
 
                     b.Navigation("CondicaoPagamento");
@@ -1044,8 +1111,6 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("FormaPagamento");
 
                     b.Navigation("PedidoStatus");
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PedidoProduto", b =>
@@ -1062,28 +1127,9 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Pedido");
 
                     b.Navigation("Produto");
-
-                    b.Navigation("UsuarioModificacao");
-                });
-
-            modelBuilder.Entity("ABrechozeiraApp.Models.PedidoStatus", b =>
-                {
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pessoa", b =>
@@ -1151,12 +1197,6 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Marca");
 
                     b.Navigation("PessoaGenero");
@@ -1166,27 +1206,55 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("ProdutoPerfil");
 
                     b.Navigation("ProdutoStatus");
-
-                    b.Navigation("UsuarioModificacao");
                 });
 
-            modelBuilder.Entity("ABrechozeiraApp.Models.Usuario", b =>
+            modelBuilder.Entity("ABrechozeiraApp.Models.RolePermission", b =>
                 {
-                    b.HasOne("ABrechozeiraApp.Models.NivelAcesso", "NivelAcesso")
-                        .WithMany()
-                        .HasForeignKey("NivelAcessoID")
+                    b.HasOne("ABrechozeiraApp.Models.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ABrechozeiraApp.Models.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.User", b =>
+                {
                     b.HasOne("ABrechozeiraApp.Models.Pessoa", "Pessoa")
                         .WithMany()
-                        .HasForeignKey("PessoaID")
+                        .HasForeignKey("PessoaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("NivelAcesso");
-
                     b.Navigation("Pessoa");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.UserRole", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ABrechozeiraApp.Models.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Venda", b =>
@@ -1211,12 +1279,6 @@ namespace ABrechozeiraApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ABrechozeiraApp.Models.Usuario", "UsuarioModificacao")
-                        .WithMany()
-                        .HasForeignKey("UsuarioModificacaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Cliente");
 
                     b.Navigation("Live");
@@ -1224,8 +1286,23 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("Origem");
 
                     b.Navigation("Produto");
+                });
 
-                    b.Navigation("UsuarioModificacao");
+            modelBuilder.Entity("ABrechozeiraApp.Models.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.User", b =>
+                {
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

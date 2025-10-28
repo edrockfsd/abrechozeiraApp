@@ -1,0 +1,421 @@
+{
+  "permissions": [
+    {
+      "id": "perm_001",
+      "name": "produtos_create",
+      "description": "Permissão para criar novos produtos",
+      "resource": "produtos",
+      "action": "CREATE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_002",
+      "name": "produtos_read",
+      "description": "Permissão para visualizar produtos",
+      "resource": "produtos",
+      "action": "READ",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_003",
+      "name": "produtos_update",
+      "description": "Permissão para atualizar produtos",
+      "resource": "produtos",
+      "action": "UPDATE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_004",
+      "name": "produtos_delete",
+      "description": "Permissão para excluir produtos",
+      "resource": "produtos",
+      "action": "DELETE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_005",
+      "name": "estoque_create",
+      "description": "Permissão para criar registros de estoque",
+      "resource": "estoque",
+      "action": "CREATE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_006",
+      "name": "estoque_read",
+      "description": "Permissão para visualizar estoque",
+      "resource": "estoque",
+      "action": "READ",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_007",
+      "name": "estoque_update",
+      "description": "Permissão para atualizar estoque",
+      "resource": "estoque",
+      "action": "UPDATE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_008",
+      "name": "pedidos_create",
+      "description": "Permissão para criar pedidos",
+      "resource": "pedidos",
+      "action": "CREATE",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_009",
+      "name": "pedidos_read",
+      "description": "Permissão para visualizar pedidos",
+      "resource": "pedidos",
+      "action": "READ",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "perm_010",
+      "name": "full_access",
+      "description": "Acesso completo a todos os recursos",
+      "resource": "*",
+      "action": "*",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": "role_001",
+      "name": "ADMIN",
+      "description": "Administrador com acesso total ao sistema",
+      "permissions": [
+        {
+          "id": "perm_010",
+          "name": "full_access",
+          "description": "Acesso completo a todos os recursos",
+          "resource": "*",
+          "action": "*",
+          "isActive": true
+        }
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "role_002",
+      "name": "MANAGER",
+      "description": "Gerente com acesso a produtos, estoque e pedidos",
+      "permissions": [
+        {
+          "id": "perm_001",
+          "name": "produtos_create",
+          "description": "Criar produtos",
+          "resource": "produtos",
+          "action": "CREATE"
+        },
+        {
+          "id": "perm_002",
+          "name": "produtos_read",
+          "description": "Visualizar produtos",
+          "resource": "produtos",
+          "action": "READ"
+        },
+        {
+          "id": "perm_003",
+          "name": "produtos_update",
+          "description": "Atualizar produtos",
+          "resource": "produtos",
+          "action": "UPDATE"
+        },
+        {
+          "id": "perm_004",
+          "name": "produtos_delete",
+          "description": "Excluir produtos",
+          "resource": "produtos",
+          "action": "DELETE"
+        },
+        {
+          "id": "perm_005",
+          "name": "estoque_create",
+          "description": "Criar registros de estoque",
+          "resource": "estoque",
+          "action": "CREATE"
+        },
+        {
+          "id": "perm_006",
+          "name": "estoque_read",
+          "description": "Visualizar estoque",
+          "resource": "estoque",
+          "action": "READ"
+        },
+        {
+          "id": "perm_007",
+          "name": "estoque_update",
+          "description": "Atualizar estoque",
+          "resource": "estoque",
+          "action": "UPDATE"
+        },
+        {
+          "id": "perm_008",
+          "name": "pedidos_create",
+          "description": "Criar pedidos",
+          "resource": "pedidos",
+          "action": "CREATE"
+        },
+        {
+          "id": "perm_009",
+          "name": "pedidos_read",
+          "description": "Visualizar pedidos",
+          "resource": "pedidos",
+          "action": "READ"
+        }
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "role_003",
+      "name": "SELLER",
+      "description": "Vendedor com acesso limitado",
+      "permissions": [
+        {
+          "id": "perm_002",
+          "name": "produtos_read",
+          "description": "Visualizar produtos",
+          "resource": "produtos",
+          "action": "READ"
+        },
+        {
+          "id": "perm_006",
+          "name": "estoque_read",
+          "description": "Visualizar estoque",
+          "resource": "estoque",
+          "action": "READ"
+        },
+        {
+          "id": "perm_008",
+          "name": "pedidos_create",
+          "description": "Criar pedidos",
+          "resource": "pedidos",
+          "action": "CREATE"
+        },
+        {
+          "id": "perm_009",
+          "name": "pedidos_read",
+          "description": "Visualizar pedidos",
+          "resource": "pedidos",
+          "action": "READ"
+        }
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "role_004",
+      "name": "VIEWER",
+      "description": "Apenas visualização de dados",
+      "permissions": [
+        {
+          "id": "perm_002",
+          "name": "produtos_read",
+          "description": "Visualizar produtos",
+          "resource": "produtos",
+          "action": "READ"
+        },
+        {
+          "id": "perm_006",
+          "name": "estoque_read",
+          "description": "Visualizar estoque",
+          "resource": "estoque",
+          "action": "READ"
+        },
+        {
+          "id": "perm_009",
+          "name": "pedidos_read",
+          "description": "Visualizar pedidos",
+          "resource": "pedidos",
+          "action": "READ"
+        }
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_001",
+      "email": "admin@abrechozeira.com",
+      "name": "Administrador Sistema",
+      "roles": [
+        {
+          "id": "role_001",
+          "name": "ADMIN",
+          "description": "Administrador com acesso total ao sistema",
+          "permissions": [
+            {
+              "id": "perm_010",
+              "name": "full_access",
+              "description": "Acesso completo a todos os recursos",
+              "resource": "*",
+              "action": "*"
+            }
+          ]
+        }
+      ],
+      "permissions": ["*"],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "user_002",
+      "email": "gerente@abrechozeira.com",
+      "name": "João Silva",
+      "roles": [
+        {
+          "id": "role_002",
+          "name": "MANAGER",
+          "description": "Gerente com acesso a produtos, estoque e pedidos",
+          "permissions": [
+            {
+              "id": "perm_001",
+              "name": "produtos_create",
+              "description": "Criar produtos",
+              "resource": "produtos",
+              "action": "CREATE"
+            },
+            {
+              "id": "perm_002",
+              "name": "produtos_read",
+              "description": "Visualizar produtos",
+              "resource": "produtos",
+              "action": "READ"
+            },
+            {
+              "id": "perm_003",
+              "name": "produtos_update",
+              "description": "Atualizar produtos",
+              "resource": "produtos",
+              "action": "UPDATE"
+            },
+            {
+              "id": "perm_004",
+              "name": "produtos_delete",
+              "description": "Excluir produtos",
+              "resource": "produtos",
+              "action": "DELETE"
+            },
+            {
+              "id": "perm_005",
+              "name": "estoque_create",
+              "description": "Criar registros de estoque",
+              "resource": "estoque",
+              "action": "CREATE"
+            },
+            {
+              "id": "perm_006",
+              "name": "estoque_read",
+              "description": "Visualizar estoque",
+              "resource": "estoque",
+              "action": "READ"
+            },
+            {
+              "id": "perm_007",
+              "name": "estoque_update",
+              "description": "Atualizar estoque",
+              "resource": "estoque",
+              "action": "UPDATE"
+            },
+            {
+              "id": "perm_008",
+              "name": "pedidos_create",
+              "description": "Criar pedidos",
+              "resource": "pedidos",
+              "action": "CREATE"
+            },
+            {
+              "id": "perm_009",
+              "name": "pedidos_read",
+              "description": "Visualizar pedidos",
+              "resource": "pedidos",
+              "action": "READ"
+            }
+          ]
+        }
+      ],
+      "permissions": [
+        "produtos_create",
+        "produtos_read",
+        "produtos_update",
+        "produtos_delete",
+        "estoque_create",
+        "estoque_read",
+        "estoque_update",
+        "pedidos_create",
+        "pedidos_read"
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "user_003",
+      "email": "vendedor@abrechozeira.com",
+      "name": "Maria Vendedora",
+      "roles": [
+        {
+          "id": "role_003",
+          "name": "SELLER",
+          "description": "Vendedor com acesso limitado",
+          "permissions": [
+            {
+              "id": "perm_002",
+              "name": "produtos_read",
+              "description": "Visualizar produtos",
+              "resource": "produtos",
+              "action": "READ"
+            },
+            {
+              "id": "perm_006",
+              "name": "estoque_read",
+              "description": "Visualizar estoque",
+              "resource": "estoque",
+              "action": "READ"
+            },
+            {
+              "id": "perm_008",
+              "name": "pedidos_create",
+              "description": "Criar pedidos",
+              "resource": "pedidos",
+              "action": "CREATE"
+            },
+            {
+              "id": "perm_009",
+              "name": "pedidos_read",
+              "description": "Visualizar pedidos",
+              "resource": "pedidos",
+              "action": "READ"
+            }
+          ]
+        }
+      ],
+      "permissions": [
+        "produtos_read",
+        "estoque_read",
+        "pedidos_create",
+        "pedidos_read"
+      ],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}

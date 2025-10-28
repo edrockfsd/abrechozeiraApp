@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { L10n, loadCldr, setCulture, setCurrencyCode } from '@syncfusion/ej2-base';
 import { GridModule } from '@syncfusion/ej2-angular-grids';
 import { ButtonModule, RadioButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
@@ -20,16 +19,6 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
 import { PedidoStatusService, PedidoStatus } from '../../services/pedido-status.service';
 import { EditService, ToolbarService } from '@syncfusion/ej2-angular-grids';
 import { PedidoProdutoService, PedidoProduto } from '../../services/pedido-produto.service';
-
-import * as cagregorian from "../../../../shared/ca-gregorian.json";
-import * as currencies from "../../../../shared/currencies.json";
-import * as numbers from "../../../../shared/numbers.json";
-import * as timeZoneNames from "../../../../shared/timeZoneNames.json";
-import * as numberingSystems from "../../../../shared/numberingSystmes.json"
-
-setCulture('pt');
-setCurrencyCode('BRL');
-loadCldr(numberingSystems['default'],cagregorian['default'],currencies['default'], numbers['default'], timeZoneNames['default']); 
 
 interface Produto {
   id: number;
@@ -430,7 +419,7 @@ export class CadastroPedidoComponent implements OnInit {
               const codigoFormatado = `bcz${codigo.toString().padStart(5, '0')}`;
               this.pedidoForm.patchValue({ numeroPedido: codigo });
               const pedidoBasico = {
-                pedidoCodigo: codigo,
+                pedidoCodigo: this.formatarPedidoCodigo(codigo),
                 dataLancamento: new Date(),
                 clienteId: this.pedidoForm.get('clienteId')?.value,
                 pedidoStatusId: this.pedidoForm.get('statusPedidoId')?.value,
@@ -631,6 +620,12 @@ export class CadastroPedidoComponent implements OnInit {
     // TODO: Implementar chamada à API
   }
 
+  private formatarPedidoCodigo(codigo: number | string): string {
+    if (codigo === null || codigo === undefined) return '';
+    const codigoStr = String(codigo).replace(/^bcz/i, '');
+    return `bcz${codigoStr.padStart(7, '0')}`;
+  }
+
   onImprimir(): void {
     console.log('Imprimindo pedido...');
     // TODO: Implementar chamada à API
@@ -673,9 +668,9 @@ export class CadastroPedidoComponent implements OnInit {
 
         // Verificar e definir o número do pedido
         if (pedido.numeroPedido) {
-          this.pedidoForm.get('numeroPedido')?.setValue(pedido.numeroPedido);
+          this.pedidoForm.get('numeroPedido')?.setValue(this.formatarPedidoCodigo(pedido.numeroPedido));
         } else if (pedido.pedidoCodigo) {
-          this.pedidoForm.get('numeroPedido')?.setValue(pedido.pedidoCodigo);
+          this.pedidoForm.get('numeroPedido')?.setValue(this.formatarPedidoCodigo(pedido.pedidoCodigo));
         }
         
         // Verificar e definir o valor total
