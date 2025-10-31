@@ -1,28 +1,27 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { AuthService } from './modules/auth/services/auth.service';
+import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../auth/services/auth.service';
 
 interface MenuItem {
   label: string;
   route: string;
-  icon?: string;
-  permissions?: string[];
-  roles?: string[];
+  icon?: string; // optional icon class
+  permissions?: string[]; // any of these grants visibility
+  roles?: string[]; // any role grants visibility
 }
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss']
 })
-export class AppComponent { 
-  constructor(private auth: AuthService, private router: Router) {}
+export class HomeComponent {
+  constructor(private auth: AuthService) {}
 
   menu: MenuItem[] = [
-    { label: 'Home', route: '/home', icon: 'e-icons e-home' },
     { label: 'Produtos', route: '/produtos', icon: 'e-icons e-product', permissions: ['produtos_read', 'full_access'] },
     { label: 'Pedidos', route: '/pedidos', icon: 'e-icons e-file', permissions: ['pedidos_read', 'full_access'] },
     { label: 'Pessoas', route: '/pessoas', icon: 'e-icons e-people', permissions: ['clientes_read', 'full_access'] },
@@ -30,20 +29,11 @@ export class AppComponent {
     { label: 'Lives', route: '/lives', icon: 'e-icons e-video', permissions: ['lives_manage', 'full_access'] },
     { label: 'Relatórios', route: '/live-sessions', icon: 'e-icons e-chart', permissions: ['relatorios_read', 'full_access'] },
     { label: 'Usuários', route: '/user-management', icon: 'e-icons e-people', roles: ['ADMIN'] },
-    { label: 'Arremates', route: '/arremates', icon: 'e-icons e-settings' }
+    { label: 'Arremates', route: '/arremates', icon: 'e-icons e-settings', permissions: ['full_access'] }
   ];
-
-  get isAuthenticated(): boolean {
-    return this.auth.isAuthenticated();
-  }
 
   get userName(): string {
     return this.auth.getCurrentUser()?.name || '';
-  }
-
-  get isAuthRoute(): boolean {
-    const url = this.router.url || '';
-    return url.startsWith('/auth');
   }
 
   isVisible(item: MenuItem): boolean {
@@ -56,9 +46,5 @@ export class AppComponent {
     }
     return true;
   }
-
-  onLogout(): void {
-    this.auth.logout();
-    this.router.navigate(['/auth/login']);
-  }
 }
+

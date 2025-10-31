@@ -417,9 +417,11 @@ export class CadastroPedidoComponent implements OnInit {
             next: (codigo) => {
               console.log('Código gerado:', codigo);
               const codigoFormatado = `bcz${codigo.toString().padStart(5, '0')}`;
-              this.pedidoForm.patchValue({ numeroPedido: codigo });
+              // Exibir formatado no campo somente-leitura
+              this.pedidoForm.patchValue({ numeroPedido: codigoFormatado });
               const pedidoBasico = {
-                pedidoCodigo: this.formatarPedidoCodigo(codigo),
+                // API espera inteiro (PedidoCodigo int). Enviar valor numérico.
+                pedidoCodigo: Number(codigo),
                 dataLancamento: new Date(),
                 clienteId: this.pedidoForm.get('clienteId')?.value,
                 pedidoStatusId: this.pedidoForm.get('statusPedidoId')?.value,
@@ -494,20 +496,27 @@ export class CadastroPedidoComponent implements OnInit {
         if (this.pedidoForm.valid && this.produtos.length > 0) {
           console.log('Salvando pedido completo...');
           this.salvando = true;
-          // Montar o payload conforme esperado pela API
+          // Montar o payload exatamente como o modelo da API espera
+          const numeroPedidoStr = (this.pedidoForm.get('numeroPedido')?.value || '').toString();
+          const pedidoCodigo = parseInt(numeroPedidoStr.replace(/\D/g, ''), 10);
           const payload: any = {
             id: this.pedidoForm.get('id')?.value,
-            numeroPedido: this.pedidoForm.get('numeroPedido')?.value,
-            dataPedido: new Date().toISOString(),
-            pessoaId: this.pedidoForm.get('clienteId')?.value,
+            // Campo correto é PedidoCodigo (int)
+            pedidoCodigo: isNaN(pedidoCodigo) ? undefined : pedidoCodigo,
+            // Datas conforme API
+            dataLancamento: this.pedidoForm.get('dataLancamento')?.value || new Date(),
+            dataAlteracao: new Date(),
+            // Chaves com nomes compatíveis
+            clienteId: this.pedidoForm.get('clienteId')?.value,            // ClienteID
+            pedidoStatusId: this.pedidoForm.get('statusPedidoId')?.value,  // PedidoStatusID
+            enderecoEntregaId: this.pedidoForm.get('enderecoId')?.value,   // EnderecoEntregaID
+            condicaoPagamentoId: this.pedidoForm.get('condicaoPagamento')?.value, // CondicaoPagamentoID
+            formaPagamentoId: this.pedidoForm.get('formaPagamento')?.value,       // FormaPagamentoID
+            // Valores
             valorFrete: this.pedidoForm.get('valorFrete')?.value || 0,
-            statusPedidoId: this.pedidoForm.get('statusPedidoId')?.value,
             valorTotal: this.calcularValorTotal(),
-            condicaoPagamentoId: this.pedidoForm.get('condicaoPagamento')?.value,
-            formaPagamentoId: this.pedidoForm.get('formaPagamento')?.value,
-            enderecoId: this.pedidoForm.get('enderecoId')?.value,
-            observacao: this.pedidoForm.get('observacao')?.value,
-            usuarioModificacaoId: 1 // TODO: Pegar do serviço de autenticação
+            // Observações
+            observacoes: this.pedidoForm.get('observacao')?.value
           };
           const id = this.pedidoForm.get('id')?.value;
           if (!id) {

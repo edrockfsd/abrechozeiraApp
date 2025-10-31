@@ -1,0 +1,93 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f7fb;
+}
+
+.sidebar {
+  width: 240px;
+  background: #1f2937;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  padding: 16px;
+  font-weight: 700;
+  font-size: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.menu {
+  padding: 8px 0;
+  flex: 1;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  color: #e5e7eb;
+  text-decoration: none;
+}
+
+.menu-item:hover,
+.menu-item.active {
+  background: rgba(255,255,255,0.08);
+}
+
+.menu-item .icon {
+  font-size: 18px;
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 16px;
+}
+
+.sidebar-footer .user {
+  font-size: 12px;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.sidebar-footer .logout {
+  width: 100%;
+  background: #ef4444;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.page {
+  padding: 16px;
+}
+
+.topbar .logout {
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+

@@ -1,0 +1,40 @@
+<div class="app-shell" *ngIf="!isAuthRoute; else authOnly">
+  <aside class="sidebar" *ngIf="isAuthenticated">
+    <div class="brand">ABrechozeira</div>
+    <nav class="menu">
+      <ng-container *ngFor="let item of menu">
+        <a *ngIf="isVisible(item)"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           class="menu-item">
+          <span class="icon" [class]="item.icon"></span>
+          <span class="label">{{ item.label }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user" *ngIf="userName">{{ userName }}</div>
+      <button class="logout" (click)="onLogout()">Sair</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <div class="title">Painel</div>
+      <div class="actions">
+        <button class="logout" *ngIf="isAuthenticated" (click)="onLogout()">Sair</button>
+      </div>
+    </header>
+    <section class="page">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+
+<ng-template #authOnly>
+  <router-outlet></router-outlet>
+  <!-- Sem shell na página de autenticação -->
+  <!-- Poderíamos mostrar branding básico aqui se desejar -->
+  
+</ng-template>
+

@@ -29,6 +29,10 @@ export class ProdutoService {
     return this.http.get<Produto[]>(this.apiUrl, { params });
   }
 
+  listarCompleto(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/GetProdutosCompleto`);
+  }
+
   buscarPorId(id: number): Observable<Produto> {    
     return this.http.get<Produto>(`${this.apiUrl}/${id}`);
   }

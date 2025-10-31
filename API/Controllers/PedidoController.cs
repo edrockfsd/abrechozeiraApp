@@ -13,6 +13,7 @@ namespace ABrechozeiraApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class PedidoController : ControllerBase
     {
         private readonly AbrechozeiraContext _context;
@@ -136,17 +137,28 @@ namespace ABrechozeiraApp.Controllers
         {
             var pedidos = from ped in _context.Pedido
                            join pst in _context.PedidoStatus on ped.PedidoStatusID equals pst.Id
-                           join pes in _context.Pessoa on ped.ClienteID equals pes.Id  
+                           join pes in _context.Pessoa on ped.ClienteID equals pes.Id
+                           join ender in _context.Endereco on ped.EnderecoEntregaID equals ender.Id into enderJoin
+                           from ender in enderJoin.DefaultIfEmpty()
                            orderby ped.Id descending
                            select new
                            {
                                ped.Id,
+                               ped.PedidoCodigo,
                                ClienteNome = pes.Nome,
                                ClienteNick = pes.NickName,
-                               DataPedido = ped.DataLancamento.ToString("dd/MM/yyyy"),
+                               DataPedido = ped.DataLancamento,
                                ValorTotal = ped.ValorTotal ?? 0,
                                ValorFrete = ped.ValorFrete ?? 0,
-                               Status = pst.Descricao
+                               Status = pst.Descricao,
+                               CEP = ender == null ? null : ender.CEP,
+                               Endereco = ender == null
+                                    ? ""
+                                    : ((ender.Logradouro ?? "")
+                                       + ((ender.Bairro != null && ender.Bairro != "") ? ", " + ender.Bairro : "")
+                                       + (((ender.Localidade != null && ender.Localidade != "") || (ender.Estado != null && ender.Estado != ""))
+                                            ? (" - " + (ender.Localidade ?? "") + ((ender.Estado != null && ender.Estado != "") ? "/" + ender.Estado : ""))
+                                            : ""))
                            };
 
             return Ok(pedidos.ToList());

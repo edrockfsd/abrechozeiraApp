@@ -1,4 +1,9 @@
 <div class="container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
   <div class="header">
     <h1>Produtos</h1>
     <button ejs-button cssClass="e-primary" (click)="onNovoProduto()">
@@ -27,6 +32,8 @@
       <e-column field="descricao" headerText="Descrição" width="250"></e-column>
       <e-column field="tamanho" headerText="Tamanho" width="100"></e-column>
       <e-column field="origem" headerText="Origem" width="120"></e-column>
+      <e-column field="marca" headerText="Marca" width="160"></e-column>
+      <e-column field="perfil" headerText="Perfil" width="130"></e-column>
       <e-column field="precoCusto" headerText="Preço Custo" width="130" format="c2" textAlign="Right"></e-column>
       <e-column field="precoVenda" headerText="Preço Venda" width="130" format="c2" textAlign="Right"></e-column>
       <e-column field="statusId" headerText="Status" width="100">

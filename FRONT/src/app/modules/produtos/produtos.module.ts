@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
 import { SharedModule } from '../../shared/shared.module';
 import { ListaProdutosComponent } from './pages/lista-produtos/lista-produtos.component';
 import { CadastroProdutoComponent } from './pages/cadastro-produto/cadastro-produto.component';
@@ -29,15 +31,21 @@ import {
 const routes: Routes = [
   {
     path: '',
-    component: ListaProdutosComponent
+    component: ListaProdutosComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['produtos_read', 'full_access'] }
   },
   {
     path: 'novo',
-    component: CadastroProdutoComponent
+    component: CadastroProdutoComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['produtos_create', 'produtos_update', 'full_access'] }
   },
   {
     path: 'editar/:id',
-    component: CadastroProdutoComponent
+    component: CadastroProdutoComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['produtos_update', 'full_access'] }
   }
 ];
 

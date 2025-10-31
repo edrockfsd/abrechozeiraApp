@@ -53,7 +53,7 @@ export class PedidoService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  gerarNovoPedidoCodigo(): Observable<string> {
-    return this.http.get<string>(`${environment.apiUrl}/Pedido/GerarNovoPedidoCodigo`);
+  gerarNovoPedidoCodigo(): Observable<number> {
+    return this.http.get<number>(`${environment.apiUrl}/Pedido/GerarNovoPedidoCodigo`);
   }
 }

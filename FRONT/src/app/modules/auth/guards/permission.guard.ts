@@ -35,7 +35,7 @@ export class PermissionGuard implements CanActivate {
             this.authService.hasRole(role)
           );
           if (!hasRequiredRole) {
-            this.router.navigate(['/acesso-negado']);
+            this.router.navigate(['/auth/acesso-negado']);
             return false;
           }
         }
@@ -46,7 +46,7 @@ export class PermissionGuard implements CanActivate {
             this.authService.hasPermission(permission)
           );
           if (!hasRequiredPermission) {
-            this.router.navigate(['/acesso-negado']);
+            this.router.navigate(['/auth/acesso-negado']);
             return false;
           }
         }
@@ -54,7 +54,7 @@ export class PermissionGuard implements CanActivate {
         // Verificar permissão para recurso/ação específica
         if (requiredResource && requiredAction) {
           if (!this.authService.hasPermissionFor(requiredResource, requiredAction)) {
-            this.router.navigate(['/acesso-negado']);
+            this.router.navigate(['/auth/acesso-negado']);
             return false;
           }
         }

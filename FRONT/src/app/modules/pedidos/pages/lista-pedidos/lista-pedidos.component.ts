@@ -41,17 +41,20 @@ export class ListaPedidosComponent implements OnInit {
 
   public gridSettings = {
     columns: [
-      { field: 'id', headerText: 'ID', width: 100, textAlign: 'Right' },
+      { field: 'id', headerText: 'ID', width: 100, textAlign: 'Right', visible: false },
+      { field: 'numeroPedido', headerText: 'Código', width: 140 },
       { field: 'clienteNome', headerText: 'Cliente', width: 200 },
-      { field: 'ClienteNick', headerText: 'NickName', width: 200 },
-      { field: 'dataPedido', headerText: 'Data do Pedido', width: 150, format: 'dd/MM/yyyy' },
+      { field: 'clienteNick', headerText: 'NickName', width: 120 },
+      { field: 'cep', headerText: 'CEP', width: 110 },
+      { field: 'endereco', headerText: 'Endereço', width: 300 },
+      { field: 'dataPedidoTexto', headerText: 'Data do Pedido', width: 150 },
       { field: 'valorFrete', headerText: 'Valor Frete', width: 150, format: 'C2' },
       { field: 'valorTotal', headerText: 'Valor Total', width: 150, format: 'C2' },
       { field: 'status', headerText: 'Status', width: 150 }
     ],
-    pageSettings: { pageSize: 10 },    
-    toolbar: ['Search'], 
-    searchSettings: { fields: ['clienteNome', 'ClienteNick', 'dataLancamento', 'valorFrete', 'valorTotal', 'status'], operator: 'contains', key: '', ignoreCase: true }    
+    pageSettings: { pageSize: 10 },
+    toolbar: ['Search'],
+    searchSettings: { fields: ['numeroPedido', 'clienteNome', 'clienteNick', 'cep', 'endereco', 'dataPedidoTexto', 'valorFrete', 'valorTotal', 'status'], operator: 'contains', key: '', ignoreCase: true }
   };
 
   constructor(
@@ -67,7 +70,23 @@ export class ListaPedidosComponent implements OnInit {
     this.carregando = true;
     this.pedidoService.listar().subscribe({
       next: (pedidos) => {
-        this.data = pedidos;
+        this.data = (pedidos as any[]).map((p: any) => {
+          const dataRaw = p.dataPedido ?? p.DataPedido;
+          const dataObj = dataRaw ? new Date(dataRaw) : undefined;
+          const dataTexto = dataObj ? this.formatarDataDDMMYYYY(dataObj) : '';
+          return {
+            ...p,
+            // Garantir campos em camelCase usados no grid
+            clienteNick: p.clienteNick ?? p.ClienteNick,
+            clienteNome: p.clienteNome ?? p.ClienteNome,
+            cep: p.cep ?? p.Cep ?? p.CEP ?? '',
+            dataPedido: dataObj,
+            dataPedidoTexto: dataTexto,
+            endereco: p.endereco ?? p.Endereco,
+            // Formatar código do pedido como na tela de edição
+            numeroPedido: this.formatarPedidoCodigo(p.pedidoCodigo ?? p.PedidoCodigo)
+          };
+        });
         this.carregando = false;
       },
       error: (error) => {
@@ -81,6 +100,21 @@ export class ListaPedidosComponent implements OnInit {
         this.carregando = false;
       }
     });
+  }
+
+  private formatarPedidoCodigo(codigo: number | string): string {
+    if (codigo === null || codigo === undefined) return '';
+    const codigoStr = String(codigo).replace(/^bcz/i, '');
+    return `bcz${codigoStr.padStart(7, '0')}`;
+  }
+
+  private formatarDataDDMMYYYY(data: Date): string {
+    const dd = String(data.getDate()).padStart(2, '0');
+    const mm = String(data.getMonth() + 1).padStart(2, '0');
+    const yyyyISOWeek = data.getFullYear();
+    // O cliente solicitou exatamente dd/MM/YYYY (YYYY maiúsculo)
+    // Retornamos nesse formato literal conforme pedido
+    return `${dd}/${mm}/${yyyyISOWeek}`;
   }
 
   onNovoPedido(): void {

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { GridModule, PagerModule, FilterService, SortService, PageService } from '@syncfusion/ej2-angular-grids';
+import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { DropDownListModule } from '@syncfusion/ej2-angular-dropdowns';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ProdutoService } from '../../services/produto.service';
@@ -20,14 +21,22 @@ import { Produto, ProdutoStatus } from '../../models/produto';
     GridModule,
     PagerModule,
     DropDownListModule,
-    ButtonModule
+    ButtonModule,
+    ToastModule
   ],
   providers: [FilterService, SortService, PageService]
 })
 export class ListaProdutosComponent implements OnInit {
-  produtos: Produto[] = [];
+  @ViewChild('toast') public toast!: ToastComponent;
+  produtos: any[] = [];
   categorias = ['Roupas', 'Calçados', 'Acessórios'];
   marcas = ['Nike', 'Adidas', 'Puma', 'Outras'];
+
+  public toastSettings = {
+    position: { X: 'Right', Y: 'Top' },
+    showCloseButton: true,
+    timeOut: 5000
+  };
 
   constructor(
     private produtoService: ProdutoService,
@@ -39,9 +48,15 @@ export class ListaProdutosComponent implements OnInit {
   }
 
   carregarProdutos(): void {
-    this.produtoService.listar().subscribe(
+    this.produtoService.listarCompleto().subscribe(
       (produtos) => {
-        this.produtos = produtos;
+        // Normaliza campos vindos como PascalCase da API
+        this.produtos = (produtos as any[]).map(p => ({
+          ...p,
+          marca: p.marca ?? p.Marca ?? '',
+          perfil: p.perfil ?? p.Perfil ?? '',
+          statusId: p.statusId ?? p.StatusId ?? p.statusID ?? p.StatusID ?? p.status ?? p.ProdutoStatus?.Id ?? 0
+        }));
       },
       (erro) => {
         console.error('Erro ao carregar produtos:', erro);
@@ -88,9 +103,21 @@ export class ListaProdutosComponent implements OnInit {
       this.produtoService.excluir(produto.id).subscribe(
         () => {
           this.carregarProdutos();
+          this.toast.show({
+            title: 'Sucesso',
+            content: 'Produto excluído com sucesso.',
+            cssClass: 'e-toast-success',
+            icon: 'e-success toast-icons'
+          });
         },
         (erro) => {
           console.error('Erro ao excluir produto:', erro);
+          this.toast.show({
+            title: 'Erro',
+            content: 'Erro ao excluir produto. Tente novamente.',
+            cssClass: 'e-toast-danger',
+            icon: 'e-error toast-icons'
+          });
         }
       );
     }

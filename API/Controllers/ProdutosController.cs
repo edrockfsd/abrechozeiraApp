@@ -13,6 +13,7 @@ namespace ABrechozeiraApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class ProdutosController : ControllerBase
     {
         private readonly AbrechozeiraContext _context;
@@ -165,10 +166,12 @@ namespace ABrechozeiraApp.Controllers
         {
             var produtos = from prd in _context.Produto
                            join pst in _context.ProdutoStatus on prd.StatusId equals pst.Id
-                           join est in _context.Estoque on prd.Id equals est.ProdutoId
-                           //join grp in _context.ProdutoGrupo on prd.GrupoID equals grp.Id
-                           //join mrc in _context.ProdutoMarca on prd.MarcaId equals mrc.Id
-                           //join pgn in _context.PessoaGenero on prd.GeneroID equals pgn.Id
+                           join est0 in _context.Estoque on prd.Id equals est0.ProdutoId into estoqueJoin
+                           from est in estoqueJoin.DefaultIfEmpty()
+                           join perf0 in _context.ProdutoPerfil on prd.PerfilID equals perf0.Id into perfJoin
+                           from perf in perfJoin.DefaultIfEmpty()
+                           join mrc0 in _context.ProdutoMarca on prd.MarcaId equals mrc0.Id into marcaJoin
+                           from mrc in marcaJoin.DefaultIfEmpty()
                            select new
                            {
                                prd.Id,
@@ -177,17 +180,17 @@ namespace ABrechozeiraApp.Controllers
                                prd.GeneroID,
                                prd.GrupoID,
                                prd.PerfilID,
+                               Perfil = perf != null ? perf.Descricao : null,
                                prd.MarcaId,
+                               Marca = mrc != null ? mrc.Descricao : null,
                                est.CodigoEstoque,
                                prd.Descricao,
                                prd.Tamanho,
                                prd.Origem,
                                prd.PrecoCusto,
                                prd.PrecoVenda,
-                               prd.ProdutoStatus,
-                               //prd.UsuarioModificacaoId
+                               prd.StatusId
                          };
-
 
             return Ok(produtos.ToList());
         }

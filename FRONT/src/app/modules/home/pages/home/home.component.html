@@ -1,0 +1,23 @@
+<div class="home-container">
+  <div class="home-header">
+    <h1>Bem-vindo<span *ngIf="userName">, {{ userName }}</span></h1>
+    <p class="subtitle">Escolha uma área para começar</p>
+  </div>
+
+  <div class="menu-grid">
+    <ng-container *ngFor="let item of menu">
+      <a *ngIf="isVisible(item)"
+         class="menu-card"
+         [routerLink]="item.route">
+        <div class="icon" [class]="item.icon"></div>
+        <div class="label">{{ item.label }}</div>
+      </a>
+    </ng-container>
+  </div>
+
+  <!-- Espaço para KPIs futuros -->
+  <!-- <div class="kpis">
+    <div class="kpi-card">Pedidos hoje: 0</div>
+    <div class="kpi-card">Faturamento: R$ 0,00</div>
+  </div> -->
+</div>

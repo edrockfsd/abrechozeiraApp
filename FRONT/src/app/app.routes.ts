@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './modules/auth/guards/auth.guard';
 import { ListaProdutosComponent } from './modules/produtos/pages/lista-produtos/lista-produtos.component';
 import { CadastroProdutoComponent } from './modules/produtos/pages/cadastro-produto/cadastro-produto.component';
 import { ListaEstoqueComponent } from './modules/estoque/pages/lista-estoque/lista-estoque.component';
@@ -11,31 +12,38 @@ import { DiagnosticComponent } from './diagnostic.component';
 export const routes: Routes = [
   {
     path: 'produtos',
-    loadChildren: () => import('./modules/produtos/produtos.module').then(m => m.ProdutosModule)
+    loadChildren: () => import('./modules/produtos/produtos.module').then(m => m.ProdutosModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'estoque',
-    loadChildren: () => import('./modules/estoque/estoque.module').then(m => m.EstoqueModule)
+    loadChildren: () => import('./modules/estoque/estoque.module').then(m => m.EstoqueModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'pessoas',
-    loadChildren: () => import('./modules/pessoas/pessoas.module').then(m => m.PessoasModule)
+    loadChildren: () => import('./modules/pessoas/pessoas.module').then(m => m.PessoasModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'lives',
-    loadChildren: () => import('./modules/lives/lives.module').then(m => m.LivesModule)
+    loadChildren: () => import('./modules/lives/lives.module').then(m => m.LivesModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'arremates',
-    loadChildren: () => import('./modules/arremates/arremates.module').then(m => m.ArrematesModule)
+    loadChildren: () => import('./modules/arremates/arremates.module').then(m => m.ArrematesModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'pedidos',
-    loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule)
+    loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'live-sessions',
-    loadChildren: () => import('./modules/live-sessions/live-sessions.module').then(m => m.LiveSessionsModule)
+    loadChildren: () => import('./modules/live-sessions/live-sessions.module').then(m => m.LiveSessionsModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'auth',
@@ -43,7 +51,8 @@ export const routes: Routes = [
   },
   {
     path: 'user-management',
-    loadChildren: () => import('./modules/user-management/user-management.module').then(m => m.UserManagementModule)
+    loadChildren: () => import('./modules/user-management/user-management.module').then(m => m.UserManagementModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'test-data',
@@ -66,8 +75,17 @@ export const routes: Routes = [
     component: DiagnosticComponent
   },
   {
+    path: 'home',
+    loadChildren: () => import('./modules/home/home.module').then(m => m.HomeModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '',
-    redirectTo: 'produtos',
+    redirectTo: 'home',
     pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: 'auth/login'
   }
 ];
