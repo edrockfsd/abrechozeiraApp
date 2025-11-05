@@ -1,0 +1,58 @@
+<div class="overlay" (click)="close.emit()"></div>
+<div class="panel">
+  <div class="panel-header">
+    <h3>Pagamentos</h3>
+    <button class="icon" (click)="close.emit()">✕</button>
+  </div>
+
+  <div class="totals">
+    <div><span>Total:</span><strong>{{ total | currency:'BRL' }}</strong></div>
+    <div><span>Pago:</span><strong>{{ sumPagos | currency:'BRL' }}</strong></div>
+    <div [class.warn]="restante>0"><span>Restante:</span><strong>{{ restante | currency:'BRL' }}</strong></div>
+    <div [class.ok]="troco>0"><span>Troco:</span><strong>{{ troco | currency:'BRL' }}</strong></div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="addPagamento()" class="form-row">
+    <label>
+      Forma
+      <select formControlName="formaPagamentoId">
+        <option [ngValue]="null" disabled>Selecione</option>
+        <option *ngFor="let f of (config?.formasPagamento||[])" [ngValue]="f.id">{{ f.descricao }}</option>
+      </select>
+    </label>
+    <label>
+      Condição
+      <select formControlName="condicaoPagamentoId">
+        <option [ngValue]="null">--</option>
+        <option *ngFor="let c of (config?.condicaoPagamento||[])" [ngValue]="c.id">{{ c.descricao }}</option>
+      </select>
+    </label>
+    <label>
+      Valor
+      <input type="number" step="0.01" formControlName="valor" />
+    </label>
+    <label class="grow">
+      Obs
+      <input type="text" formControlName="observacao" placeholder="opcional" />
+    </label>
+    <button class="btn" type="submit" [disabled]="form.invalid">Adicionar</button>
+  </form>
+
+  <div class="list">
+    <div class="row head"><div>Forma</div><div>Valor</div><div>Obs</div><div>Ações</div></div>
+    <div class="row" *ngFor="let p of pagamentos">
+      <div>{{ (config?.formasPagamento||[]).find(f=>f.id===p.formaPagamentoId)?.descricao || p.formaPagamentoId }}</div>
+      <div>{{ p.valor | currency:'BRL' }}</div>
+      <div>{{ p.observacao || '-' }}</div>
+      <div>
+        <button class="link" (click)="remover(p)">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-actions">
+    <button class="btn" (click)="close.emit()">Cancelar</button>
+    <button class="btn primary" [disabled]="sumPagos < total" (click)="finalizarVenda()">Finalizar</button>
+  </div>
+</div>
+

@@ -4,13 +4,14 @@ import { CommonModule } from '@angular/common';
 import { PdvService } from '../../services/pdv.service';
 import { ProdutoService } from '../../../produtos/services/produto.service';
 import { Observable } from 'rxjs';
+import { PaymentPanelComponent } from '../payment-panel/payment-panel.component';
 
 @Component({
   selector: 'app-pdv-shell',
   templateUrl: './pdv-shell.component.html',
   styleUrls: ['./pdv-shell.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, PaymentPanelComponent]
 })
 
 export class PdvShellComponent implements OnInit {
@@ -21,6 +22,7 @@ export class PdvShellComponent implements OnInit {
 
   searchCtrl: FormControl;
   vm$: Observable<{ venda: any, itens: any[], pagamentos: any[] }>;
+  showPayments = false;
 
   // Atalhos mínimos
   @HostListener('window:keydown', ['$event']) onKey(ev: KeyboardEvent) {
@@ -33,7 +35,15 @@ export class PdvShellComponent implements OnInit {
   }
 
   finalizar() {
-    // TODO: abrir painel de pagamentos
+    // Abre painel de pagamentos. Se não houver venda aberta, cria uma.
+    let vendaId: number | null = null;
+    const sub = this.vm$.subscribe(vm => vendaId = vm.venda?.id || null);
+    sub.unsubscribe();
+    if (!vendaId) {
+      this.pdv.novaVenda().subscribe(() => this.showPayments = true);
+    } else {
+      this.showPayments = true;
+    }
   }
 
   ngOnInit(): void {
