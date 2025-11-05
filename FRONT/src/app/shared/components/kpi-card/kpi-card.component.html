@@ -1,0 +1,15 @@
+<div class="kpi-card shadow-1">
+  <div class="kpi-header" [ngClass]="{
+      'kpi--primary': variant === 'primary',
+      'kpi--accent': variant === 'accent',
+      'kpi--warn': variant === 'warn'
+    }">
+    <span class="material-icons">{{ icon }}</span>
+  </div>
+  <div class="kpi-body">
+    <div class="kpi-title">{{ title }}</div>
+    <div class="kpi-value">{{ value }}</div>
+  </div>
+  
+</div>
+

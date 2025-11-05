@@ -1,13 +1,20 @@
 <div class="app-shell" *ngIf="!isAuthRoute; else authOnly">
-  <aside class="sidebar" *ngIf="isAuthenticated">
-    <div class="brand">ABrechozeira</div>
+  <aside class="sidebar" [class.collapsed]="isCollapsed" *ngIf="isAuthenticated">
+    <div class="brand" title="Abcz">
+      <ng-container *ngIf="!isCollapsed; else collapsedBrand">
+        <span class="brand-text">Abcz</span>
+      </ng-container>
+      <ng-template #collapsedBrand>
+        <span class="material-icons brand-icon">checkroom</span>
+      </ng-template>
+    </div>
     <nav class="menu">
       <ng-container *ngFor="let item of menu">
         <a *ngIf="isVisible(item)"
            [routerLink]="item.route"
            routerLinkActive="active"
            class="menu-item">
-          <span class="icon" [class]="item.icon"></span>
+          <span class="icon material-icons">{{ item.icon }}</span>
           <span class="label">{{ item.label }}</span>
         </a>
       </ng-container>
@@ -19,9 +26,17 @@
   </aside>
 
   <main class="content">
-    <header class="topbar">
-      <div class="title">Painel</div>
+    <header class="topbar md-toolbar">
+      <div class="left">
+        <button class="icon-btn" title="Menu" (click)="toggleSidebar()" aria-label="Alternar menu">
+          <span class="material-icons">menu</span>
+        </button>
+        <div class="title">Painel</div>
+      </div>
       <div class="actions">
+        <button class="icon-btn" title="Tema" (click)="toggleTheme()">
+          <span class="material-icons">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
         <button class="logout" *ngIf="isAuthenticated" (click)="onLogout()">Sair</button>
       </div>
     </header>
@@ -37,4 +52,3 @@
   <!-- Poderíamos mostrar branding básico aqui se desejar -->
   
 </ng-template>
-

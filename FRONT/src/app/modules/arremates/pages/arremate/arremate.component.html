@@ -29,32 +29,32 @@
           </div>
       </div>
       <div class="form-field codigo-estoque">
-        <label for="quickCodigoEstoque" class="large-label">Código Estoque</label>
+        <label for="quickCodigoEstoque" class="large-label">Cód. Estoque</label>
         <input type="number" id="quickCodigoEstoque" class="large-input" 
           [disabled]="!selectedLiveId"
           (blur)="onCodigoEstoqueBlur($event)"/>
       </div>
 
       <div class="form-field codigo-live">
-        <label for="quickCodigoLive" class="large-label">Cód. Live</label>
+        <label for="quickCodigoLive" class="large-label">Cód. Live*</label>
         <input type="number" id="quickCodigoLive" class="large-input" 
           [disabled]="!selectedLiveId"/>
       </div>
       
       <div class="form-field peca">
-        <label for="quickPeca" class="large-label">Peça</label>
-        <input type="text" id="quickPeca" class="large-input" readonly 
+        <label for="quickPeca" class="large-label">Peça*</label>
+        <input type="text" id="quickPeca" class="large-input" 
           [disabled]="!selectedLiveId"/>
       </div>
     
       <div class="form-field preco-venda">
-        <label for="quickPrecoVenda" class="large-label">Preço Venda</label>
+        <label for="quickPrecoVenda" class="large-label">Preço Venda*</label>
         <input type="text" id="quickPrecoVenda" class="large-input" 
-          [disabled]="!selectedLiveId"/>
+          [disabled]="!selectedLiveId" (input)="onPrecoVendaInput($event)" (blur)="onPrecoVendaBlur($event)"/>
       </div>
       
       <div class="form-field arrematante">
-        <label for="quickArrematante" class="large-label">Arrematante</label>
+        <label for="quickArrematante" class="large-label">Arrematante*</label>
         <input type="text" id="quickArrematante" class="large-input" 
           [disabled]="!selectedLiveId"/>
       </div>

@@ -72,6 +72,14 @@ public partial class AbrechozeiraContext : DbContext
     public DbSet<ABrechozeiraApp.Models.Role> Role { get; set; } = default!;
     public DbSet<ABrechozeiraApp.Models.UserRole> UserRole { get; set; } = default!;
 
+    // PDV
+    public DbSet<VendaPdv> VendaPdv { get; set; } = default!;
+    public DbSet<VendaPdvItem> VendaPdvItem { get; set; } = default!;
+    public DbSet<VendaPdvPagamento> VendaPdvPagamento { get; set; } = default!;
+    public DbSet<Caixa> Caixa { get; set; } = default!;
+    public DbSet<CaixaMovimento> CaixaMovimento { get; set; } = default!;
+    public DbSet<FormaPagamentoConfigPDV> FormaPagamentoConfigPDV { get; set; } = default!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

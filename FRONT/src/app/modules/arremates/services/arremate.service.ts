@@ -16,7 +16,7 @@ interface Produto {
 
 export interface Arremate {
   id: number;
-  codigoEstoque: string;
+  codigoEstoque: string | null;
   codigoLive: number;
   produtoDescricao: string;
   valorArremate: number;
@@ -27,7 +27,8 @@ export interface Arremate {
 export interface ArremateRequest {
   liveId: number;
   codigoLive: number;
-  produtoId: number;
+  produtoId: number | null;
+  descricaoManual?: string | null;
   arrematante: string;
   valorArremate: number;
   observacoes: string;

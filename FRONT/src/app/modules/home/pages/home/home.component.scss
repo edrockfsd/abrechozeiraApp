@@ -44,4 +44,26 @@
 .menu-card .label {
   font-weight: 600;
 }
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.kpi-card {
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.kpi-title {
+  font-size: 12px;
+  color: var(--md-muted);
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+}
 

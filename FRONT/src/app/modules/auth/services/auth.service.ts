@@ -40,6 +40,27 @@ export class AuthService {
     );
   }
 
+  refreshToken(): Observable<string> {
+    const token = this.getToken();
+    const refresh = this.getRefreshToken();
+    if (!token || !refresh) {
+      return throwError(() => new Error('Sem token para refresh'));
+    }
+
+    const body = { token, refreshToken: refresh };
+    return this.http.post<{ token: string; refreshToken: string }>(`${environment.apiUrl}/auth/refresh-token`, body)
+      .pipe(
+        tap(res => {
+          this.setTokens(res.token, res.refreshToken);
+        }),
+        map(res => res.token),
+        catchError(err => {
+          this.logout();
+          return throwError(() => err);
+        })
+      );
+  }
+
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
@@ -57,6 +78,10 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   hasRole(roleName: string): boolean {
@@ -79,6 +104,11 @@ export class AuthService {
     localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
     this.currentUserSubject.next(response.user);
+  }
+
+  private setTokens(token: string, refreshToken: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
   }
 
   private loadUserFromStorage(): void {

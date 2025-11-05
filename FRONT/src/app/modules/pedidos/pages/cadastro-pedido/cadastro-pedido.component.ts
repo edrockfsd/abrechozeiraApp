@@ -10,6 +10,7 @@ import { DatePickerModule } from '@syncfusion/ej2-angular-calendars';
 import { DropDownListModule } from '@syncfusion/ej2-angular-dropdowns';
 import { ToastModule, ToastComponent } from '@syncfusion/ej2-angular-notifications';
 import { NumericTextBoxModule } from '@syncfusion/ej2-angular-inputs';
+import { CardComponent } from '../../../../shared/components/card/card.component';
 import { PessoaService } from '../../../pessoas/services/pessoa.service';
 import { EnderecoService } from '../../../pessoas/services/endereco.service';
 import { CondicaoPagamentoService, CondicaoPagamento } from '../../services/condicao-pagamento.service';
@@ -62,7 +63,8 @@ interface Endereco {
     DropDownListModule,
     ToastModule,
     NumericTextBoxModule,
-    RadioButtonModule
+    RadioButtonModule,
+    CardComponent
 ],
   providers: [EditService, ToolbarService]
 })

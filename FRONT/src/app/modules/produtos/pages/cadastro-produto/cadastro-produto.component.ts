@@ -333,7 +333,20 @@ export class CadastroProdutoComponent implements OnInit {
               }
             );
           } else {
-            this.router.navigate(['/produtos']);
+            // Em edição: permanecer na página e manter dados atualizados
+            if (resultado) {
+              // Atualiza o formulário com os dados retornados (se houver diferenças)
+              const atualizado: any = {
+                ...resultado,
+                grupoId: (resultado as any).grupoId ?? (resultado as any).grupoID,
+                generoId: (resultado as any).generoId ?? (resultado as any).generoID,
+                perfilId: (resultado as any).perfilId ?? (resultado as any).perfilID,
+                marcaId: (resultado as any).marcaId,
+                dataCompra: resultado.dataCompra ? new Date(resultado.dataCompra as any) : this.produtoForm.get('dataCompra')?.value
+              };
+              this.produtoForm.patchValue(atualizado);
+            }
+            // Nenhum redirecionamento aqui; apenas manter o toast de sucesso
           }
           
           this.salvando = false;

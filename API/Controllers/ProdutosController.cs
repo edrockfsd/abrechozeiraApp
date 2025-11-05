@@ -162,6 +162,7 @@ namespace ABrechozeiraApp.Controllers
         }
 
         [HttpGet("GetProdutosCompleto")]
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         public IActionResult GetProdutosCompleto()
         {
             var produtos = from prd in _context.Produto
@@ -220,6 +221,39 @@ namespace ABrechozeiraApp.Controllers
             catch (Exception)
             {
                 return new Produto() { Descricao = "Erro ao buscar produto"};
+            }
+        }
+
+        [HttpGet("Search")]
+        public IActionResult Search(string term)
+        {
+            try
+            {
+                term = (term ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(term))
+                {
+                    return Ok(Enumerable.Empty<object>());
+                }
+
+                var resultados = (from prd in _context.Produto
+                                   join est0 in _context.Estoque on prd.Id equals est0.ProdutoId into estoqueJoin
+                                   from est in estoqueJoin.DefaultIfEmpty()
+                                   where EF.Functions.Like(prd.Descricao, $"%{term}%")
+                                   select new
+                                   {
+                                       id = prd.Id,
+                                       descricao = prd.Descricao,
+                                       precoVenda = prd.PrecoVenda,
+                                       codigoEstoque = est != null ? est.CodigoEstoque : null
+                                   })
+                                  .Take(20)
+                                  .ToList();
+
+                return Ok(resultados);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Erro na busca", detalhe = ex.Message });
             }
         }
     }

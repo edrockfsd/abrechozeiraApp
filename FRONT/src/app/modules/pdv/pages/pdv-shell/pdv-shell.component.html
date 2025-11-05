@@ -1,0 +1,51 @@
+<div class="pdv-container">
+  <div class="pdv-header">
+    <input type="text" class="scan-input" placeholder="Código/Descrição (F3)" [formControl]="searchCtrl" (keydown.enter)="onSearchEnter()"/>
+    <div class="actions">
+      <button class="btn" (click)="novaVenda()">Nova venda (F2)</button>
+      <button class="btn primary" (click)="finalizar()">Finalizar (F8)</button>
+    </div>
+  </div>
+
+  <div class="pdv-body">
+    <div class="col left">
+      <div class="product-hint">Use o campo acima para ler/buscar produtos.</div>
+    </div>
+    <div class="col right">
+      <div class="cart">
+        <div class="cart-header">
+          <div>Cód</div><div>Descrição</div><div>Qtd</div><div>Preço</div><div>Desc</div><div>Total</div>
+        </div>
+        <ng-container *ngIf="vm$ | async as vm; else empty">
+          <div class="cart-row" *ngFor="let it of vm.itens">
+            <div>{{ it.codigoEstoque || it.produtoId || '-' }}</div>
+            <div>{{ it.descricaoItem }}</div>
+            <div>{{ it.quantidade }}</div>
+            <div>{{ it.precoUnitario | currency:'BRL' }}</div>
+            <div>{{ (it.descontoValor||0) | currency:'BRL' }}</div>
+            <div>{{ it.total | currency:'BRL' }}</div>
+          </div>
+          <div class="totals">
+            <div><span>Itens:</span><strong>{{ vm.itens.length }}</strong></div>
+            <div><span>Subtotal:</span><strong>{{ vm.venda?.valorBruto || 0 | currency:'BRL' }}</strong></div>
+            <div><span>Descontos:</span><strong>{{ vm.venda?.desconto || 0 | currency:'BRL' }}</strong></div>
+            <div><span>Total:</span><strong>{{ vm.venda?.valorLiquido || 0 | currency:'BRL' }}</strong></div>
+          </div>
+        </ng-container>
+        <ng-template #empty>
+          <div class="cart-empty">Carrinho vazio</div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <div class="pdv-footer">
+    <span>F2 Nova</span>
+    <span>F3 Buscar</span>
+    <span>F4 Qtd</span>
+    <span>F6 Desconto</span>
+    <span>DEL Remover</span>
+    <span>F8 Finalizar</span>
+    <span>ESC Cancelar</span>
+  </div>
+</div>

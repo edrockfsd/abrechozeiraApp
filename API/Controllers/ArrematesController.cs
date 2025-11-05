@@ -133,23 +133,23 @@ namespace ABrechozeiraApp.Controllers
         public IActionResult GetArrematesByLiveID(int liveID)
         {
             var arremates = from arr in _context.Arremate
-                            join prod in _context.Produto on arr.ProdutoId equals prod.Id
-                            join est in _context.Estoque on prod.Id equals est.ProdutoId
+                            join prod in _context.Produto on arr.ProdutoId equals prod.Id into prodJoin
+                            from prod in prodJoin.DefaultIfEmpty()
+                            join est in _context.Estoque on prod.Id equals est.ProdutoId into estJoin
+                            from est in estJoin.DefaultIfEmpty()
                             where arr.LiveId == liveID
                             select new
                             {
                                 arr.Id,
-                                produtoID = prod.Id,
-                                produtoDescricao = prod.Descricao,
+                                produtoID = arr.ProdutoId,
+                                produtoDescricao = prod != null ? prod.Descricao : arr.DescricaoManual,
                                 arr.Arrematante,
                                 arr.Observacoes,
                                 arr.DataArremate,
                                 arr.CodigoLive,
-                                est.CodigoEstoque,
+                                CodigoEstoque = est != null ? est.CodigoEstoque : null,
                                 arr.ValorArremate
                             };
-
-
 
             return Ok(arremates.ToList());
         }

@@ -1,0 +1,23 @@
+.app-card {
+  background: var(--md-surface);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.app-card__header {
+  padding: 14px 16px;
+  color: #fff;
+}
+
+.app-card--primary { background: linear-gradient(60deg, #7b1fa2, #c2185b); }
+.app-card--accent { background: linear-gradient(60deg, #e91e63, #ff7043); }
+.app-card--warn { background: linear-gradient(60deg, #f44336, #ff9800); }
+
+.app-card__title {
+  font-weight: 700;
+}
+
+.app-card__body {
+  padding: 16px;
+}
+

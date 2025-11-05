@@ -36,6 +36,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'pdv',
+    loadChildren: () => import('./modules/pdv/pdv.module').then(m => m.PdvModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'pedidos',
     loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule),
     canActivate: [AuthGuard]

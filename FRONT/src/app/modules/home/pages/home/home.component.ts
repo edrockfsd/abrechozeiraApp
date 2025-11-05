@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { KpiCardComponent } from '../../../../shared/components/kpi-card/kpi-card.component';
 
 interface MenuItem {
   label: string;
@@ -14,7 +15,7 @@ interface MenuItem {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, KpiCardComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
@@ -22,14 +23,14 @@ export class HomeComponent {
   constructor(private auth: AuthService) {}
 
   menu: MenuItem[] = [
-    { label: 'Produtos', route: '/produtos', icon: 'e-icons e-product', permissions: ['produtos_read', 'full_access'] },
-    { label: 'Pedidos', route: '/pedidos', icon: 'e-icons e-file', permissions: ['pedidos_read', 'full_access'] },
-    { label: 'Pessoas', route: '/pessoas', icon: 'e-icons e-people', permissions: ['clientes_read', 'full_access'] },
-    { label: 'Estoque', route: '/estoque', icon: 'e-icons e-database', permissions: ['estoque_read', 'full_access'] },
-    { label: 'Lives', route: '/lives', icon: 'e-icons e-video', permissions: ['lives_manage', 'full_access'] },
-    { label: 'Relatórios', route: '/live-sessions', icon: 'e-icons e-chart', permissions: ['relatorios_read', 'full_access'] },
-    { label: 'Usuários', route: '/user-management', icon: 'e-icons e-people', roles: ['ADMIN'] },
-    { label: 'Arremates', route: '/arremates', icon: 'e-icons e-settings', permissions: ['full_access'] }
+    { label: 'Produtos', route: '/produtos', icon: 'shopping_bag', permissions: ['produtos_read', 'full_access'] },
+    { label: 'Pedidos', route: '/pedidos', icon: 'receipt_long', permissions: ['pedidos_read', 'full_access'] },
+    { label: 'Pessoas', route: '/pessoas', icon: 'group', permissions: ['clientes_read', 'full_access'] },
+    { label: 'Estoque', route: '/estoque', icon: 'inventory_2', permissions: ['estoque_read', 'full_access'] },
+    { label: 'Lives', route: '/lives', icon: 'smart_display', permissions: ['lives_manage', 'full_access'] },
+    { label: 'Relatórios', route: '/live-sessions', icon: 'bar_chart', permissions: ['relatorios_read', 'full_access'] },
+    { label: 'Usuários', route: '/user-management', icon: 'admin_panel_settings', roles: ['ADMIN'] },
+    { label: 'Arremates', route: '/arremates', icon: 'gavel', permissions: ['full_access'] }
   ];
 
   get userName(): string {
@@ -47,4 +48,3 @@ export class HomeComponent {
     return true;
   }
 }
-

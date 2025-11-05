@@ -2,8 +2,7 @@
   <ejs-toast #toast [position]="{ X: 'Right', Y: 'Top' }"></ejs-toast>
   <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
     <div class="form-grid">
-      <div class="form-section">
-        <h2>Dados do Pedido</h2>
+      <app-card title="Dados do Pedido" variant="primary">
         <div class="form-row">
           <div class="form-group">
             <label for="numeroPedido">Número do Pedido</label>
@@ -366,7 +365,7 @@
           <button ejs-button cssClass="e-outline" (click)="onImprimir()" [disabled]="salvando">Imprimir</button>
           <button ejs-button cssClass="e-info" (click)="onVoltar()" [disabled]="salvando">Listagem</button>
         </div>
-      </div>
+      </app-card>
     </div>
   </form>
 </div>

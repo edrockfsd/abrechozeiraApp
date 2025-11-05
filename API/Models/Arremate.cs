@@ -17,7 +17,7 @@ public partial class Arremate
 
 
     [ForeignKey("Produto")]
-    public int ProdutoId { get; set; }
+    public int? ProdutoId { get; set; }
 
     public Produto? Produto { get; set; }
 
@@ -33,6 +33,9 @@ public partial class Arremate
     public DateTime DataArremate { get; set; }
 
     public DateTime DataAlteracao { get; set; }
+
+    [StringLength(200)]
+    public string? DescricaoManual { get; set; }
 
     
 

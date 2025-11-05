@@ -6,17 +6,35 @@
 
 .sidebar {
   width: 240px;
-  background: #1f2937;
-  color: #e5e7eb;
+  background: linear-gradient(180deg, var(--md-primary), var(--md-accent));
+  color: #ffffff;
   display: flex;
   flex-direction: column;
+}
+
+.dark .sidebar {
+  /* Dark mode: neutral deep blue/gray gradient to harmonize with topbar */
+  background: linear-gradient(180deg, #0b1220, #111827);
+}
+
+.sidebar.collapsed {
+  width: 64px;
 }
 
 .brand {
   padding: 16px;
   font-weight: 700;
   font-size: 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon {
+  font-size: 28px;
 }
 
 .menu {
@@ -29,13 +47,27 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  color: #e5e7eb;
+  color: #ffffff;
   text-decoration: none;
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  gap: 0;
+}
+
+.sidebar.collapsed .menu-item .label {
+  display: none;
 }
 
 .menu-item:hover,
 .menu-item.active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.12);
+}
+
+.dark .menu-item:hover,
+.dark .menu-item.active {
+  background: rgba(255,255,255,0.18);
 }
 
 .menu-item .icon {
@@ -45,6 +77,14 @@
 .sidebar-footer {
   border-top: 1px solid rgba(255,255,255,0.08);
   padding: 12px 16px;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 8px;
+}
+
+.sidebar.collapsed .sidebar-footer .user {
+  display: none;
 }
 
 .sidebar-footer .user {
@@ -71,7 +111,7 @@
 
 .topbar {
   height: 56px;
-  background: #ffffff;
+  background: var(--md-surface);
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
@@ -79,8 +119,26 @@
   padding: 0 16px;
 }
 
+.md-toolbar {
+  background: linear-gradient(60deg, #7b1fa2, #c2185b);
+  color: #fff;
+  border-bottom: 0;
+}
+
+/* Dark mode topbar: sólido escuro para maior contraste */
+.dark .md-toolbar {
+  background: #111827;
+  color: #e5e7eb;
+}
+
 .page {
   padding: 16px;
+}
+
+.topbar .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .topbar .logout {
@@ -91,3 +149,10 @@
   cursor: pointer;
 }
 
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 8px;
+}

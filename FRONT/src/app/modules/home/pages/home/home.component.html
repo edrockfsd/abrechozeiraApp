@@ -4,12 +4,19 @@
     <p class="subtitle">Escolha uma área para começar</p>
   </div>
 
+  <div class="kpi-row">
+    <app-kpi-card title="Pedidos Hoje" value="—" icon="shopping_cart" variant="primary"></app-kpi-card>
+    <app-kpi-card title="Faturamento" value="—" icon="payments" variant="accent"></app-kpi-card>
+    <app-kpi-card title="Produtos em Baixa" value="—" icon="inventory" variant="warn"></app-kpi-card>
+    <app-kpi-card title="Próxima Live" value="—" icon="live_tv" variant="primary"></app-kpi-card>
+  </div>
+
   <div class="menu-grid">
     <ng-container *ngFor="let item of menu">
       <a *ngIf="isVisible(item)"
          class="menu-card"
          [routerLink]="item.route">
-        <div class="icon" [class]="item.icon"></div>
+        <div class="icon"><span class="material-icons">{{ item.icon }}</span></div>
         <div class="label">{{ item.label }}</div>
       </a>
     </ng-container>

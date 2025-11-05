@@ -1,0 +1,13 @@
+.pdv-container { padding: 16px; }
+.pdv-header { display:flex; gap:16px; align-items:center; margin-bottom:12px; }
+.scan-input { flex:1; padding:12px 14px; font-size:1.2rem; border:2px solid #ccc; border-radius:6px; }
+.actions .btn { padding:10px 14px; border-radius:6px; border:1px solid #bbb; background:#fff; cursor:pointer; }
+.actions .btn.primary { background: var(--primary-color,#0d6efd); color:#fff; border-color: var(--primary-color,#0d6efd); }
+.pdv-body { display:grid; grid-template-columns: 1fr 2fr; gap:16px; }
+.col { background:#fff; border:1px solid #e6e6e6; border-radius:8px; padding:12px; }
+.cart-header { display:grid; grid-template-columns: 100px 1fr 80px 120px 120px 140px; font-weight:600; opacity:.8; }
+.cart-empty { padding:20px; color:#777; text-align:center; }
+.totals { display:flex; gap:18px; justify-content:flex-end; margin-top:10px; }
+.totals div { background:#f7f7f7; padding:8px 10px; border-radius:6px; }
+.pdv-footer { margin-top:14px; display:flex; gap:14px; font-size:.95rem; color:#666; }
+

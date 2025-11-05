@@ -189,3 +189,84 @@
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+/* New, aligned layout (opt-in with .v2 on root) */
+.arremate-container.v2 {
+  .quick-entry-form {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: var(--panel-bg, #ffffff);
+    border: 1px solid var(--panel-border, #e6e6e6);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  }
+
+  .large-label {
+    display: block;
+    margin: 0 0 8px 2px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color, #333);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 3fr 1.3fr 2fr 3fr auto;
+    column-gap: 24px;
+    row-gap: 16px;
+    align-items: end;
+  }
+
+  .form-field { min-width: 0; }
+
+  .input-button-group {
+    display: grid;
+    grid-template-columns: 1fr 58px;
+    column-gap: 14px;
+    align-items: end;
+  }
+
+  .add-button { height: 58px; width: 58px; }
+
+  /* Syncfusion inputs full width */
+  ::ng-deep .e-input-group, 
+  ::ng-deep .e-ddl, 
+  ::ng-deep .e-combobox { width: 100%; }
+
+  /* Focus/brand */
+  .large-input:focus {
+    border-color: var(--primary-color, #0d6efd);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary-color, #0d6efd) 25%, transparent);
+  }
+
+  /* Harmonize control heights */
+  .large-input { min-height: 56px; }
+  ::ng-deep .e-input-group input,
+  ::ng-deep .e-input-group .e-input,
+  ::ng-deep .e-control.e-combobox .e-input {
+    height: 56px;
+    line-height: 56px;
+  }
+  ::ng-deep .e-input-group-icon, 
+  ::ng-deep .e-control.e-combobox .e-input-group-icon {
+    height: 56px;
+    line-height: 56px;
+  }
+
+  .add-button {
+    background-color: var(--success-color, #28a745);
+  }
+  .add-button:hover { background-color: color-mix(in oklab, var(--success-color, #28a745) 85%, black); }
+
+  /* Responsiveness */
+  @media (max-width: 1200px) {
+    .form-row { grid-template-columns: 2fr 1fr 1fr 2fr 1.2fr 1.8fr 2.2fr auto; }
+  }
+  @media (max-width: 992px) {
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .input-button-group { grid-template-columns: 1fr 50px; }
+  }
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+}

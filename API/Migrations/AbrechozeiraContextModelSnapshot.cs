@@ -44,13 +44,17 @@ namespace ABrechozeiraApp.Migrations
                     b.Property<DateTime>("DataArremate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("DescricaoManual")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
                     b.Property<int>("LiveId")
                         .HasColumnType("int");
 
                     b.Property<string>("Observacoes")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("ProdutoId")
+                    b.Property<int?>("ProdutoId")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("ValorArremate")
@@ -63,6 +67,72 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("ProdutoId");
 
                     b.ToTable("Arremate");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.Caixa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataAbertura")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DataFechamento")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<decimal?>("SaldoFechamento")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("SaldoInicial")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Caixa");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.CaixaMovimento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CaixaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataRegistro")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ReferenciaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaixaId");
+
+                    b.ToTable("CaixaMovimento");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ComentarioLive", b =>
@@ -230,6 +300,36 @@ namespace ABrechozeiraApp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FormaPagamento");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.FormaPagamentoConfigPDV", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("ExibirNoPDV")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("FormaPagamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxParcelas")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PermiteParcelamento")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("TaxaAdmPerc")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormaPagamentoId");
+
+                    b.ToTable("FormaPagamentoConfigPDV");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Live", b =>
@@ -934,7 +1034,8 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.HasIndex("PessoaId");
+                    b.HasIndex("PessoaId")
+                        .IsUnique();
 
                     b.ToTable("User");
                 });
@@ -1027,6 +1128,145 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Venda");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdv", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CaixaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("DataAlteracao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("DataVenda")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal?>("Desconto")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorBruto")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("ValorLiquido")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("VendaPdv");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoEstoque")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<decimal?>("DescontoPerc")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal?>("DescontoValor")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("DescricaoItem")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<decimal>("PrecoUnitario")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int?>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantidade")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("VendaPdvId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.HasIndex("VendaPdvId");
+
+                    b.ToTable("VendaPdvItem");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvPagamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CondicaoPagamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataRegistro")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FormaPagamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TransacaoId")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("VendaPdvId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CondicaoPagamentoId");
+
+                    b.HasIndex("FormaPagamentoId");
+
+                    b.HasIndex("VendaPdvId");
+
+                    b.ToTable("VendaPdvPagamento");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.Arremate", b =>
                 {
                     b.HasOne("ABrechozeiraApp.Models.Live", "Live")
@@ -1037,13 +1277,22 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasOne("ABrechozeiraApp.Models.Produto", "Produto")
                         .WithMany()
-                        .HasForeignKey("ProdutoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProdutoId");
 
                     b.Navigation("Live");
 
                     b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.CaixaMovimento", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.Caixa", "Caixa")
+                        .WithMany()
+                        .HasForeignKey("CaixaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Caixa");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Endereco", b =>
@@ -1074,6 +1323,17 @@ namespace ABrechozeiraApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.FormaPagamentoConfigPDV", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.FormaPagamento", "FormaPagamento")
+                        .WithMany()
+                        .HasForeignKey("FormaPagamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FormaPagamento");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pedido", b =>
@@ -1230,8 +1490,8 @@ namespace ABrechozeiraApp.Migrations
             modelBuilder.Entity("ABrechozeiraApp.Models.User", b =>
                 {
                     b.HasOne("ABrechozeiraApp.Models.Pessoa", "Pessoa")
-                        .WithMany()
-                        .HasForeignKey("PessoaId")
+                        .WithOne("User")
+                        .HasForeignKey("ABrechozeiraApp.Models.User", "PessoaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1288,9 +1548,65 @@ namespace ABrechozeiraApp.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdv", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.Pessoa", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId");
+
+                    b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvItem", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId");
+
+                    b.HasOne("ABrechozeiraApp.Models.VendaPdv", "VendaPdv")
+                        .WithMany()
+                        .HasForeignKey("VendaPdvId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Produto");
+
+                    b.Navigation("VendaPdv");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvPagamento", b =>
+                {
+                    b.HasOne("ABrechozeiraApp.Models.CondicaoPagamento", "CondicaoPagamento")
+                        .WithMany()
+                        .HasForeignKey("CondicaoPagamentoId");
+
+                    b.HasOne("ABrechozeiraApp.Models.FormaPagamento", "FormaPagamento")
+                        .WithMany()
+                        .HasForeignKey("FormaPagamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ABrechozeiraApp.Models.VendaPdv", "VendaPdv")
+                        .WithMany()
+                        .HasForeignKey("VendaPdvId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CondicaoPagamento");
+
+                    b.Navigation("FormaPagamento");
+
+                    b.Navigation("VendaPdv");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("ABrechozeiraApp.Models.Pessoa", b =>
+                {
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Role", b =>

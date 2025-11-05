@@ -6,7 +6,7 @@ import { AuthService } from './modules/auth/services/auth.service';
 interface MenuItem {
   label: string;
   route: string;
-  icon?: string;
+  icon?: string; // material icon name
   permissions?: string[];
   roles?: string[];
 }
@@ -19,18 +19,21 @@ interface MenuItem {
   imports: [CommonModule, RouterModule]
 })
 export class AppComponent { 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router) {
+    this.initTheme();
+    this.initSidebar();
+  }
 
   menu: MenuItem[] = [
-    { label: 'Home', route: '/home', icon: 'e-icons e-home' },
-    { label: 'Produtos', route: '/produtos', icon: 'e-icons e-product', permissions: ['produtos_read', 'full_access'] },
-    { label: 'Pedidos', route: '/pedidos', icon: 'e-icons e-file', permissions: ['pedidos_read', 'full_access'] },
-    { label: 'Pessoas', route: '/pessoas', icon: 'e-icons e-people', permissions: ['clientes_read', 'full_access'] },
-    { label: 'Estoque', route: '/estoque', icon: 'e-icons e-database', permissions: ['estoque_read', 'full_access'] },
-    { label: 'Lives', route: '/lives', icon: 'e-icons e-video', permissions: ['lives_manage', 'full_access'] },
-    { label: 'Relatórios', route: '/live-sessions', icon: 'e-icons e-chart', permissions: ['relatorios_read', 'full_access'] },
-    { label: 'Usuários', route: '/user-management', icon: 'e-icons e-people', roles: ['ADMIN'] },
-    { label: 'Arremates', route: '/arremates', icon: 'e-icons e-settings' }
+    { label: 'Home', route: '/home', icon: 'dashboard' },
+    { label: 'Produtos', route: '/produtos', icon: 'shopping_bag', permissions: ['produtos_read', 'full_access'] },
+    { label: 'Pedidos', route: '/pedidos', icon: 'receipt_long', permissions: ['pedidos_read', 'full_access'] },
+    { label: 'Pessoas', route: '/pessoas', icon: 'group', permissions: ['clientes_read', 'full_access'] },
+    { label: 'Estoque', route: '/estoque', icon: 'inventory_2', permissions: ['estoque_read', 'full_access'] },
+    { label: 'Lives', route: '/lives', icon: 'smart_display', permissions: ['lives_manage', 'full_access'] },
+    { label: 'Relatórios', route: '/live-sessions', icon: 'bar_chart', permissions: ['relatorios_read', 'full_access'] },
+    { label: 'Usuários', route: '/user-management', icon: 'admin_panel_settings', roles: ['ADMIN'] },
+    { label: 'Arremates', route: '/arremates', icon: 'gavel' }
   ];
 
   get isAuthenticated(): boolean {
@@ -60,5 +63,36 @@ export class AppComponent {
   onLogout(): void {
     this.auth.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  isDark = false;
+  private initTheme(): void {
+    const saved = localStorage.getItem('theme');
+    this.isDark = saved === 'dark';
+    this.applyTheme();
+  }
+
+  toggleTheme(): void {
+    this.isDark = !this.isDark;
+    localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  private applyTheme(): void {
+    const root = document.documentElement;
+    if (this.isDark) root.classList.add('dark');
+    else root.classList.remove('dark');
+  }
+
+  // Sidebar collapse state
+  isCollapsed = false;
+  private initSidebar(): void {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    this.isCollapsed = saved === 'true';
+  }
+
+  toggleSidebar(): void {
+    this.isCollapsed = !this.isCollapsed;
+    localStorage.setItem('sidebar-collapsed', String(this.isCollapsed));
   }
 }

@@ -16,7 +16,7 @@ public partial class User
     [Column("PessoaId")]
     public int PessoaId { get; set; }
 
-    [ForeignKey("PessoaId")]
+    
     public virtual Pessoa? Pessoa { get; set; }
 
     [Required]
