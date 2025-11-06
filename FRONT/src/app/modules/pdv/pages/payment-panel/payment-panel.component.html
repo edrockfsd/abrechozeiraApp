@@ -41,7 +41,7 @@
   <div class="list">
     <div class="row head"><div>Forma</div><div>Valor</div><div>Obs</div><div>Ações</div></div>
     <div class="row" *ngFor="let p of pagamentos">
-      <div>{{ (config?.formasPagamento||[]).find(f=>f.id===p.formaPagamentoId)?.descricao || p.formaPagamentoId }}</div>
+      <div>{{ getFormaDescricao(p.formaPagamentoId) || p.formaPagamentoId }}</div>
       <div>{{ p.valor | currency:'BRL' }}</div>
       <div>{{ p.observacao || '-' }}</div>
       <div>
@@ -55,4 +55,3 @@
     <button class="btn primary" [disabled]="sumPagos < total" (click)="finalizarVenda()">Finalizar</button>
   </div>
 </div>
-

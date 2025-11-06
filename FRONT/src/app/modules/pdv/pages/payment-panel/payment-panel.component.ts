@@ -58,6 +58,12 @@ export class PaymentPanelComponent implements OnInit, OnDestroy {
     this.troco = diff < 0 ? Math.abs(diff) : 0;
   }
 
+  getFormaDescricao(id: number | null | undefined): string {
+    if (!id || !this.config?.formasPagamento) return '';
+    const f = this.config.formasPagamento.find(x => x.id === id);
+    return f?.descricao || '';
+  }
+
   addPagamento() {
     if (!this.vendaId || this.form.invalid) return;
     const payload = {
@@ -91,4 +97,3 @@ export class PaymentPanelComponent implements OnInit, OnDestroy {
     });
   }
 }
-
