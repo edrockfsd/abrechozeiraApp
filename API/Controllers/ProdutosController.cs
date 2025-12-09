@@ -196,6 +196,40 @@ namespace ABrechozeiraApp.Controllers
             return Ok(produtos.ToList());
         }
 
+        [HttpGet("GetProdutoByCodigoEstoque2")]
+        public ActionResult GetProdutoByCodigoEstoque2(int codigoEstoque)
+        {
+            try
+            {
+                var produto = (from prd in _context.Produto
+                               join est in _context.Estoque on prd.Id equals est.ProdutoId
+                               join pgr in _context.ProdutoGrupo on prd.GrupoID equals pgr.Id
+                               where est.CodigoEstoque == codigoEstoque
+                               select new
+                               {
+                                   Id = prd.Id,
+                                   Descricao = prd.Descricao,
+                                   Condicao = prd.Condicao,
+                                   PrecoVenda = prd.PrecoVenda,
+                                   Marca = prd.Marca,
+                                   Tamanho = prd.Tamanho,
+                                   Categoria = pgr.Descricao,
+                                   CodigoEstoque = est.CodigoEstoque
+                               }).FirstOrDefault();
+
+                if (produto == null)
+                {
+                    return NotFound(new { message = "Produto não encontrado" });
+                }
+
+                return Ok(produto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Erro ao buscar produto", detalhe = ex.Message });
+            }
+        }
+
         [HttpGet("GetProdutoParaArremate")]
         public ActionResult<Produto> GetProdutoParaArremate(int codigoEstoque)
         {
@@ -235,19 +269,42 @@ namespace ABrechozeiraApp.Controllers
                     return Ok(Enumerable.Empty<object>());
                 }
 
-                var resultados = (from prd in _context.Produto
-                                   join est0 in _context.Estoque on prd.Id equals est0.ProdutoId into estoqueJoin
-                                   from est in estoqueJoin.DefaultIfEmpty()
-                                   where EF.Functions.Like(prd.Descricao, $"%{term}%")
-                                   select new
-                                   {
-                                       id = prd.Id,
-                                       descricao = prd.Descricao,
-                                       precoVenda = prd.PrecoVenda,
-                                       codigoEstoque = est != null ? est.CodigoEstoque : null
-                                   })
-                                  .Take(20)
-                                  .ToList();
+                bool isNumeric = int.TryParse(term, out var codigo);
+
+                var baseQuery = from prd in _context.Produto
+                                join est0 in _context.Estoque on prd.Id equals est0.ProdutoId into estoqueJoin
+                                from est in estoqueJoin.DefaultIfEmpty()
+                                select new
+                                {
+                                    id = prd.Id,
+                                    descricao = prd.Descricao,
+                                    precoVenda = prd.PrecoVenda,
+                                    codigoEstoque = est != null ? (int?)est.CodigoEstoque : null
+                                };
+
+                List<object> resultados;
+                if (isNumeric)
+                {
+                    // Tenta match exato por código. Se nada, cai no like por descrição.
+                    resultados = baseQuery.Where(x => x.codigoEstoque == codigo)
+                                          .Take(20)
+                                          .Cast<object>()
+                                          .ToList();
+                    if (resultados.Count == 0)
+                    {
+                        resultados = baseQuery.Where(x => EF.Functions.Like(x.descricao, $"%{term}%"))
+                                              .Take(20)
+                                              .Cast<object>()
+                                              .ToList();
+                    }
+                }
+                else
+                {
+                    resultados = baseQuery.Where(x => EF.Functions.Like(x.descricao, $"%{term}%"))
+                                          .Take(20)
+                                          .Cast<object>()
+                                          .ToList();
+                }
 
                 return Ok(resultados);
             }

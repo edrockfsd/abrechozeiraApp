@@ -56,11 +56,15 @@ export class PdvService {
 
   get state$() { return this.currentVenda$.asObservable(); }
 
-  novaVenda(): Observable<number> {
-    const payload = { status: 'Aberta' } as any;
-    return this.http.post<{id:number}>(`${this.api}/VendasPdv`, payload).pipe(
-      tap((res) => this.carregar(res.id).subscribe()) ,
-      map(res => res.id)
+  novaVenda(caixaId?: number | null): Observable<number> {
+    const payload: any = { status: 'Aberta' };
+    if (caixaId) payload.caixaId = caixaId;
+    return this.http.post<any>(`${this.api}/VendasPdv`, payload).pipe(
+      tap((res: any) => {
+        const id = (res?.id ?? res?.Id) as number;
+        if (id) this.carregar(id).subscribe();
+      }),
+      map((res: any) => (res?.id ?? res?.Id) as number)
     );
   }
 
@@ -102,5 +106,18 @@ export class PdvService {
   getConfig(): Observable<PdvConfig> {
     return this.http.get<PdvConfig>(`${this.api}/VendasPdv/config`);
   }
-}
 
+  listVendas(limit = 50, status?: string, start?: string, end?: string): Observable<any[]> {
+    const params = new URLSearchParams();
+    if (limit) params.set('limit', String(limit));
+    if (status) params.set('status', status);
+    if (start) params.set('start', start);
+    if (end) params.set('end', end);
+    const qs = params.toString();
+    return this.http.get<any[]>(`${this.api}/VendasPdv${qs ? '?' + qs : ''}`);
+  }
+
+  getVendaRaw(id: number): Observable<{ venda: VendaPdv, itens: VendaPdvItem[], pagamentos: VendaPdvPagamento[] }>{
+    return this.http.get<{ venda: VendaPdv, itens: VendaPdvItem[], pagamentos: VendaPdvPagamento[] }>(`${this.api}/VendasPdv/${id}`);
+  }
+}

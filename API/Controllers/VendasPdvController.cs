@@ -48,7 +48,8 @@ public class VendasPdvController : ControllerBase
         venda.DataAlteracao = DateTime.UtcNow;
         _context.VendaPdv.Add(venda);
         await _context.SaveChangesAsync();
-        return Ok(new { venda.Id });
+        // Padroniza a propriedade em camelCase para o front esperar "id"
+        return Ok(new { id = venda.Id });
     }
 
     [HttpGet("{id}")]
@@ -60,6 +61,41 @@ public class VendasPdvController : ControllerBase
         var itens = await _context.VendaPdvItem.Where(i => i.VendaPdvId == id).ToListAsync();
         var pagamentos = await _context.VendaPdvPagamento.Where(p => p.VendaPdvId == id).ToListAsync();
         return Ok(new { venda, itens, pagamentos });
+    }
+
+    // Listagem simples: últimas vendas com totais
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<object>>> List([FromQuery] int? limit, [FromQuery] string? status, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
+    {
+        var q = _context.VendaPdv.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            q = q.Where(v => v.Status == status);
+        }
+        if (start.HasValue)
+        {
+            q = q.Where(v => v.DataVenda >= start.Value);
+        }
+        if (end.HasValue)
+        {
+            q = q.Where(v => v.DataVenda <= end.Value);
+        }
+        var take = limit.HasValue && limit.Value > 0 && limit.Value <= 500 ? limit.Value : 50;
+        var data = await q
+            .OrderByDescending(v => v.DataVenda)
+            .Take(take)
+            .Select(v => new
+            {
+                v.Id,
+                v.Codigo,
+                v.Status,
+                v.DataVenda,
+                v.ValorBruto,
+                v.Desconto,
+                v.ValorLiquido
+            })
+            .ToListAsync();
+        return Ok(data);
     }
 
     [HttpPost("{id}/itens")]
@@ -158,6 +194,8 @@ public class VendasPdvController : ControllerBase
 
     private async Task RecalcularTotais(int vendaId)
     {
+        // Flush pendências (ADD/UPDATE/DELETE) antes do cálculo
+        await _context.SaveChangesAsync();
         var venda = await _context.VendaPdv.FindAsync(vendaId);
         if (venda == null) return;
         var bruto = await _context.VendaPdvItem.Where(i => i.VendaPdvId == vendaId)

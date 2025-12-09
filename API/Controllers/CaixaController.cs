@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
+using System.Security.Claims;
 
 namespace ABrechozeiraApp.Controllers;
 
@@ -15,7 +16,12 @@ public class CaixaController : ControllerBase
     [HttpPost("abrir")]
     public async Task<ActionResult<int>> Abrir([FromBody] Caixa caixa)
     {
-        caixa.Id = 0; caixa.DataAbertura = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        caixa.Id = 0;
+        caixa.UsuarioId = userId.Value;
+        caixa.DataAbertura = DateTime.UtcNow;
         _context.Caixa.Add(caixa);
         await _context.SaveChangesAsync();
         return Ok(caixa.Id);
@@ -57,5 +63,43 @@ public class CaixaController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
-}
 
+    [HttpGet("aberto")]
+    public async Task<ActionResult<Caixa>> GetAberto()
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var caixa = await _context.Caixa
+            .Where(c => c.UsuarioId == userId.Value && c.DataFechamento == null)
+            .OrderByDescending(c => c.DataAbertura)
+            .FirstOrDefaultAsync();
+
+        if (caixa == null) return NotFound();
+        return Ok(caixa);
+    }
+
+    [HttpGet("{id}/movimentos")]
+    public async Task<ActionResult<IEnumerable<CaixaMovimento>>> GetMovimentos(int id)
+    {
+        if (!await _context.Caixa.AnyAsync(c => c.Id == id))
+        {
+            return NotFound();
+        }
+
+        var movimentos = await _context.CaixaMovimento
+            .Where(m => m.CaixaId == id)
+            .OrderByDescending(m => m.DataRegistro)
+            .ToListAsync();
+
+        return Ok(movimentos);
+    }
+
+    private int? GetCurrentUserId()
+    {
+        if (User?.Identity?.IsAuthenticated != true) return null;
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
+        if (claim == null) return null;
+        return int.TryParse(claim.Value, out var id) ? id : (int?)null;
+    }
+}

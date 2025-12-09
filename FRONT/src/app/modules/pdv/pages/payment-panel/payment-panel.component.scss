@@ -26,4 +26,13 @@ input, select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; }
 .row.head { font-weight: 600; opacity: .8; border-bottom: 1px solid #eee; }
 
 .panel-actions { display:flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid #eee; }
-
+/* Ensure payment panel occupies full height and is scrollable */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); }
+.panel { position: fixed; right:0; top:0; bottom:0; width: 520px; max-width: 95vw; background:#fff; box-shadow: -8px 0 16px rgba(0,0,0,.1); display:flex; flex-direction:column; }
+.panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #eee; }
+.totals { display:flex; gap:10px; padding:10px 16px; flex-wrap:wrap; }
+.form-row { display:flex; gap:10px; padding:0 16px 10px; align-items:center; flex-wrap:wrap; }
+.form-row .grow { flex:1; }
+.list, ejs-grid { flex: 1 1 auto; margin: 0 16px; }
+.panel-actions { display:flex; justify-content:flex-end; gap:10px; padding:12px 16px; border-top:1px solid #eee; }
+.totals.finalized { justify-content:space-between; font-size:1.1rem; }

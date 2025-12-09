@@ -26,6 +26,9 @@ export class AppComponent {
 
   menu: MenuItem[] = [
     { label: 'Home', route: '/home', icon: 'dashboard' },
+    { label: 'PDV', route: '/pdv', icon: 'point_of_sale' },
+    { label: 'Caixa', route: '/caixa', icon: 'account_balance_wallet' },
+    { label: 'Vendas PDV', route: '/pdv/vendas', icon: 'list_alt' },
     { label: 'Produtos', route: '/produtos', icon: 'shopping_bag', permissions: ['produtos_read', 'full_access'] },
     { label: 'Pedidos', route: '/pedidos', icon: 'receipt_long', permissions: ['pedidos_read', 'full_access'] },
     { label: 'Pessoas', route: '/pessoas', icon: 'group', permissions: ['clientes_read', 'full_access'] },

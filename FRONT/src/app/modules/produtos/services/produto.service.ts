@@ -103,6 +103,12 @@ export class ProdutoService {
   }
 
   buscarPorCodigoEstoque(codigoEstoque: string): Observable<Produto> {
-    return this.http.get<Produto>(`${this.apiUrl}/GetProdutoByCodigoEstoque?codigoEstoque=${codigoEstoque}`);
+    return this.http.get<Produto>(`${this.apiUrl}/GetProdutoByCodigoEstoque2?codigoEstoque=${codigoEstoque}`);
   }
-} 
+
+  // Busca por descrição (retorna lista reduzida para seleção no PDV)
+  search(term: string): Observable<any[]> {
+    const q = encodeURIComponent(term);
+    return this.http.get<any[]>(`${this.apiUrl}/Search?term=${q}`);
+  }
+}

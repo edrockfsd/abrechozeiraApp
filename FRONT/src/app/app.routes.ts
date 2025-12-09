@@ -41,6 +41,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'caixa',
+    loadChildren: () => import('./modules/caixa/caixa.module').then(m => m.CaixaModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'pedidos',
     loadChildren: () => import('./modules/pedidos/pedidos.module').then(m => m.PedidosModule),
     canActivate: [AuthGuard]
