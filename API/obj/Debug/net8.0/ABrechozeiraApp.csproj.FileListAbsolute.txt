@@ -317,4 +317,5 @@ C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\bin\Debug\net8.0\Microsoft.Identity
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\swae.build.ex.cache
 C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

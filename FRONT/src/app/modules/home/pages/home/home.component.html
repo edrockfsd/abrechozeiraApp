@@ -1,30 +1,128 @@
 <div class="home-container">
   <div class="home-header">
     <h1>Bem-vindo<span *ngIf="userName">, {{ userName }}</span></h1>
-    <p class="subtitle">Escolha uma área para começar</p>
+    <p class="subtitle">Painel de controle do seu negócio</p>
   </div>
 
-  <div class="kpi-row">
-    <app-kpi-card title="Pedidos Hoje" value="—" icon="shopping_cart" variant="primary"></app-kpi-card>
-    <app-kpi-card title="Faturamento" value="—" icon="payments" variant="accent"></app-kpi-card>
-    <app-kpi-card title="Produtos em Baixa" value="—" icon="inventory" variant="warn"></app-kpi-card>
-    <app-kpi-card title="Próxima Live" value="—" icon="live_tv" variant="primary"></app-kpi-card>
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <span class="material-icons spinning">sync</span>
+    <p>Carregando dashboard...</p>
   </div>
 
-  <div class="menu-grid">
-    <ng-container *ngFor="let item of menu">
-      <a *ngIf="isVisible(item)"
-         class="menu-card"
-         [routerLink]="item.route">
-        <div class="icon"><span class="material-icons">{{ item.icon }}</span></div>
-        <div class="label">{{ item.label }}</div>
-      </a>
-    </ng-container>
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <span class="material-icons">error_outline</span>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadDashboard()">Tentar novamente</button>
   </div>
 
-  <!-- Espaço para KPIs futuros -->
-  <!-- <div class="kpis">
-    <div class="kpi-card">Pedidos hoje: 0</div>
-    <div class="kpi-card">Faturamento: R$ 0,00</div>
-  </div> -->
+  <!-- Dashboard Content -->
+  <ng-container *ngIf="!loading && !error">
+    <!-- KPI Cards -->
+    <div class="kpi-row">
+      <app-kpi-card title="Vendas Hoje" [value]="vendasHoje" icon="today" variant="primary"></app-kpi-card>
+      <app-kpi-card title="Vendas Semana" [value]="vendasSemana" icon="date_range" variant="accent"></app-kpi-card>
+      <app-kpi-card title="Vendas Mês" [value]="vendasMes" icon="calendar_month" variant="primary"></app-kpi-card>
+      <app-kpi-card title="Estoque Baixo" [value]="estoqueBaixoCount" icon="warning" [variant]="estoqueBaixoCount > 0 ? 'warn' : 'neutral'"></app-kpi-card>
+    </div>
+
+    <!-- Charts and Tables Row -->
+    <div class="dashboard-grid">
+      <!-- Gráfico de Vendas Últimos 7 Dias -->
+      <div class="card chart-card">
+        <h3 class="card-title">
+          <span class="material-icons">show_chart</span>
+          Vendas Últimos 7 Dias
+        </h3>
+        <div class="chart-container">
+          <div class="bar-chart">
+            <div class="bar-item" *ngFor="let dia of dashboardData?.vendasUltimos7Dias">
+              <div class="bar" [style.height.%]="getBarHeight(dia.total)">
+                <span class="bar-value" *ngIf="dia.total > 0">{{ dia.total | currency:'BRL':'symbol':'1.0-0' }}</span>
+              </div>
+              <span class="bar-label">{{ dia.diaSemana }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Produtos Mais Vendidos -->
+      <div class="card">
+        <h3 class="card-title">
+          <span class="material-icons">trending_up</span>
+          Produtos Mais Vendidos
+        </h3>
+        <div class="table-container" *ngIf="dashboardData?.produtosMaisVendidos?.length; else noProdutos">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th class="text-center">Qtd</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let produto of dashboardData?.produtosMaisVendidos">
+                <td class="product-name">{{ produto.descricao }}</td>
+                <td class="text-center">{{ produto.quantidade }}</td>
+                <td class="text-right">{{ produto.totalVendido | currency:'BRL' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noProdutos>
+          <div class="empty-state">
+            <span class="material-icons">shopping_cart</span>
+            <p>Nenhuma venda registrada</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Estoque Baixo -->
+      <div class="card">
+        <h3 class="card-title">
+          <span class="material-icons">inventory_2</span>
+          Alerta de Estoque Baixo
+        </h3>
+        <div class="table-container" *ngIf="dashboardData?.estoqueBaixo?.length; else noEstoque">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th class="text-center">Qtd</th>
+                <th class="text-center">Código</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of dashboardData?.estoqueBaixo" class="row-warning">
+                <td class="product-name">{{ item.descricao }}</td>
+                <td class="text-center qty-low">{{ item.quantidade }}</td>
+                <td class="text-center">{{ item.codigoEstoque }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noEstoque>
+          <div class="empty-state success">
+            <span class="material-icons">check_circle</span>
+            <p>Estoque OK!</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Acesso Rápido -->
+    <div class="quick-access">
+      <h3 class="section-title">Acesso Rápido</h3>
+      <div class="menu-grid">
+        <ng-container *ngFor="let item of menu">
+          <a *ngIf="isVisible(item)" class="menu-card" [routerLink]="item.route">
+            <div class="icon"><span class="material-icons">{{ item.icon }}</span></div>
+            <div class="label">{{ item.label }}</div>
+          </a>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

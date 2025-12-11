@@ -110,3 +110,46 @@ body {
   gap: 16px;
   margin-top: 24px;
 }
+
+// Estilos para impressão - oculta menu e topbar, mostra apenas o cupom
+@media print {
+  // Oculta sidebar, topbar e outros elementos de navegação
+  .sidebar,
+  .topbar,
+  .sidebar-footer,
+  .md-toolbar {
+    display: none !important;
+  }
+
+  // Remove background e ajusta layout
+  body,
+  .app-shell {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app-shell {
+    display: block !important;
+  }
+
+  // Conteúdo ocupa toda a página
+  .content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  // Cupom fiscal - centraliza e remove margens extras
+  .receipt {
+    width: 100% !important;
+    max-width: 280px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+  }
+}

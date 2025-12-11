@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "jBdDs7uHdWI=",
+  "dgSpecHash": "+VdIt8xZ1wE=",
   "success": true,
   "projectFilePath": "C:\\Users\\eduar\\GIT_REPOS\\abrechozeiraApp\\API\\ABrechozeiraApp.csproj",
   "expectedPackageFiles": [
@@ -160,5 +160,15 @@
     "C:\\Users\\eduar\\.nuget\\packages\\system.threading.tasks.dataflow\\7.0.0\\system.threading.tasks.dataflow.7.0.0.nupkg.sha512",
     "C:\\Users\\eduar\\.nuget\\packages\\system.windows.extensions\\7.0.0\\system.windows.extensions.7.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "Ocorreu um erro ao obter os dados de vulnerabilidade do pacote: Ocorreu um erro ao enviar a solicitação.",
+      "projectPath": "C:\\Users\\eduar\\GIT_REPOS\\abrechozeiraApp\\API\\ABrechozeiraApp.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\eduar\\GIT_REPOS\\abrechozeiraApp\\API\\ABrechozeiraApp.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
