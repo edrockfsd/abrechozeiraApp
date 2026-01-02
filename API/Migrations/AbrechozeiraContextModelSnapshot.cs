@@ -66,7 +66,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("Arremate");
+                    b.ToTable("Arremate", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Caixa", b =>
@@ -98,7 +98,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Caixa");
+                    b.ToTable("Caixa", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.CaixaMovimento", b =>
@@ -132,7 +132,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("CaixaId");
 
-                    b.ToTable("CaixaMovimento");
+                    b.ToTable("CaixaMovimento", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ComentarioLive", b =>
@@ -163,7 +163,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ComentarioLive");
+                    b.ToTable("ComentarioLive", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.CondicaoPagamento", b =>
@@ -183,7 +183,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CondicaoPagamento");
+                    b.ToTable("CondicaoPagamento", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Endereco", b =>
@@ -248,7 +248,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("TipoEnderecoId");
 
-                    b.ToTable("Endereco");
+                    b.ToTable("Endereco", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Estoque", b =>
@@ -279,7 +279,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("Estoque");
+                    b.ToTable("Estoque", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.FormaPagamento", b =>
@@ -299,7 +299,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FormaPagamento");
+                    b.ToTable("FormaPagamento", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.FormaPagamentoConfigPDV", b =>
@@ -329,7 +329,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("FormaPagamentoId");
 
-                    b.ToTable("FormaPagamentoConfigPDV");
+                    b.ToTable("FormaPagamentoConfigPDV", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Live", b =>
@@ -356,7 +356,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Live");
+                    b.ToTable("Live", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.LiveSession", b =>
@@ -383,7 +383,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LiveSession");
+                    b.ToTable("LiveSession", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.NivelAcesso", b =>
@@ -401,7 +401,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NivelAcesso");
+                    b.ToTable("NivelAcesso", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Origem", b =>
@@ -419,7 +419,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Origem");
+                    b.ToTable("Origem", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pedido", b =>
@@ -481,7 +481,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("PedidoStatusID");
 
-                    b.ToTable("Pedido");
+                    b.ToTable("Pedido", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PedidoProduto", b =>
@@ -516,7 +516,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("PedidoProduto");
+                    b.ToTable("PedidoProduto", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PedidoStatus", b =>
@@ -536,7 +536,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PedidoStatus");
+                    b.ToTable("PedidoStatus", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Permission", b =>
@@ -593,7 +593,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("Resource");
 
-                    b.ToTable("Permission");
+                    b.ToTable("Permission", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Pessoa", b =>
@@ -657,7 +657,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.ToTable("Pessoa");
+                    b.ToTable("Pessoa", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaCategoria", b =>
@@ -675,7 +675,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PessoaCategoria");
+                    b.ToTable("PessoaCategoria", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaGenero", b =>
@@ -698,7 +698,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PessoaGenero");
+                    b.ToTable("PessoaGenero", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaPerfil", b =>
@@ -716,7 +716,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PessoaPerfil");
+                    b.ToTable("PessoaPerfil", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaStatus", b =>
@@ -734,7 +734,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PessoaStatus");
+                    b.ToTable("PessoaStatus", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.PessoaTipo", b =>
@@ -752,7 +752,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PessoaTipo");
+                    b.ToTable("PessoaTipo", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Produto", b =>
@@ -818,7 +818,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.ToTable("Produto");
+                    b.ToTable("Produto", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoGrupo", b =>
@@ -836,7 +836,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProdutoGrupo");
+                    b.ToTable("ProdutoGrupo", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoMarca", b =>
@@ -854,7 +854,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProdutoMarca");
+                    b.ToTable("ProdutoMarca", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoPerfil", b =>
@@ -872,7 +872,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProdutoPerfil");
+                    b.ToTable("ProdutoPerfil", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.ProdutoStatus", b =>
@@ -890,7 +890,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProdutoStatus");
+                    b.ToTable("ProdutoStatus", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Role", b =>
@@ -930,7 +930,7 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Role");
+                    b.ToTable("Role", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.RolePermission", b =>
@@ -961,7 +961,7 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("RoleId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("RolePermission");
+                    b.ToTable("RolePermission", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.TipoEndereco", b =>
@@ -979,7 +979,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TipoEndereco");
+                    b.ToTable("TipoEndereco", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.User", b =>
@@ -1037,7 +1037,7 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("PessoaId")
                         .IsUnique();
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.UserRole", b =>
@@ -1068,7 +1068,7 @@ namespace ABrechozeiraApp.Migrations
                     b.HasIndex("UserId", "RoleId")
                         .IsUnique();
 
-                    b.ToTable("UserRole");
+                    b.ToTable("UserRole", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Venda", b =>
@@ -1125,7 +1125,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("Venda");
+                    b.ToTable("Venda", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdv", b =>
@@ -1177,7 +1177,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("VendaPdv");
+                    b.ToTable("VendaPdv", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvItem", b =>
@@ -1224,7 +1224,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("VendaPdvId");
 
-                    b.ToTable("VendaPdvItem");
+                    b.ToTable("VendaPdvItem", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.VendaPdvPagamento", b =>
@@ -1264,7 +1264,7 @@ namespace ABrechozeiraApp.Migrations
 
                     b.HasIndex("VendaPdvId");
 
-                    b.ToTable("VendaPdvPagamento");
+                    b.ToTable("VendaPdvPagamento", (string)null);
                 });
 
             modelBuilder.Entity("ABrechozeiraApp.Models.Arremate", b =>

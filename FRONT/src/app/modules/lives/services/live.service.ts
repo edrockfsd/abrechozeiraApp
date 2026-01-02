@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Live, LiveCreate } from '../models/live';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LiveService {
-  private apiUrl = 'https://localhost:7194/api/Lives';
+  private apiUrl = `${environment.apiUrl}/Lives`;
 
   constructor(private http: HttpClient) { }
 
@@ -30,4 +31,4 @@ export class LiveService {
   excluir(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
-} 
+}

@@ -1,10 +1,12 @@
-@use '../../../../../styles/mixins' as *;
+// Lista de Pessoas - Sales Dashboard Style
+@use 'design-tokens' as *;
 
 .lista-container {
-  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 
   .header {
-    margin-bottom: 20px;
+    margin-bottom: $spacing-6;
 
     .header-content {
       display: flex;
@@ -13,92 +15,133 @@
 
       h1 {
         margin: 0;
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-bold;
+        color: var(--text-primary);
       }
     }
   }
 
   .action-buttons {
     display: flex;
-    gap: 8px;
+    gap: $spacing-2;
     justify-content: center;
 
     button {
-      min-width: 32px;
+      width: 32px;
       height: 32px;
       padding: 0;
+      border-radius: $border-radius-md;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: var(--bg-main);
+
+        i,
+        .material-icons {
+          color: var(--primary);
+        }
+      }
+
+      i,
+      .material-icons {
+        font-size: 18px;
+        color: var(--text-secondary);
+      }
     }
   }
 }
 
 ::ng-deep {
+
+  // Status badges
   .status-ativo {
-    color: #4CAF50;
-    font-weight: 500;
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $success-light;
+    color: $success;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
   }
 
   .status-inativo {
-    color: #FFA726;
-    font-weight: 500;
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $warning-light;
+    color: $warning;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
   }
 
   .status-excluido {
-    color: #f44336;
-    font-weight: 500;
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $danger-light;
+    color: $danger;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
   }
 
-  .e-toast-success {
-    .e-toast-message {
-      background-color: #4CAF50 !important;
-      color: white !important;
-    }
-    
-    .e-toast-title {
-      color: white !important;
-    }
-
-    .e-toast-close-icon {
-      color: white !important;
-    }
+  // Toast
+  .e-toast-success .e-toast-message {
+    background: $success !important;
+    color: #fff !important;
   }
 
-  .e-toast-danger {
-    .e-toast-message {
-      background-color: #f44336 !important;
-      color: white !important;
-    }
-    
-    .e-toast-title {
-      color: white !important;
-    }
-
-    .e-toast-close-icon {
-      color: white !important;
-    }
+  .e-toast-danger .e-toast-message {
+    background: $danger !important;
+    color: #fff !important;
   }
 
+  // Grid
   .e-grid {
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color) !important;
+    border-radius: $border-radius-lg !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
 
     .e-gridheader {
-      .e-columnheader {
-        background-color: #f8f9fa;
+      background: var(--bg-main) !important;
+    }
+
+    .e-headercell {
+      background: var(--bg-main) !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-xs !important;
+      text-transform: uppercase !important;
+      color: var(--text-secondary) !important;
+    }
+
+    .e-rowcell {
+      font-size: $font-size-sm !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .e-row:hover .e-rowcell {
+      background: rgba(99, 102, 241, 0.03) !important;
+    }
+
+    button {
+      margin: 0 $spacing-1;
+      width: 32px;
+      height: 32px;
+      border-radius: $border-radius-md !important;
+
+      &:hover {
+        background: var(--bg-main) !important;
       }
     }
-    
-    button {
-      margin: 0 4px;
-      min-width: 32px;
-      height: 32px;
-      border-radius: 4px;
-      
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.04);
-      }
-      
-      i {
-        font-size: 16px;
-      }
+
+    .e-pager .e-currentitem {
+      background: var(--primary) !important;
+      color: #fff !important;
     }
   }
-} 
+}

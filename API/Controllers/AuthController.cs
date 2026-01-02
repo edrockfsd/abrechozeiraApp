@@ -24,14 +24,16 @@ namespace ABrechozeiraApp.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<object>> Login([FromBody] LoginRequest request)
         {
-            // Buscar usuário pelo email
-            var user = await _context.User
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
-
-            if (user == null)
+            try
             {
-                return Unauthorized(new { message = "Usuário não encontrado ou inativo" });
-            }
+                // Buscar usuario pelo email
+                var user = await _context.User
+                    .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Usuario nao encontrado ou inativo" });
+                }
 
             // Verificar senha
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
@@ -90,6 +92,11 @@ namespace ABrechozeiraApp.Controllers
                     permissions = permissions.Select(p => p.Name).ToList()
                 }
             });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
+            }
         }
 
         [HttpPost("refresh-token")]

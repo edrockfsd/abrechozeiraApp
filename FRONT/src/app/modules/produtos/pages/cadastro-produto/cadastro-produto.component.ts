@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
-import { DatePickerModule } from '@syncfusion/ej2-angular-calendars';
-import { DropDownListModule } from '@syncfusion/ej2-angular-dropdowns';
+import { DatePickerModule, DatePickerComponent } from '@syncfusion/ej2-angular-calendars';
+import { DropDownListModule, ComboBoxModule } from '@syncfusion/ej2-angular-dropdowns';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { NumericTextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { CommonModule } from '@angular/common';
@@ -35,6 +35,7 @@ import { ToastService } from '../../../../services/toast.service';
     TextBoxModule,
     DatePickerModule,
     DropDownListModule,
+    ComboBoxModule,
     ButtonModule,
     NumericTextBoxModule,
     ToastModule
@@ -42,12 +43,13 @@ import { ToastService } from '../../../../services/toast.service';
 })
 export class CadastroProdutoComponent implements OnInit {
   @ViewChild('toast') private toastObj: ToastComponent;
-  
+  @ViewChild('dataCompraRef') private dataCompraRef: DatePickerComponent;
+
   produtoForm: FormGroup;
   isEdicao = false;
   produtoId: number;
   salvando = false;
-  
+
   // Configurações dos componentes
   public dropDownSettings = {
     placeholder: 'Selecione...',
@@ -62,8 +64,7 @@ export class CadastroProdutoComponent implements OnInit {
   };
 
   public numericSettings = {
-    format: 'c2',
-    currency: 'BRL',
+    format: 'R$ #,##0.00',
     decimals: 2,
     validateDecimalOnType: true,
     min: 0
@@ -74,12 +75,13 @@ export class CadastroProdutoComponent implements OnInit {
     showCloseButton: true,
     timeOut: 5000
   };
-  
+
   grupos: ProdutoGrupo[] = [];
   marcas: ProdutoMarca[] = [];
   generos: PessoaGenero[] = [];
   perfis: PessoaPerfil[] = [];
-  
+  origens: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private produtoService: ProdutoService,
@@ -131,7 +133,7 @@ export class CadastroProdutoComponent implements OnInit {
             return;
           }
           this.grupos = grupos;
-          console.log('Grupos carregados com sucesso:', grupos.map(g => ({id: g.id, descricao: g.descricao})));
+          console.log('Grupos carregados com sucesso:', grupos.map(g => ({ id: g.id, descricao: g.descricao })));
           resolve();
         },
         erro => {
@@ -152,7 +154,7 @@ export class CadastroProdutoComponent implements OnInit {
             return;
           }
           this.marcas = marcas;
-          console.log('Marcas carregadas com sucesso:', marcas.map(m => ({id: m.id, descricao: m.descricao})));
+          console.log('Marcas carregadas com sucesso:', marcas.map(m => ({ id: m.id, descricao: m.descricao })));
           resolve();
         },
         erro => {
@@ -173,7 +175,7 @@ export class CadastroProdutoComponent implements OnInit {
             return;
           }
           this.generos = generos;
-          console.log('Gêneros carregados com sucesso:', generos.map(g => ({id: g.id, descricao: g.descricao})));
+          console.log('Gêneros carregados com sucesso:', generos.map(g => ({ id: g.id, descricao: g.descricao })));
           resolve();
         },
         erro => {
@@ -194,7 +196,7 @@ export class CadastroProdutoComponent implements OnInit {
             return;
           }
           this.perfis = perfis;
-          console.log('Perfis carregados com sucesso:', perfis.map(p => ({id: p.id, descricao: p.descricao})));
+          console.log('Perfis carregados com sucesso:', perfis.map(p => ({ id: p.id, descricao: p.descricao })));
           resolve();
         },
         erro => {
@@ -209,7 +211,7 @@ export class CadastroProdutoComponent implements OnInit {
     this.produtoService.buscarPorId(this.produtoId).subscribe(
       produto => {
         console.log('Produto recebido:', produto);
-        console.log('Produto generoId:', produto.generoID);        
+        console.log('Produto generoId:', produto.generoID);
         console.log('Produto grupoId:', produto.grupoID);
         console.log('Produto perfilId:', produto.perfilID);
         console.log('Produto marcaId:', produto.marcaId);
@@ -248,12 +250,12 @@ export class CadastroProdutoComponent implements OnInit {
           };
 
           console.log('Produto formatado:', produtoFormatado);
-          
+
           // Verificamos se os IDs existem nas listas carregadas
           const grupoExiste = this.grupos.some(g => g.id === produtoFormatado.grupoId);
           const generoExiste = this.generos.some(g => g.id === produtoFormatado.generoId);
           const perfilExiste = this.perfis.some(p => p.id === produtoFormatado.perfilId);
-          
+
           if (!grupoExiste) {
             console.error(`Grupo com ID ${produtoFormatado.grupoId} não encontrado nos grupos disponíveis:`, this.grupos);
           }
@@ -266,9 +268,9 @@ export class CadastroProdutoComponent implements OnInit {
 
           // Atualiza o formulário com todos os valores de uma vez
           this.produtoForm.patchValue(produtoFormatado);
-          
+
           console.log('Estado final do formulário:', this.produtoForm.value);
-          
+
           if (!grupoExiste || !generoExiste || !perfilExiste) {
             this.toastService.showWarning('Alguns dados relacionados ao produto não foram encontrados. Verifique se todos os cadastros necessários existem.');
           }
@@ -288,7 +290,7 @@ export class CadastroProdutoComponent implements OnInit {
     if (this.produtoForm.valid && !this.salvando) {
       this.salvando = true;
       const formValues = this.produtoForm.value;
-      
+
       // Garantir que os IDs sejam números
       const produto: Produto = {
         ...formValues,
@@ -311,7 +313,7 @@ export class CadastroProdutoComponent implements OnInit {
         (resultado) => {
           console.log('Resposta da API:', resultado);
           this.toastService.showSuccess(`Produto ${this.isEdicao ? 'atualizado' : 'cadastrado'} com sucesso.`);
-          
+
           if (!this.isEdicao) {
             // Criar estoque inicial para o novo produto
             this.estoqueService.criarEstoqueInicial(resultado.id).subscribe(
@@ -326,6 +328,8 @@ export class CadastroProdutoComponent implements OnInit {
                   precoCusto: 0,
                   precoVenda: 0
                 });
+                // Restaurar valores default
+                this.definirValoresDefault();
               },
               (erro) => {
                 console.error('Erro ao criar estoque inicial:', erro);
@@ -348,7 +352,7 @@ export class CadastroProdutoComponent implements OnInit {
             }
             // Nenhum redirecionamento aqui; apenas manter o toast de sucesso
           }
-          
+
           this.salvando = false;
         },
         erro => {
@@ -387,7 +391,8 @@ export class CadastroProdutoComponent implements OnInit {
         this.carregarGrupos(),
         this.carregarMarcas(),
         this.carregarGeneros(),
-        this.carregarPerfis()
+        this.carregarPerfis(),
+        this.carregarOrigens()
       ]);
 
       const id = this.route.snapshot.params['id'];
@@ -395,10 +400,152 @@ export class CadastroProdutoComponent implements OnInit {
         this.isEdicao = true;
         this.produtoId = id;
         await this.carregarProduto();
+      } else {
+        // Definir valores default para novo cadastro
+        this.definirValoresDefault();
       }
     } catch (erro) {
       console.error('Erro ao carregar dados:', erro);
       this.toastService.showError('Erro ao carregar dados. Por favor, tente novamente.');
+    }
+  }
+
+  private definirValoresDefault(): void {
+    // Definir Gênero = Feminino
+    const generoFeminino = this.generos.find(g => g.descricao.toLowerCase() === 'feminino');
+    if (generoFeminino) {
+      this.produtoForm.patchValue({ generoId: generoFeminino.id });
+    }
+
+    // Definir Perfil = Adulto
+    const perfilAdulto = this.perfis.find(p => p.descricao.toLowerCase() === 'adulto');
+    if (perfilAdulto) {
+      this.produtoForm.patchValue({ perfilId: perfilAdulto.id });
+    }
+  }
+
+  // Handler para criar nova marca quando o usuário digitar uma marca não existente
+  onAddMarca(event: any): void {
+    if (event && event.text && event.text.trim()) {
+      const novoNome = event.text.trim();
+
+      // Verificar se já existe uma marca com o mesmo nome (case insensitive)
+      const marcaExistente = this.marcas.find(
+        m => m.descricao.toLowerCase() === novoNome.toLowerCase()
+      );
+
+      if (marcaExistente) {
+        // Marca já existe, apenas selecionar
+        this.produtoForm.patchValue({ marcaId: marcaExistente.id });
+        event.customData = marcaExistente;
+        this.toastService.showInfo(`Marca '${marcaExistente.descricao}' já existe e foi selecionada.`);
+        return;
+      }
+
+      // Criar nova marca
+      const novaMarca = { descricao: novoNome } as any;
+      this.produtoMarcaService.criar(novaMarca).subscribe(
+        (marcaCriada) => {
+          this.marcas = [...this.marcas, marcaCriada];
+          this.produtoForm.patchValue({ marcaId: marcaCriada.id });
+          this.toastService.showSuccess(`Marca '${marcaCriada.descricao}' criada com sucesso!`);
+          event.customData = marcaCriada;
+        },
+        (erro) => {
+          console.error('Erro ao criar marca:', erro);
+          this.toastService.showError('Erro ao criar nova marca. Tente novamente.');
+        }
+      );
+    }
+  }
+
+  // Handler para criar nova origem quando o usuário digitar uma origem não existente
+  onAddOrigem(event: any): void {
+    if (event && event.text && event.text.trim()) {
+      const novaOrigem = event.text.trim();
+
+      // Verificar se já existe (case insensitive)
+      const origemExistente = this.origens.find(
+        o => o.toLowerCase() === novaOrigem.toLowerCase()
+      );
+
+      if (origemExistente) {
+        // Origem já existe, apenas selecionar
+        this.produtoForm.patchValue({ origem: origemExistente });
+        event.customData = origemExistente;
+        return;
+      }
+
+      // Adicionar nova origem à lista local e selecionar
+      this.origens = [...this.origens, novaOrigem];
+      this.produtoForm.patchValue({ origem: novaOrigem });
+      event.customData = novaOrigem;
+    }
+  }
+
+  // Carregar origens únicas dos produtos existentes
+  private carregarOrigens(): Promise<void> {
+    return new Promise((resolve) => {
+      this.produtoService.listar().subscribe(
+        (produtos) => {
+          // Extrair origens únicas, removendo duplicatas (case insensitive)
+          const origensMap = new Map<string, string>();
+          produtos.forEach(p => {
+            if (p.origem && p.origem.trim()) {
+              const key = p.origem.toLowerCase();
+              if (!origensMap.has(key)) {
+                origensMap.set(key, p.origem);
+              }
+            }
+          });
+          this.origens = Array.from(origensMap.values());
+          console.log('Origens carregadas:', this.origens);
+          resolve();
+        },
+        (erro) => {
+          console.error('Erro ao carregar origens:', erro);
+          resolve(); // Não rejeitar para não bloquear o fluxo
+        }
+      );
+    });
+  }
+
+  // Formatar data digitada (ex: 25122025 -> 25/12/2025)
+  onDataBlur(event: any): void {
+    // Tentar obter o valor do input de várias formas
+    let input = '';
+
+    // Forma 1: Acessar via ViewChild
+    if (this.dataCompraRef && this.dataCompraRef.element) {
+      const inputEl = this.dataCompraRef.element.querySelector('input') as HTMLInputElement;
+      if (inputEl) {
+        input = inputEl.value || '';
+      }
+    }
+
+    // Forma 2: Fallback para event
+    if (!input && event?.element) {
+      const inputEl = event.element.querySelector('input') as HTMLInputElement;
+      if (inputEl) {
+        input = inputEl.value || '';
+      }
+    }
+
+    const digitsOnly = input.replace(/\D/g, '');
+
+    if (digitsOnly.length === 8) {
+      const dia = digitsOnly.substring(0, 2);
+      const mes = digitsOnly.substring(2, 4);
+      const ano = digitsOnly.substring(4, 8);
+
+      const dataFormatada = new Date(Number(ano), Number(mes) - 1, Number(dia));
+      if (!isNaN(dataFormatada.getTime())) {
+        this.produtoForm.patchValue({ dataCompra: dataFormatada });
+        // Atualizar o DatePicker visualmente
+        if (this.dataCompraRef) {
+          this.dataCompraRef.value = dataFormatada;
+        }
+      }
     }
   }
 } 

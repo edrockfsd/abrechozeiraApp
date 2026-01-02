@@ -66,6 +66,6 @@ export class ArremateService {
   }
 
   deleteArremate(id: number): Observable<any> {
-    return this.http.delete(`https://localhost:7194/api/Arremates/${id}`);
+    return this.http.delete(`${this.apiUrl}/Arremates/${id}`);
   }
 }

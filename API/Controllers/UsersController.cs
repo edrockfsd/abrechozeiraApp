@@ -21,61 +21,74 @@ namespace ABrechozeiraApp.Controllers
         }
 
         /// <summary>
+        /// Health check - testar conexão
+        /// </summary>
+        [HttpGet("health")]
+        public async Task<ActionResult<object>> HealthCheck()
+        {
+            try
+            {
+                var canConnect = await _context.Database.CanConnectAsync();
+                var userCount = await _context.User.CountAsync();
+                return Ok(new { status = "ok", database = canConnect, userCount });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { status = "error", message = ex.Message, inner = ex.InnerException?.Message });
+            }
+        }
+
+        /// <summary>
         /// Listar todos os usuários com roles, permissões e dados da pessoa
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetUsers()
         {
-            // Buscar usuários com includes
-            var users = await _context.User
-                .Include(u => u.Roles)
-                    .ThenInclude(r => r.Permissions)
-                .Include(u => u.Pessoa) // Incluir join com Pessoa
-                .Where(u => u.IsActive)
-                .ToListAsync();
-
-            // Mapear para o formato desejado (processamento em memória)
-            var result = users.Select(u => new
+            try
             {
-                u.Id,
-                u.Email,
-                u.Name,
-                u.IsActive,
-                u.CreatedAt,
-                u.UpdatedAt,
-                Nome = u.Pessoa.Nome?.Split(' ').FirstOrDefault() ?? string.Empty,
-                Sobrenome = string.Join(" ", u.Pessoa.Nome?.Split(' ').Skip(1) ?? Array.Empty<string>()),
-                Pessoa = u.Pessoa != null ? new
-                {
-                    u.Pessoa.Id,
-                    
-                    u.Pessoa.Email,
-                    u.Pessoa.Telefone,
-                    u.Pessoa.CPF,
-                    u.Pessoa.RG
-                } : null,
-                Roles = u.Roles.Select(r => new
-                {
-                    r.Id,
-                    r.Name,
-                    r.Description,
-                    Permissions = r.Permissions.Select(p => new
-                    {
-                        p.Id,
-                        p.Name,
-                        p.Description,
-                        p.Resource,
-                        p.Action
-                    })
-                }),
-                Permissions = u.Roles
-                    .SelectMany(r => r.Permissions)
-                    .Select(p => p.Name)
-                    .Distinct()
-                    .ToList()
-            }).ToList();
+                // Buscar usuários com includes
+                var users = await _context.User
+                    .Include(u => u.Roles)
+                        .ThenInclude(r => r.Permissions)
+                    .Where(u => u.IsActive)
+                    .ToListAsync();
 
-            return Ok(result);
+                // Mapear para o formato desejado (processamento em memória)
+                var result = users.Select(u => new
+                {
+                    u.Id,
+                    u.Email,
+                    u.Name,
+                    u.IsActive,
+                    u.CreatedAt,
+                    u.UpdatedAt,
+                    Roles = u.Roles.Select(r => new
+                    {
+                        r.Id,
+                        r.Name,
+                        r.Description,
+                        Permissions = r.Permissions.Select(p => new
+                        {
+                            p.Id,
+                            p.Name,
+                            p.Description,
+                            p.Resource,
+                            p.Action
+                        })
+                    }),
+                    Permissions = u.Roles
+                        .SelectMany(r => r.Permissions)
+                        .Select(p => p.Name)
+                        .Distinct()
+                        .ToList()
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, inner = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet("GetUsersOptimized")]

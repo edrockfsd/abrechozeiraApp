@@ -1,8 +1,12 @@
+// Lista de Pedidos - Sales Dashboard Style
+@use 'design-tokens' as *;
+
 .lista-container {
-  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 
   .header {
-    margin-bottom: 20px;
+    margin-bottom: $spacing-6;
 
     .header-content {
       display: flex;
@@ -11,17 +15,20 @@
 
       h1 {
         margin: 0;
-        font-size: 24px;
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-bold;
+        color: var(--text-primary);
       }
     }
   }
 
   .grid-container {
     position: relative;
-    background-color: #fff;
-    border-radius: 4px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--bg-card);
+    border-radius: $border-radius-lg;
+    padding: $spacing-5;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-color);
 
     .loading-indicator {
       position: absolute;
@@ -30,39 +37,105 @@
       transform: translate(-50%, -50%);
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: #666;
-      font-size: 14px;
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 10px 20px;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      gap: $spacing-2;
+      color: var(--text-secondary);
+      font-size: $font-size-sm;
+      background: var(--bg-card);
+      padding: $spacing-3 $spacing-5;
+      border-radius: $border-radius-md;
+      box-shadow: $shadow-md;
       z-index: 1;
-
-      .e-spinner {
-        font-size: 16px;
-      }
     }
   }
 }
 
 ::ng-deep {
   .e-grid {
+    border: 1px solid var(--border-color) !important;
+    border-radius: $border-radius-lg !important;
+    overflow: hidden;
+
     .e-gridheader {
-      .e-headercell {
-        background-color: #f8f9fa;
+      background: var(--bg-main) !important;
+    }
+
+    .e-headercell {
+      background: var(--bg-main) !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-xs !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      color: var(--text-secondary) !important;
+    }
+
+    .e-rowcell {
+      font-size: $font-size-sm !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .e-row:hover .e-rowcell {
+      background: rgba(99, 102, 241, 0.03) !important;
+    }
+
+    .e-edit-btn,
+    .e-btn.e-flat {
+      width: 32px;
+      height: 32px;
+      padding: 0 !important;
+      border-radius: $border-radius-md !important;
+
+      &:hover {
+        background: var(--bg-main) !important;
+      }
+
+      .e-icons {
+        font-size: 16px;
+        color: var(--text-secondary);
       }
     }
 
-    .e-edit-btn {
-      padding: 0;
-      min-width: 32px;
-      height: 32px;
-      border-radius: 4px;
+    .e-pager {
+      background: var(--bg-card) !important;
+      border-color: var(--border-color) !important;
 
-      .e-icons {
-        font-size: 14px;
+      .e-currentitem {
+        background: var(--primary) !important;
+        color: #fff !important;
       }
     }
   }
-} 
+
+  // Status badges
+  .status-pendente,
+  .status-aberto {
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $warning-light;
+    color: $warning;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  .status-finalizado,
+  .status-concluido {
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $success-light;
+    color: $success;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  .status-cancelado {
+    display: inline-flex;
+    padding: $spacing-1 $spacing-2;
+    background: $danger-light;
+    color: $danger;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+}

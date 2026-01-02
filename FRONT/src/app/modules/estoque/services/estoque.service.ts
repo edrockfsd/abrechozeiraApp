@@ -3,15 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { Estoque, EstoqueCreate } from '../models/estoque';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EstoqueService {
-  private apiUrl = 'https://localhost:7194/api/Estoque';
-  private apiUrlCompleto = 'https://localhost:7194/api/Estoque/GetEstoquesCompleto';
-  private apiUrlBuscaCodigo = 'https://localhost:7194/api/Estoque/GetEstoqueByCodigoEstoque';
-  private apiUrlUltimoCodigo = 'https://localhost:7194/api/Estoque/GetLastCodigoEstoque';
+  private apiUrl = `${environment.apiUrl}/Estoque`;
+  private apiUrlCompleto = `${environment.apiUrl}/Estoque/GetEstoquesCompleto`;
+  private apiUrlBuscaCodigo = `${environment.apiUrl}/Estoque/GetEstoqueByCodigoEstoque`;
+  private apiUrlUltimoCodigo = `${environment.apiUrl}/Estoque/GetLastCodigoEstoque`;
 
   constructor(private http: HttpClient) { }
 
@@ -37,7 +38,7 @@ export class EstoqueService {
         return proximoCodigo;
       }),
       catchError(erro => {
-        console.error('Erro ao obter último código de estoque:', erro);
+        console.error('Erro ao obter ultimo codigo de estoque:', erro);
         return throwError(erro);
       })
     );
@@ -74,4 +75,4 @@ export class EstoqueService {
       })
     );
   }
-} 
+}

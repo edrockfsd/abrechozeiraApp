@@ -80,7 +80,8 @@ var app = builder.Build();
 
 app.UseCors(myAllowSpecificOrigins);
 
-app.UseHttpsRedirection();
+// Comentado para evitar problemas de CORS/redirect em produção
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

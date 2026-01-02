@@ -1,6 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
-@use './styles/mixins' as mixins;
-@use './styles/theme';
+// ===========================================
+// GLOBAL STYLES - Sales Dashboard Theme
+// ===========================================
+
+@use './styles/design-tokens' as *;
+// Google Fonts loaded in index.html
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 @import '../node_modules/@syncfusion/ej2-base/styles/material3.css';
 @import '../node_modules/@syncfusion/ej2-buttons/styles/material3.css';
@@ -11,117 +14,390 @@
 @import '../node_modules/@syncfusion/ej2-popups/styles/material3.css';
 @import '../node_modules/@syncfusion/ej2-splitbuttons/styles/material3.css';
 
-// Estilos globais responsivos 
-
-// Variáveis de tema personalizadas
-:root {
-  --primary-color: #6750A4;
-  --secondary-color: #625B71;
-  --surface-color: #FFFFFF;
-  --background-color: #FEFBFF;
-  --error-color: #B3261E;
-  --text-primary: #1C1B1F;
-  --text-secondary: #49454F;
+// ===========================================
+// RESET & BASE
+// ===========================================
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-// Estilos globais
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  background-color: var(--md-bg);
-  color: var(--md-text);
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--font-family);
+  font-size: $font-size-sm;
+  color: var(--text-primary);
+  background-color: var(--bg-main);
+  line-height: 1.5;
 }
 
-// Estilos para formulários
-.form-section {
-  background-color: var(--md-surface);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: var(--elev-1);
+a {
+  color: var(--primary);
+  text-decoration: none;
 
-  h2 {
-    color: var(--md-primary);
-    margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 1.25rem;
+  &:hover {
+    color: var(--primary-light);
   }
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
+// ===========================================
+// UTILITY CLASSES
+// ===========================================
+.text-primary {
+  color: var(--text-primary) !important;
 }
 
-.form-group {
-  margin-bottom: 16px;
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
 
-  label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--md-muted);
-    font-size: 0.875rem;
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-white {
+  color: #fff !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-warning {
+  color: var(--warning) !important;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-main {
+  background-color: var(--bg-main);
+}
+
+.font-medium {
+  font-weight: $font-weight-medium;
+}
+
+.font-semibold {
+  font-weight: $font-weight-semibold;
+}
+
+.font-bold {
+  font-weight: $font-weight-bold;
+}
+
+// ===========================================
+// CARD COMPONENT
+// ===========================================
+.card {
+  background: var(--bg-card);
+  border-radius: $border-radius-lg;
+  box-shadow: var(--shadow-card);
+  padding: $spacing-6;
+  border: 1px solid var(--border-color);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-4;
+
+  h3,
+  .card-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
   }
 }
 
-.error-message {
-  color: var(--md-warn);
-  font-size: 0.75rem;
-  margin-top: 4px;
-}
+// ===========================================
+// KPI CARD STYLES
+// ===========================================
+.kpi-card {
+  background: var(--bg-card);
+  border-radius: $border-radius-lg;
+  padding: $spacing-5;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-4;
+  border: 1px solid var(--border-color);
 
-// Estilos para botões
-.e-btn {
-  &.e-primary {
-    background-color: var(--md-primary);
-    border-color: var(--md-primary);
+  .kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: $border-radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+
+    &.blue {
+      background: rgba(59, 130, 246, 0.1);
+      color: $chart-blue;
+    }
+
+    &.purple {
+      background: rgba(139, 92, 246, 0.1);
+      color: $chart-purple;
+    }
+
+    &.green {
+      background: rgba(34, 197, 94, 0.1);
+      color: $success;
+    }
+
+    &.pink {
+      background: rgba(236, 72, 153, 0.1);
+      color: $chart-pink;
+    }
+
+    &.orange {
+      background: rgba(249, 115, 22, 0.1);
+      color: $chart-orange;
+    }
+
+    &.red {
+      background: rgba(239, 68, 68, 0.1);
+      color: $danger;
+    }
   }
 
-  &.e-secondary {
-    background-color: var(--md-accent);
-    border-color: var(--md-accent);
-  }
-}
+  .kpi-content {
+    flex: 1;
 
-// Container principal
-.cadastro-container {
-  max-width: 1200px;
-  margin: 24px auto;
-  padding: 0 16px;
+    .kpi-value {
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-bold;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
 
-  .header {
-    margin-bottom: 24px;
+    .kpi-label {
+      font-size: $font-size-sm;
+      color: var(--text-secondary);
+      margin-top: $spacing-1;
+    }
 
-    h1 {
-      color: var(--md-primary);
-      font-size: 1.5rem;
-      margin: 0;
+    .kpi-change {
+      font-size: $font-size-xs;
+      margin-top: $spacing-2;
+      display: flex;
+      align-items: center;
+      gap: $spacing-1;
+
+      &.positive {
+        color: $success;
+      }
+
+      &.negative {
+        color: $danger;
+      }
     }
   }
 }
 
-// Ações do formulário
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  margin-top: 24px;
+// ===========================================
+// TABLE STYLES
+// ===========================================
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: $spacing-3 $spacing-4;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  td {
+    padding: $spacing-3 $spacing-4;
+    font-size: $font-size-sm;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  tbody tr {
+    transition: background $transition-fast;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
 }
 
-// Estilos para impressão - oculta menu e topbar, mostra apenas o cupom
+// ===========================================
+// BUTTON STYLES
+// ===========================================
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-md;
+  border: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+
+  &:hover:not(:disabled) {
+    background: var(--bg-main);
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: $border-radius-md;
+}
+
+// ===========================================
+// FORM STYLES
+// ===========================================
+.form-group {
+  margin-bottom: $spacing-4;
+
+  label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: var(--text-primary);
+    margin-bottom: $spacing-2;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  font-size: $font-size-sm;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-md;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+// ===========================================
+// BADGE / STATUS STYLES
+// ===========================================
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-full;
+
+  &.badge-success {
+    background: $success-light;
+    color: $success;
+  }
+
+  &.badge-warning {
+    background: $warning-light;
+    color: $warning;
+  }
+
+  &.badge-danger {
+    background: $danger-light;
+    color: $danger;
+  }
+
+  &.badge-info {
+    background: $info-light;
+    color: $info;
+  }
+}
+
+// ===========================================
+// PRINT STYLES
+// ===========================================
 @media print {
-  // Oculta sidebar, topbar e outros elementos de navegação
+
   .sidebar,
   .topbar,
   .sidebar-footer,
-  .md-toolbar {
+  .no-print {
     display: none !important;
   }
 
-  // Remove background e ajusta layout
   body,
   .app-shell {
     background: #fff !important;
@@ -133,7 +409,6 @@ body {
     display: block !important;
   }
 
-  // Conteúdo ocupa toda a página
   .content {
     margin: 0 !important;
     padding: 0 !important;
@@ -145,7 +420,6 @@ body {
     margin: 0 !important;
   }
 
-  // Cupom fiscal - centraliza e remove margens extras
   .receipt {
     width: 100% !important;
     max-width: 280px !important;

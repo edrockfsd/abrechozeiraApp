@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://api.abrechozeira.com.br/api',
-  syncfusionKey: 'YOUR_SYNCFUSION_LICENSE_KEY'
+  apiUrl: 'https://api.abrechozeira.com.br/api',
+  syncfusionKey: 'ORg4AjUWIQA/Gnt2XVhhQlJHfV5AQmBIYVp/TGpJfl96cVxMZVVBJAtUQF1hTH5QdkFhWXxfcnVWRGRZ'
 }; 

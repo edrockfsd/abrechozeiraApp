@@ -18,7 +18,7 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterModule]
 })
-export class AppComponent { 
+export class AppComponent {
   constructor(private auth: AuthService, private router: Router) {
     this.initTheme();
     this.initSidebar();
@@ -51,6 +51,8 @@ export class AppComponent {
     const url = this.router.url || '';
     return url.startsWith('/auth');
   }
+
+  pageTitle = 'Painel';
 
   isVisible(item: MenuItem): boolean {
     if (item.roles && item.roles.length > 0) {

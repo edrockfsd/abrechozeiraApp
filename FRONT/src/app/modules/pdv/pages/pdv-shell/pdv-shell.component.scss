@@ -1,37 +1,359 @@
-.pdv-container { padding: 16px; }
-.pdv-header { display:flex; gap:16px; align-items:flex-start; margin-bottom:12px; }
-.search-wrap { position:relative; flex:1; }
-.scan-input { width:100%; padding:12px 14px; font-size:1.2rem; border:2px solid #ccc; border-radius:6px; }
-/* Estilo usado dentro do template do Syncfusion AutoComplete */
-.e-autocomplete { width:100% !important; }
-.suggestion { display:grid; grid-template-columns: 110px 1fr 140px; gap:8px; padding:6px 8px; align-items:center; }
-.suggestion .code { color:#666; }
-.suggestion .price { text-align:right; }
-.actions .btn { padding:10px 14px; border-radius:6px; border:1px solid #bbb; background:#fff; cursor:pointer; }
-.actions .btn.primary { background: var(--primary-color,#0d6efd); color:#fff; border-color: var(--primary-color,#0d6efd); }
-.pdv-body { display:grid; grid-template-columns: 1fr 2fr; gap:16px; }
-.col { background:#fff; border:1px solid #e6e6e6; border-radius:8px; padding:12px; }
-.item-detail { display:block; }
-.detail-header { font-weight:700; margin-bottom:8px; }
-.detail-row { display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #eee; }
-.detail-row span { color:#777; }
-.detail-row.total { border-bottom:none; font-size:1.05rem; }
-.detail-actions { display:flex; gap:8px; margin-top:10px; }
-.btn.small .material-icons { font-size:18px; line-height:18px; vertical-align:middle; }
+// PDV Shell - Sales Dashboard Style
+@use 'design-tokens' as *;
 
-/* Syncfusion icon buttons in PDV */
-.pdv-container .pdv-body .pdv-icon-btn .e-icons { font-size: 20px; }
-.pdv-container .pdv-body .pdv-icon-btn { padding: 6px; border: none; }
-.pdv-container .pdv-body .pdv-icon-btn.danger .e-icons { color: #b00020; }
-.cart-header { display:grid; grid-template-columns: 100px 1fr 80px 120px 120px 140px 160px; font-weight:600; opacity:.8; }
-.cart-row { display:grid; grid-template-columns: 100px 1fr 80px 120px 120px 140px 160px; align-items:center; border-top:1px solid #f0f0f0; padding:6px 0; }
-.cart { display:block; }
-.cart-row.selected { background:#f6faff; }
-.row-actions { display:flex; gap:8px; }
-.btn.small { padding:4px 8px; font-size:.85rem; }
-.btn.small.danger { color:#b00020; border-color:#f0c0c0; }
-.cart-empty { padding:20px; color:#777; text-align:center; }
-.totals { display:flex; gap:18px; justify-content:flex-end; margin-top:10px; }
-.totals div { background:#f7f7f7; padding:8px 10px; border-radius:6px; }
-.pdv-footer { margin-top:14px; display:flex; gap:14px; font-size:.95rem; color:#666; }
-/* toolbar removed */
+.pdv-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--topbar-height) - 48px);
+    background: var(--bg-main);
+}
+
+// Header do PDV
+.pdv-header {
+    display: flex;
+    gap: $spacing-4;
+    align-items: center;
+    padding: $spacing-4;
+    background: var(--bg-card);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-card);
+    margin-bottom: $spacing-4;
+}
+
+.search-wrap {
+    flex: 1;
+    position: relative;
+}
+
+.scan-input {
+    width: 100%;
+}
+
+// Syncfusion AutoComplete customization
+.e-autocomplete {
+    width: 100% !important;
+
+    .e-input-group {
+        border: 1px solid var(--border-color) !important;
+        border-radius: $border-radius-md !important;
+        background: var(--bg-card) !important;
+
+        &.e-input-focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        }
+    }
+
+    input {
+        padding: $spacing-3 $spacing-4 !important;
+        font-size: $font-size-base !important;
+    }
+}
+
+.suggestion {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px;
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    align-items: center;
+
+    .code {
+        color: var(--text-secondary);
+        font-size: $font-size-sm;
+        font-family: monospace;
+    }
+
+    .desc {
+        color: var(--text-primary);
+        font-size: $font-size-sm;
+    }
+
+    .price {
+        text-align: right;
+        font-weight: $font-weight-semibold;
+        color: $success;
+    }
+}
+
+// Botões de ação
+.actions {
+    display: flex;
+    gap: $spacing-3;
+}
+
+.actions .btn {
+    padding: $spacing-3 $spacing-5;
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+        background: var(--bg-main);
+    }
+
+    &.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+
+        &:hover {
+            background: $primary-dark;
+        }
+    }
+}
+
+// Body do PDV (grid de 2 colunas)
+.pdv-body {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: $spacing-4;
+    flex: 1;
+    min-height: 0;
+}
+
+// Colunas
+.col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius-lg;
+    padding: $spacing-4;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    &.left {
+        overflow-y: auto;
+    }
+
+    &.right {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+// Detalhes do item selecionado
+.item-detail {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detail-header {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    margin-bottom: $spacing-4;
+    padding-bottom: $spacing-3;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-2 0;
+    border-bottom: 1px dashed var(--border-color);
+
+    span {
+        color: var(--text-secondary);
+        font-size: $font-size-sm;
+    }
+
+    strong {
+        color: var(--text-primary);
+        font-weight: $font-weight-medium;
+    }
+
+    &.total {
+        border-bottom: none;
+        margin-top: $spacing-2;
+        padding-top: $spacing-3;
+        border-top: 2px solid var(--border-color);
+
+        span,
+        strong {
+            font-size: $font-size-lg;
+            font-weight: $font-weight-bold;
+        }
+
+        strong {
+            color: var(--primary);
+        }
+    }
+}
+
+.detail-actions {
+    display: flex;
+    gap: $spacing-2;
+    margin-top: $spacing-4;
+    padding-top: $spacing-3;
+    border-top: 1px solid var(--border-color);
+}
+
+.product-hint {
+    padding: $spacing-8;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: $font-size-sm;
+}
+
+// Syncfusion Grid customization
+.pdv-container .e-grid {
+    border: none !important;
+    background: transparent !important;
+
+    .e-headercell {
+        background: var(--bg-main) !important;
+        font-weight: $font-weight-semibold !important;
+        font-size: $font-size-xs !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .e-rowcell {
+        font-size: $font-size-sm !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .e-row:hover .e-rowcell {
+        background: rgba(99, 102, 241, 0.05) !important;
+    }
+
+    .e-selectionbackground {
+        background: rgba(99, 102, 241, 0.1) !important;
+    }
+}
+
+// PDV Icon buttons
+.pdv-icon-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    border-radius: $border-radius-md !important;
+
+    .e-icons {
+        font-size: 18px !important;
+        color: var(--text-secondary);
+    }
+
+    &:hover .e-icons {
+        color: var(--primary);
+    }
+
+    &.danger:hover .e-icons {
+        color: $danger;
+    }
+}
+
+// Totais
+.totals {
+    display: flex;
+    gap: $spacing-4;
+    justify-content: flex-end;
+    margin-top: auto;
+    padding-top: $spacing-4;
+    border-top: 1px solid var(--border-color);
+
+    >div {
+        background: var(--bg-main);
+        padding: $spacing-3 $spacing-4;
+        border-radius: $border-radius-md;
+        display: flex;
+        gap: $spacing-2;
+
+        span {
+            color: var(--text-secondary);
+            font-size: $font-size-sm;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: $font-weight-semibold;
+        }
+    }
+}
+
+// Carrinho vazio
+.cart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--text-muted);
+    font-size: $font-size-base;
+}
+
+// Footer com atalhos
+.pdv-footer {
+    display: flex;
+    gap: $spacing-4;
+    padding: $spacing-4;
+    background: var(--bg-card);
+    border-radius: $border-radius-lg;
+    margin-top: $spacing-4;
+    box-shadow: var(--shadow-card);
+
+    span {
+        font-size: $font-size-sm;
+        color: var(--text-secondary);
+        padding: $spacing-1 $spacing-2;
+        background: var(--bg-main);
+        border-radius: $border-radius-sm;
+
+        &::first-letter {
+            font-weight: $font-weight-bold;
+            color: var(--primary);
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+    .pdv-body {
+        grid-template-columns: 1fr;
+    }
+
+    .col.left {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .pdv-header {
+        flex-direction: column;
+
+        .actions {
+            width: 100%;
+            justify-content: stretch;
+
+            .btn {
+                flex: 1;
+            }
+        }
+    }
+
+    .totals {
+        flex-wrap: wrap;
+    }
+
+    .pdv-footer {
+        flex-wrap: wrap;
+    }
+}

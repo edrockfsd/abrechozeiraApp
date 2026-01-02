@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Pessoa, PessoaCreate } from '../models/pessoa';
+import { environment } from '../../../../environments/environment';
 
 export interface PessoaGrid {
   id: number;
@@ -22,11 +23,11 @@ export interface PessoaGrid {
   providedIn: 'root'
 })
 export class PessoaService {
-  private apiUrl = 'https://localhost:7194/api/Pessoas';
-  private apiUrlCategorias = 'https://localhost:7194/api/PessoaCategorias';
-  private apiUrlTipos = 'https://localhost:7194/api/PessoaTipos';
-  private apiUrlGeneros = 'https://localhost:7194/api/PessoaGenero';
-  private apiUrlStatus = 'https://localhost:7194/api/PessoaStatus';
+  private apiUrl = `${environment.apiUrl}/Pessoas`;
+  private apiUrlCategorias = `${environment.apiUrl}/PessoaCategorias`;
+  private apiUrlTipos = `${environment.apiUrl}/PessoaTipos`;
+  private apiUrlGeneros = `${environment.apiUrl}/PessoaGenero`;
+  private apiUrlStatus = `${environment.apiUrl}/PessoaStatus`;
 
   constructor(private http: HttpClient) { }
 
@@ -72,6 +73,5 @@ export class PessoaService {
 
   listarGrid(): Observable<PessoaGrid[]> {
     return this.http.get<PessoaGrid[]>(`${this.apiUrl}/GetPessoasGrid`);
-  } 
-  
-} 
+  }
+}

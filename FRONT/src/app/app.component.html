@@ -1,46 +1,60 @@
 <div class="app-shell" *ngIf="!isAuthRoute; else authOnly">
+  <!-- Sidebar -->
   <aside class="sidebar" [class.collapsed]="isCollapsed" *ngIf="isAuthenticated">
-    <div class="brand" title="Abcz">
-      <ng-container *ngIf="!isCollapsed; else collapsedBrand">
-        <span class="brand-text">Abcz</span>
-      </ng-container>
-      <ng-template #collapsedBrand>
-        <span class="material-icons brand-icon">checkroom</span>
-      </ng-template>
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="A.Brechozeira" class="logo-full" *ngIf="!isCollapsed">
+      <span class="logo-icon" *ngIf="isCollapsed">AB</span>
     </div>
-    <nav class="menu">
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
       <ng-container *ngFor="let item of menu">
-        <a *ngIf="isVisible(item)"
-           [routerLink]="item.route"
-           routerLinkActive="active"
-           class="menu-item">
-          <span class="icon material-icons">{{ item.icon }}</span>
-          <span class="label">{{ item.label }}</span>
+        <a *ngIf="isVisible(item)" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon material-icons">{{ item.icon }}</span>
+          <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
         </a>
       </ng-container>
     </nav>
+
+    <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-      <div class="user" *ngIf="userName">{{ userName }}</div>
-      <button class="logout" (click)="onLogout()">Sair</button>
+      <div class="user-info" *ngIf="!isCollapsed && userName">
+        <span class="user-avatar">{{ userName.charAt(0).toUpperCase() }}</span>
+        <span class="user-name">{{ userName }}</span>
+      </div>
+      <button class="btn-logout" (click)="onLogout()" [title]="isCollapsed ? 'Sair' : ''">
+        <span class="material-icons">logout</span>
+        <span *ngIf="!isCollapsed">Sair</span>
+      </button>
     </div>
   </aside>
 
-  <main class="content">
-    <header class="topbar md-toolbar">
-      <div class="left">
-        <button class="icon-btn" title="Menu" (click)="toggleSidebar()" aria-label="Alternar menu">
-          <span class="material-icons">menu</span>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn-toggle" (click)="toggleSidebar()" aria-label="Alternar menu">
+          <span class="material-icons">{{ isCollapsed ? 'menu_open' : 'menu' }}</span>
         </button>
-        <div class="title">Painel</div>
+        <h1 class="page-title">{{ pageTitle }}</h1>
       </div>
-      <div class="actions">
-        <button class="icon-btn" title="Tema" (click)="toggleTheme()">
+      <div class="topbar-right">
+        <button class="btn-icon" title="Notificações">
+          <span class="material-icons">notifications_none</span>
+        </button>
+        <button class="btn-icon" title="Tema" (click)="toggleTheme()">
           <span class="material-icons">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
         </button>
-        <button class="logout" *ngIf="isAuthenticated" (click)="onLogout()">Sair</button>
+        <div class="user-menu">
+          <span class="user-avatar-small">{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
+        </div>
       </div>
     </header>
-    <section class="page">
+
+    <!-- Page Content -->
+    <section class="page-content">
       <router-outlet></router-outlet>
     </section>
   </main>
@@ -48,7 +62,4 @@
 
 <ng-template #authOnly>
   <router-outlet></router-outlet>
-  <!-- Sem shell na página de autenticação -->
-  <!-- Poderíamos mostrar branding básico aqui se desejar -->
-  
 </ng-template>
