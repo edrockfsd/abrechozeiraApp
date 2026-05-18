@@ -78,7 +78,16 @@ app.UseAuthorization();
 
 // --- ADICIONE ESTAS DUAS LINHAS AQUI ---
 app.UseDefaultFiles(); // Procura por index.html
-app.UseStaticFiles();  // Permite entregar arquivos da pasta wwwroot
+// Arquivos estáticos SEM cache (para desenvolvimento)
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+        ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+        ctx.Context.Response.Headers.Append("Expires", "0");
+    }
+});
 // ---------------------------------------
 
 app.MapControllers();

@@ -53,6 +53,12 @@ public partial class AbrechozeiraContext : DbContext
     public DbSet<CaixaMovimento> CaixaMovimento { get; set; } = default!;
     public DbSet<FormaPagamentoConfigPDV> FormaPagamentoConfigPDV { get; set; } = default!;
 
+    // NFC-e
+    public DbSet<EmpresaFiscal> EmpresaFiscal { get; set; } = default!;
+    public DbSet<Nfce> Nfce { get; set; } = default!;
+    public DbSet<NfceItem> NfceItem { get; set; } = default!;
+    public DbSet<NfcePagamento> NfcePagamento { get; set; } = default!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

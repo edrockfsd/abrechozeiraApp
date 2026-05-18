@@ -1,0 +1,20 @@
+﻿Usando as configura├º├Áes de inicializa├º├úo de C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Properties\launchSettings.json...
+Compilando...
+dbug: Microsoft.Extensions.Hosting.Internal.Host[1]
+      Hosting starting
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[63]
+      User profile is available. Using 'C:\Users\eduar\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API
+dbug: Microsoft.Extensions.Hosting.Internal.Host[2]
+      Hosting started
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+dbug: Microsoft.Extensions.Hosting.Internal.Host[3]
+      Hosting stopping

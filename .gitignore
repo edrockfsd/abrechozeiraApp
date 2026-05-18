@@ -1,5 +1,34 @@
-﻿################################################################################
-# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
-################################################################################
+# Standard .NET build artifacts
+[Bb]in/
+[Oo]bj/
+publish/
+**/bin/
+**/obj/
+**/publish/
 
-/AbiaApp/AbiaApp.API/.vs
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Angular and general node.js
+node_modules/
+**/node_modules/
+.angular/
+**/.angular/
+dist/
+**/dist/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# API key or custom local config files (security best practice)
+*.local.json
+appsettings.local.json
+**/appsettings.local.json

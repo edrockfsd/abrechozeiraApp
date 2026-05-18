@@ -25,6 +25,10 @@ builder.Services.AddControllers()
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Serviços
+builder.Services.AddScoped<ABrechozeiraApp.Services.NfceService>();
+
 builder.Services.AddDbContextPool<AbrechozeiraContext>(options =>
 {
     CultureInfo.CurrentCulture = new CultureInfo("pt-BR", false);

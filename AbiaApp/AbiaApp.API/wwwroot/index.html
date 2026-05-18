@@ -1,8 +1,7 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <script>
-        // Verifica se tem usuário salvo. Se não tiver, manda pro login.
         const usuario = localStorage.getItem('usuario_logado');
         if (!usuario) {
             window.location.href = '/login.html';
@@ -10,141 +9,318 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abrechozeira AI</title>
+    <title>Abrechozeira AI - Cadastro por Sessão</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f4f9;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
         }
 
         .card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 450px;
             text-align: center;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 5px;
-            font-size: 1.5rem;
+            margin: 0 0 5px 0;
+            font-size: 1.4rem;
         }
 
+        .subtitle {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+        }
+
+        /* ===== SESSÃO INFO ===== */
+        .sessao-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .sessao-info.ativa {
+            display: block;
+        }
+
+        .codigo-atual {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .codigo-label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contador-itens {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+        /* ===== FORMULÁRIO ===== */
         .form-group {
             margin-bottom: 15px;
             text-align: left;
         }
 
-            .form-group label {
-                display: block;
-                font-size: 0.8rem;
-                color: #666;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
 
         .input-origem {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-origem:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        /* ===== BOTÕES ===== */
+        .btn-iniciar {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-iniciar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-iniciar:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         #btnGravar {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             border: none;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
-            font-size: 35px;
+            font-size: 40px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(37, 117, 252, 0.4);
+            box-shadow: 0 6px 20px rgba(37, 117, 252, 0.4);
             transition: transform 0.2s;
-            margin: 10px auto;
+            margin: 15px auto;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-            #btnGravar:active {
-                transform: scale(0.95);
-            }
+        #btnGravar:disabled {
+            background: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
 
-            #btnGravar.gravando {
-                animation: pulsare 1.5s infinite;
-                background: #ff4b2b;
-            }
+        #btnGravar:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        #btnGravar.gravando {
+            animation: pulsare 1.5s infinite;
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
 
         @keyframes pulsare {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7);
-            }
-
-            70% {
-                box-shadow: 0 0 0 20px rgba(255, 75, 43, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 75, 43, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(255, 75, 43, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
         }
 
         #status {
-            font-weight: bold;
+            font-weight: 500;
             color: #666;
-            margin-bottom: 10px;
+            margin: 10px 0;
             min-height: 24px;
             font-size: 0.9rem;
             word-wrap: break-word;
         }
 
-        /* Área de Sucesso */
+        /* ===== RESULTADO ===== */
         .resultado {
             text-align: left;
-            background: #d4edda;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-top: 15px;
             display: none;
             border-left: 5px solid #28a745;
             position: relative;
         }
 
-            .resultado h3 {
-                margin: 0 0 10px 0;
-                color: #155724;
-                font-size: 1rem;
-            }
+        .resultado h3 {
+            margin: 0 0 8px 0;
+            color: #155724;
+            font-size: 1rem;
+        }
+
+        .resultado p {
+            margin: 5px 0;
+            color: #155724;
+            font-size: 0.9rem;
+        }
 
         .btn-desfazer {
             background-color: #dc3545;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
             float: right;
             font-size: 0.8rem;
+            transition: background 0.2s;
         }
 
-        /* Área de Exclusão Manual */
+        .btn-desfazer:hover {
+            background-color: #c82333;
+        }
+
+        /* ===== AÇÕES DA SESSÃO ===== */
+        .acoes-sessao {
+            display: none;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .acoes-sessao.ativa {
+            display: flex;
+        }
+
+        .btn-acao {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-acao:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-backup {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-finalizar {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        /* ===== LISTA DE ITENS ===== */
+        .lista-itens {
+            display: none;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .lista-itens.ativa {
+            display: block;
+        }
+
+        .lista-itens h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .item-lista {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-codigo {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+
+        .item-desc {
+            flex: 1;
+            margin-left: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-preco {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* ===== ZONA PERIGO ===== */
         .zona-perigo {
-            margin-top: 30px;
+            margin-top: 20px;
             border-top: 1px solid #eee;
-            padding-top: 10px;
+            padding-top: 15px;
         }
 
         .btn-lixo {
@@ -160,88 +336,160 @@
             display: none;
             margin-top: 10px;
             background: #fff5f5;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
         }
 
         .input-exclusao {
-            padding: 5px;
-            width: 60px;
+            padding: 8px;
+            width: 70px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .btn-confirmar-exclusao {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 15px;
+            border-radius: 6px;
             cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .btn-logout {
+            margin-top: 20px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-logout:hover {
+            color: #666;
+        }
+
+        /* ===== SEM SESSÃO ===== */
+        .sem-sessao {
+            padding: 20px 0;
+        }
+
+        .sem-sessao p {
+            color: #666;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1>🎙️ Cadastrar Peça</h1>
+        <h1>🎙️ Abrechozeira AI</h1>
+        <p class="subtitle">Cadastro por Sessão</p>
 
-        <div class="form-group">
-            <label for="inputOrigem">Origem do Lote:</label>
-            <input list="listaOrigens" id="inputOrigem" class="input-origem" placeholder="Ex: Outlet, Bazar...">
-            <datalist id="listaOrigens"></datalist>
+        <!-- ÁREA SEM SESSÃO -->
+        <div id="areaSemSessao" class="sem-sessao">
+            <div class="form-group">
+                <label for="inputOrigem">Origem do Lote:</label>
+                <input list="listaOrigens" id="inputOrigem" class="input-origem" placeholder="Ex: Outlet, Bazar...">
+                <datalist id="listaOrigens"></datalist>
+            </div>
+            <button id="btnIniciar" class="btn-iniciar" onclick="iniciarSessao()">
+                🚀 Iniciar Sessão de Cadastro
+            </button>
+            <p style="font-size:0.75rem; color:#999;">
+                Ao iniciar, o sistema buscará o próximo código de estoque disponível.
+            </p>
         </div>
 
-        <button id="btnGravar">
-            <span id="iconeBtn">🎤</span>
-        </button>
+        <!-- INFO DA SESSÃO ATIVA -->
+        <div id="sessaoInfo" class="sessao-info">
+            <div class="codigo-label">Próximo Código de Estoque</div>
+            <div id="codigoAtual" class="codigo-atual">---</div>
+            <div class="contador-itens">
+                📦 <span id="totalItens">0</span> itens cadastrados
+            </div>
+        </div>
 
-        <div id="status">Toque para iniciar</div>
+        <!-- ÁREA DE GRAVAÇÃO (só aparece com sessão ativa) -->
+        <div id="areaGravacao" style="display:none;">
+            <button id="btnGravar" disabled>
+                <span id="iconeBtn">🎤</span>
+            </button>
 
-        <div id="areaResultado" class="resultado">
-            <button class="btn-desfazer" onclick="excluirUltimo()">🗑️ Desfazer</button>
-            <h3>✅ Salvo! ID: <span id="resId"></span></h3>
-            <p><strong><span id="resDesc"></span></strong></p>
-            <p>R$ <span id="resPreco"></span> | <span id="resOrigem"></span></p>
+            <div id="status">Sessão ativa - Toque para gravar</div>
+
+            <div id="areaResultado" class="resultado">
+                <button class="btn-desfazer" onclick="desfazerUltimo()">🗑️ Desfazer</button>
+                <h3>✅ Cadastrado! Código: <span id="resCodigo"></span></h3>
+                <p><strong><span id="resDesc"></span></strong></p>
+                <p>R$ <span id="resPreco"></span> | <span id="resOrigem"></span></p>
+            </div>
+
+            <!-- Lista de itens da sessão -->
+            <div id="listaItens" class="lista-itens">
+                <h4>📋 Itens desta sessão:</h4>
+                <div id="listaItensConteudo"></div>
+            </div>
+
+            <!-- Ações da sessão -->
+            <div id="acoesSessao" class="acoes-sessao">
+                <button class="btn-acao btn-backup" onclick="exportarBackup()">
+                    💾 Backup
+                </button>
+                <button class="btn-acao btn-finalizar" onclick="finalizarSessao()">
+                    ✅ Finalizar
+                </button>
+            </div>
         </div>
 
         <div class="zona-perigo">
             <button class="btn-lixo" onclick="toggleExclusao()">Opções de Exclusão</button>
             <div id="painelExclusao" class="area-exclusao-manual">
-                <p style="margin:0 0 5px 0; font-size:0.8rem; color:#dc3545;">Excluir produto específico:</p>
+                <p style="margin:0 0 8px 0; font-size:0.8rem; color:#dc3545;">Excluir produto do BANCO (legado):</p>
                 <input type="number" id="idParaExcluir" class="input-exclusao" placeholder="ID">
                 <button class="btn-confirmar-exclusao" onclick="excluirManual()">Apagar</button>
             </div>
         </div>
-        <button onclick="logout()" style="margin-top:20px; background:none; border:none; color:#666; cursor:pointer;">
-            Sair / Logout
-        </button>
 
-        <script>
-            // ... (seus outros scripts)
-            function logout() {
-                localStorage.removeItem('usuario_logado');
-                window.location.href = '/login.html';
-            }
-        </script>
+        <a href="/import.html" style="display: block; text-align: center; margin-top: 15px; color: #667eea; font-size: 0.85rem;">
+            📊 Importar via Excel
+        </a>
+
+        <button class="btn-logout" onclick="logout()">
+            🚪 Sair / Logout
+        </button>
     </div>
 
     <script>
-        const btn = document.getElementById('btnGravar');
+        // ===== ESTADO =====
+        let sessaoId = null;
+        let proximoCodigo = 0;
+        let itensLista = [];
+
+        // ===== ELEMENTOS =====
+        const btnIniciar = document.getElementById('btnIniciar');
+        const btnGravar = document.getElementById('btnGravar');
         const iconeBtn = document.getElementById('iconeBtn');
         const statusDiv = document.getElementById('status');
         const resultadoDiv = document.getElementById('areaResultado');
         const inputOrigem = document.getElementById('inputOrigem');
         const dataList = document.getElementById('listaOrigens');
         const painelExclusao = document.getElementById('painelExclusao');
+        
+        const areaSemSessao = document.getElementById('areaSemSessao');
+        const sessaoInfo = document.getElementById('sessaoInfo');
+        const areaGravacao = document.getElementById('areaGravacao');
+        const acoesSessao = document.getElementById('acoesSessao');
+        const listaItensDiv = document.getElementById('listaItens');
+        const listaItensConteudo = document.getElementById('listaItensConteudo');
 
-        btn.addEventListener('click', alternarGravacao);
+        btnGravar.addEventListener('click', alternarGravacao);
 
-        // --- SISTEMA DE SOM (Sintetizador) ---
+        // ===== SISTEMA DE SOM =====
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function tocarSom(tipo) {
-            // Reinicia o contexto se estiver suspenso (comum em browsers mobile)
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             const oscillator = audioCtx.createOscillator();
@@ -251,19 +499,17 @@
             gainNode.connect(audioCtx.destination);
 
             if (tipo === 'sucesso') {
-                // Som de "Ding" (Senoide, agudo, rápido)
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // Dó
-                oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // Sobe para Dó agudo
+                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1);
                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.5);
             } else if (tipo === 'erro') {
-                // Som de "Buzz" (Dente de serra, grave)
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
-                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3); // Cai a frequência
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
                 oscillator.start();
@@ -271,6 +517,7 @@
             }
         }
 
+        // ===== CARREGAR ORIGENS =====
         async function carregarOrigens() {
             try {
                 const res = await fetch('/api/Agente/origens');
@@ -287,48 +534,158 @@
         }
         carregarOrigens();
 
-        async function excluirUltimo() {
-            if (!confirm("Tem certeza que deseja apagar o ÚLTIMO produto cadastrado?")) return;
+        // ===== SESSÃO =====
+        async function iniciarSessao() {
+            btnIniciar.disabled = true;
+            btnIniciar.textContent = '⏳ Buscando código...';
+
             try {
-                statusDiv.innerHTML = "⏳ Excluindo...";
-                const res = await fetch('/api/Agente/excluir/ultimo', { method: 'DELETE' });
+                const origem = inputOrigem.value.trim() || null;
+                const res = await fetch('/api/Agente/sessao/iniciar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origemFixa: origem })
+                });
+
+                if (!res.ok) throw new Error(await res.text());
+                const json = await res.json();
+
+                sessaoId = json.sessaoId;
+                proximoCodigo = json.proximoCodigo;
+                itensLista = [];
+
+                // Atualiza UI
+                document.getElementById('codigoAtual').textContent = proximoCodigo;
+                document.getElementById('totalItens').textContent = '0';
+
+                areaSemSessao.style.display = 'none';
+                sessaoInfo.classList.add('ativa');
+                areaGravacao.style.display = 'block';
+                acoesSessao.classList.add('ativa');
+                btnGravar.disabled = false;
+
+                statusDiv.textContent = 'Sessão ativa - Toque para gravar';
+                tocarSom('sucesso');
+
+            } catch (err) {
+                tocarSom('erro');
+                alert('Erro ao iniciar sessão: ' + err.message);
+                btnIniciar.disabled = false;
+                btnIniciar.textContent = '🚀 Iniciar Sessão de Cadastro';
+            }
+        }
+
+        async function desfazerUltimo() {
+            if (!sessaoId) return;
+            if (!confirm('Remover o último item cadastrado?')) return;
+
+            try {
+                const res = await fetch(`/api/Agente/sessao/${sessaoId}/ultimo`, { method: 'DELETE' });
                 if (res.ok) {
+                    const json = await res.json();
+                    proximoCodigo = json.itemRemovido.codigoEstoque;
+                    itensLista.pop();
+                    
+                    document.getElementById('codigoAtual').textContent = proximoCodigo;
+                    document.getElementById('totalItens').textContent = itensLista.length;
+                    atualizarListaItens();
+                    
                     resultadoDiv.style.display = 'none';
-                    statusDiv.innerHTML = "🗑️ Último produto apagado.";
+                    statusDiv.textContent = '🗑️ Último item removido';
+                    tocarSom('sucesso');
                 } else {
-                    tocarSom('erro');
-                    alert("Erro ao excluir.");
+                    throw new Error('Erro ao remover');
                 }
-            } catch (e) { alert(e.message); }
+            } catch (err) {
+                tocarSom('erro');
+                alert(err.message);
+            }
         }
 
-        function toggleExclusao() {
-            painelExclusao.style.display = painelExclusao.style.display === 'block' ? 'none' : 'block';
+        async function exportarBackup() {
+            if (!sessaoId) return;
+            window.open(`/api/Agente/sessao/${sessaoId}/exportar`, '_blank');
         }
 
-        async function excluirManual() {
-            const id = document.getElementById('idParaExcluir').value;
-            if (!id) return alert("Digite um ID");
-            if (!confirm(`Apagar produto ID ${id}?`)) return;
+        async function finalizarSessao() {
+            if (!sessaoId) return;
+            if (itensLista.length === 0) {
+                alert('Nenhum item cadastrado nesta sessão.');
+                return;
+            }
+            if (!confirm(`Finalizar sessão com ${itensLista.length} itens?\n\nOs dados serão salvos no banco e o Excel será baixado.`)) return;
+
+            statusDiv.textContent = '💾 Salvando no banco de dados...';
 
             try {
-                const res = await fetch(`/api/Agente/excluir/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    alert("Produto apagado!");
-                    document.getElementById('idParaExcluir').value = "";
-                    toggleExclusao();
-                } else {
-                    tocarSom('erro');
-                    alert("Erro: Produto não encontrado.");
+                // Chama o endpoint e recebe o Excel como blob
+                const response = await fetch(`/api/Agente/sessao/${sessaoId}/finalizar`);
+                
+                if (!response.ok) {
+                    const erro = await response.json();
+                    throw new Error(erro.erro || 'Erro ao finalizar');
                 }
-            } catch (e) { alert(e.message); }
+
+                // Sucesso! Faz download do Excel
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g, '') || `cadastro_${Date.now()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                // Mostra mensagem de sucesso
+                tocarSom('sucesso');
+                alert(`✅ Sucesso!\n\n${itensLista.length} produtos salvos no banco de dados.\nO Excel foi baixado.`);
+
+                // Reset UI
+                sessaoId = null;
+                proximoCodigo = 0;
+                itensLista = [];
+
+                areaSemSessao.style.display = 'block';
+                sessaoInfo.classList.remove('ativa');
+                areaGravacao.style.display = 'none';
+                acoesSessao.classList.remove('ativa');
+                listaItensDiv.classList.remove('ativa');
+                resultadoDiv.style.display = 'none';
+                
+                btnIniciar.disabled = false;
+                btnIniciar.textContent = '🚀 Iniciar Sessão de Cadastro';
+                inputOrigem.value = '';
+                statusDiv.textContent = '';
+
+            } catch (err) {
+                tocarSom('erro');
+                statusDiv.textContent = '❌ Erro ao finalizar: ' + err.message;
+                alert('❌ Erro ao salvar no banco:\n' + err.message);
+            }
         }
 
-        // --- VOZ ---
+        function atualizarListaItens() {
+            if (itensLista.length === 0) {
+                listaItensDiv.classList.remove('ativa');
+                return;
+            }
+
+            listaItensDiv.classList.add('ativa');
+            listaItensConteudo.innerHTML = itensLista.slice().reverse().slice(0, 10).map(item => `
+                <div class="item-lista">
+                    <span class="item-codigo">${item.codigoEstoque}</span>
+                    <span class="item-desc">${item.descricao}</span>
+                    <span class="item-preco">R$ ${item.precoVenda.toFixed(2)}</span>
+                </div>
+            `).join('');
+        }
+
+        // ===== VOZ =====
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let estaGravando = false;
-        let textoAcumulado = "";
+        let textoAcumulado = '';
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -337,33 +694,32 @@
             recognition.interimResults = true;
 
             recognition.onresult = function (event) {
-                let textoTemporario = "";
+                let textoTemporario = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        textoAcumulado += event.results[i][0].transcript + " ";
+                        textoAcumulado += event.results[i][0].transcript + ' ';
                     } else {
                         textoTemporario += event.results[i][0].transcript;
                     }
                 }
-                statusDiv.innerHTML = "🗣️ " + textoAcumulado + textoTemporario;
+                statusDiv.innerHTML = '🗣️ ' + textoAcumulado + textoTemporario;
             };
 
             recognition.onerror = function (event) {
                 if (event.error !== 'no-speech') {
                     pararGravacaoVisual();
-                    tocarSom('erro'); // Som se der erro na voz
-                    statusDiv.innerHTML = "Erro: " + event.error;
+                    tocarSom('erro');
+                    statusDiv.innerHTML = 'Erro: ' + event.error;
                 }
             };
         } else {
-            statusDiv.innerHTML = "❌ Sem suporte a voz.";
-            btn.disabled = true;
+            statusDiv.innerHTML = '❌ Navegador sem suporte a voz.';
+            btnGravar.disabled = true;
         }
 
         function alternarGravacao() {
-            if (!recognition) return;
+            if (!recognition || !sessaoId) return;
 
-            // Habilita áudio no primeiro clique (necessário para celulares)
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (estaGravando) {
@@ -372,52 +728,110 @@
                 if (textoAcumulado.trim().length > 0) enviarParaAPI(textoAcumulado);
             } else {
                 resultadoDiv.style.display = 'none';
-                textoAcumulado = "";
+                textoAcumulado = '';
                 estaGravando = true;
-                btn.classList.add('gravando');
-                iconeBtn.innerText = "⬛";
-                statusDiv.innerHTML = "Ouvindo...";
+                btnGravar.classList.add('gravando');
+                iconeBtn.innerText = '⬛';
+                statusDiv.innerHTML = 'Ouvindo...';
                 recognition.start();
             }
         }
 
         function pararGravacaoVisual() {
             estaGravando = false;
-            btn.classList.remove('gravando');
-            iconeBtn.innerText = "🎤";
-            statusDiv.innerHTML = "Processando...";
+            btnGravar.classList.remove('gravando');
+            iconeBtn.innerText = '🎤';
+            statusDiv.innerHTML = '🧠 Inteligência trabalhando...';
         }
 
         async function enviarParaAPI(textoFalado) {
-            statusDiv.innerHTML = "🧠 Inteligência trabalhando...";
+            statusDiv.innerHTML = '🧠 Inteligência trabalhando...';
+            btnGravar.disabled = true; // Desabilita botão durante processamento
+            
             try {
-                const origem = inputOrigem.value;
-                const response = await fetch('/api/Agente/cadastrar', {
+                // Timeout de 30 segundos
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                const response = await fetch(`/api/Agente/sessao/${sessaoId}/cadastrar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ textoUsuario: textoFalado, origemFixa: origem })
+                    body: JSON.stringify({ textoUsuario: textoFalado }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
 
                 if (!response.ok) throw new Error(await response.text());
                 const json = await response.json();
 
-                // --- SUCESSO! ---
-                tocarSom('sucesso'); // <--- TOCA O SOM AQUI
+                tocarSom('sucesso');
 
-                statusDiv.innerHTML = "Pronto!";
-                document.getElementById('resId').innerText = json.id;
+                // Atualiza código para o próximo
+                proximoCodigo = json.codigoEstoque + 1;
+                document.getElementById('codigoAtual').textContent = proximoCodigo;
+
+                // Adiciona à lista
+                itensLista.push(json.dados);
+                document.getElementById('totalItens').textContent = itensLista.length;
+                atualizarListaItens();
+
+                // Mostra resultado
+                statusDiv.innerHTML = '✅ Pronto! Próximo código: ' + proximoCodigo;
+                document.getElementById('resCodigo').innerText = json.codigoEstoque;
                 document.getElementById('resDesc').innerText = json.dados.descricao;
-                document.getElementById('resPreco').innerText = json.dados.precoVenda;
-                document.getElementById('resOrigem').innerText = json.dados.origem;
+                document.getElementById('resPreco').innerText = json.dados.precoVenda.toFixed(2);
+                document.getElementById('resOrigem').innerText = json.dados.origem || '-';
                 resultadoDiv.style.display = 'block';
 
-                if (origem) setTimeout(carregarOrigens, 1000);
-
             } catch (err) {
-                // --- ERRO! ---
-                tocarSom('erro'); // <--- TOCA O SOM AQUI
-                statusDiv.innerHTML = "❌ " + err.message;
+                tocarSom('erro');
+                if (err.name === 'AbortError') {
+                    statusDiv.innerHTML = '⏱️ Timeout - tente novamente';
+                } else {
+                    statusDiv.innerHTML = '❌ ' + err.message;
+                }
+            } finally {
+                btnGravar.disabled = false; // Reabilita botão
             }
+        }
+
+        // ===== EXCLUSÃO LEGADO =====
+        function toggleExclusao() {
+            painelExclusao.style.display = painelExclusao.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function excluirManual() {
+            const id = document.getElementById('idParaExcluir').value;
+            if (!id) return alert('Digite um ID');
+            if (!confirm(`Apagar produto ID ${id} do BANCO?`)) return;
+
+            try {
+                const res = await fetch(`/api/Agente/excluir/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Produto apagado do banco!');
+                    document.getElementById('idParaExcluir').value = '';
+                    toggleExclusao();
+                } else {
+                    tocarSom('erro');
+                    alert('Erro: Produto não encontrado.');
+                }
+            } catch (e) { alert(e.message); }
+        }
+
+        function logout() {
+            if (sessaoId && itensLista.length > 0) {
+                if (!confirm('Você tem uma sessão ativa com itens. Deseja exportar antes de sair?')) {
+                    if (confirm('Sair sem exportar? Os dados da sessão serão perdidos!')) {
+                        localStorage.removeItem('usuario_logado');
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+                exportarBackup();
+            }
+            localStorage.removeItem('usuario_logado');
+            window.location.href = '/login.html';
         }
     </script>
 </body>

@@ -23,3 +23,8 @@ Thumbs.db
 /bin
 /obj
 /.vs
+
+# Arquivos de configuração local (NÃO COMMITAR)
+appsettings.Development.json
+appsettings.Local.json
+*.local.json

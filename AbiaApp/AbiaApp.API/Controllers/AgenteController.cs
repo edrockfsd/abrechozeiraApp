@@ -14,11 +14,12 @@ namespace AbiaApp.API.Controllers
     public class AgenteController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly SessaoService _sessaoService;
 
-        // O construtor recebe a configuração do sistema (onde está o appsettings.json)
         public AgenteController(IConfiguration configuration)
         {
             _configuration = configuration;
+            _sessaoService = new SessaoService(GetConnectionString());
         }
 
         private const int ID_MARCA_GENERICA = 10;
@@ -35,7 +36,180 @@ namespace AbiaApp.API.Controllers
         {
             return _configuration["Gemini:ApiKey"];
         }
+
+        private string GetOpenAIKey()
+        {
+            return _configuration["OpenAI:ApiKey"];
+        }
         // ---------------------------------------------
+
+        #region ===== ENDPOINTS DE SESSÃO (NOVO FLUXO) =====
+
+        /// <summary>
+        /// Inicia uma nova sessão de cadastro. Busca o maior CodigoEstoque do banco.
+        /// </summary>
+        [HttpPost("sessao/iniciar")]
+        public IActionResult IniciarSessao([FromBody] IniciarSessaoRequest? request = null)
+        {
+            try
+            {
+                var sessao = _sessaoService.IniciarSessao(request?.OrigemFixa);
+                return Ok(new
+                {
+                    mensagem = "Sessão iniciada com sucesso",
+                    sessaoId = sessao.Id,
+                    proximoCodigo = sessao.ProximoCodigo,
+                    origemFixa = sessao.OrigemFixa
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cadastra um produto na sessão (não salva no banco, apenas na memória)
+        /// </summary>
+        [HttpPost("sessao/{sessaoId}/cadastrar")]
+        public async Task<IActionResult> CadastrarNaSessao(string sessaoId, [FromBody] PedidoCadastro pedido)
+        {
+            if (string.IsNullOrEmpty(pedido.TextoUsuario))
+                return BadRequest("Texto vazio.");
+
+            try
+            {
+                // 1. Processa a IA
+                var produtoEstruturado = await ProcessarInteligencia(pedido.TextoUsuario);
+
+                // 2. Adiciona na sessão
+                var item = _sessaoService.AdicionarItem(sessaoId, produtoEstruturado);
+
+                return Ok(new
+                {
+                    mensagem = "Produto adicionado à sessão",
+                    codigoEstoque = item.CodigoEstoque,
+                    dados = item
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Remove o último item cadastrado na sessão
+        /// </summary>
+        [HttpDelete("sessao/{sessaoId}/ultimo")]
+        public IActionResult RemoverUltimoDaSessao(string sessaoId)
+        {
+            var removido = _sessaoService.RemoverUltimoItem(sessaoId);
+            if (removido == null)
+                return NotFound(new { erro = "Sessão não encontrada ou vazia." });
+
+            return Ok(new
+            {
+                mensagem = "Último item removido",
+                itemRemovido = removido
+            });
+        }
+
+        /// <summary>
+        /// Retorna informações da sessão atual
+        /// </summary>
+        [HttpGet("sessao/{sessaoId}")]
+        public IActionResult ObterSessao(string sessaoId)
+        {
+            var sessao = _sessaoService.ObterSessao(sessaoId);
+            if (sessao == null)
+                return NotFound(new { erro = "Sessão não encontrada." });
+
+            return Ok(new
+            {
+                sessaoId = sessao.Id,
+                inicio = sessao.Inicio,
+                origemFixa = sessao.OrigemFixa,
+                proximoCodigo = sessao.ProximoCodigo,
+                totalItens = sessao.Itens.Count,
+                itens = sessao.Itens
+            });
+        }
+
+        /// <summary>
+        /// Exporta o Excel da sessão (pode ser chamado a qualquer momento como backup)
+        /// </summary>
+        [HttpGet("sessao/{sessaoId}/exportar")]
+        public IActionResult ExportarSessao(string sessaoId)
+        {
+            try
+            {
+                var excel = _sessaoService.GerarExcel(sessaoId);
+                var sessao = _sessaoService.ObterSessao(sessaoId);
+                var nomeArquivo = $"cadastro_{sessao?.OrigemFixa ?? "sessao"}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                return File(excel, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomeArquivo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Finaliza a sessão: salva no banco (transação), exporta Excel, e limpa da memória
+        /// </summary>
+        [HttpGet("sessao/{sessaoId}/finalizar")]
+        public IActionResult FinalizarSessao(string sessaoId)
+        {
+            try
+            {
+                var sessao = _sessaoService.ObterSessao(sessaoId);
+                if (sessao == null)
+                    return NotFound(new { erro = "Sessão não encontrada." });
+
+                if (sessao.Itens.Count == 0)
+                    return BadRequest(new { erro = "Sessão não possui itens para finalizar." });
+
+                // 1. Gera o Excel ANTES de salvar no banco (backup de segurança)
+                var excel = _sessaoService.GerarExcel(sessaoId);
+                var nomeArquivo = $"cadastro_{sessao.OrigemFixa ?? "sessao"}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                // 2. Salva no banco (transação - tudo ou nada)
+                _sessaoService.SalvarNoBanco(sessaoId);
+
+                // 3. Finaliza a sessão (remove da memória)
+                _sessaoService.FinalizarSessao(sessaoId);
+
+                // 4. Retorna o Excel
+                return File(excel, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomeArquivo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Lista todas as sessões ativas (debug)
+        /// </summary>
+        [HttpGet("sessoes")]
+        public IActionResult ListarSessoes()
+        {
+            return Ok(_sessaoService.ListarSessoes());
+        }
+
+        #endregion
+
+        #region ===== ENDPOINTS LEGADO (CADASTRO DIRETO NO BANCO) =====
 
         [HttpGet("origens")]
         public IActionResult ListarOrigens()
@@ -152,10 +326,10 @@ namespace AbiaApp.API.Controllers
         private async Task<ProdutoIA_IDs> ProcessarInteligencia(string textoUsuario)
         {
             using var client = new HttpClient();
-            var apiKey = GetGeminiKey(); // Pega do appsettings
-
-            // Modelo Gemini 2.5 Flash
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
+            var apiKey = GetGeminiKey(); // Usando Gemini agora
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key={apiKey}";
+            
+            // client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}"); // Não precisa para o Gemini na URL
 
             // --- LOGS DE DEBUG NO CONSOLE ---
             Console.WriteLine("--------------------------------------------------");
@@ -167,61 +341,91 @@ namespace AbiaApp.API.Controllers
             var jsonMarcas = JsonConvert.SerializeObject(CacheSistema.Marcas);
             var jsonGrupos = JsonConvert.SerializeObject(CacheSistema.Grupos);
 
-            var prompt = $@"
-                Atue como um especialista em cadastro de produtos de brechó.
+            var prompt = $@"Atue como um especialista em cadastro de produtos de brechó.
                 
-                --- TABELAS DE DOMÍNIO ---
-                MARCAS: {jsonMarcas}
-                GRUPOS: {jsonGrupos}
-                --------------------------
+--- TABELAS DE DOMÍNIO ---
+MARCAS: {jsonMarcas}
+GRUPOS: {jsonGrupos}
+--------------------------
 
-                ENTRADA: '{textoUsuario}'
+ENTRADA: '{textoUsuario}'
 
-                MISSÃO: Estruturar dados para banco SQL.
-                
-                REGRAS:
-                1. Fuzzy Match IDs: Encontre a Marca/Grupo mais próximos na lista.
-                   - Se falhar Marca: use {ID_MARCA_GENERICA}.
-                   - Se falhar Grupo: use {ID_GRUPO_GENERICO}.
-                
-                2. Descrição OBRIGATÓRIA:
-                   - Formato: [Grupo/Tipo] + [Cor] + [Marca] + [Detalhes]
-                   - Ex: 'Blusa branca The North Face', NUNCA 'branca The North Face'.
-                
-                3. Dados:
-                   - PrecoCusto: Se não falado, 0.00.
-                   - Origem: Se não falado, null.
-                   - Condicao: 'N' (Novo) ou 'U' (Usado).
+MISSÃO: Estruturar dados para banco SQL.
 
-                RETORNE JSON:
-                {{
-                    ""Descricao"": ""string"",
-                    ""Tamanho"": ""string"",
-                    ""PrecoVenda"": 0.00,
-                    ""PrecoCusto"": 0.00,
-                    ""Origem"": null,
-                    ""MarcaId"": 0,
-                    ""GrupoId"": 0,
-                    ""GeneroId"": 1,
-                    ""PerfilId"": 1,
-                    ""Condicao"": ""U""
-                }}";
+REGRAS:
+1. Fuzzy Match IDs: Encontre a Marca/Grupo mais próximos na lista.
+   - Se falhar Marca: use {ID_MARCA_GENERICA}.
+   - Se falhar Grupo: use {ID_GRUPO_GENERICO}.
 
-            var body = new { contents = new[] { new { parts = new[] { new { text = prompt } } } } };
+2. Descrição OBRIGATÓRIA:
+   - Formato: [Grupo/Tipo] + [Cor] + [Marca] + [Detalhes]
+   - Ex: 'Blusa branca The North Face', NUNCA 'branca The North Face'.
+
+3. PREÇO DE VENDA (PrecoVenda) - MUITO IMPORTANTE:
+   - Extraia o valor monetário mencionado pelo usuário.
+   - Exemplos de como o usuário pode falar:
+     * 'cento e cinquenta' = 150.00
+     * '150 reais' = 150.00
+     * 'duzentos e noventa e nove' = 299.00
+     * 'cinquenta e nove e noventa' = 59.90
+     * '59,90' = 59.90
+   - Se não mencionar preço, use 0.00.
+
+4. Outros dados:
+   - PrecoCusto: Se não falado, 0.00.
+   - Origem: Se não falado, null.
+   - Condicao: 'N' (Novo) ou 'U' (Usado). PADRÃO: 'N' (novo), a menos que o usuário diga explicitamente 'usado'.
+
+RETORNE APENAS O JSON (sem explicações):
+{{
+    ""Descricao"": ""string"",
+    ""Tamanho"": ""string"",
+    ""PrecoVenda"": 0.00,
+    ""PrecoCusto"": 0.00,
+    ""Origem"": null,
+    ""MarcaId"": 0,
+    ""GrupoId"": 0,
+    ""GeneroId"": 1,
+    ""PerfilId"": 1,
+    ""Condicao"": ""N""
+}}";
+
+            var body = new
+            {
+                contents = new[]
+                {
+                    new { parts = new[] { new { text = prompt } } }
+                },
+                generationConfig = new
+                {
+                    temperature = 0.3
+                }
+            };
 
             var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
             var response = await client.PostAsync(url, content);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"Erro Google API: {responseString}");
+                throw new Exception($"Erro Gemini: {responseString}");
 
-            var jsonResponse = JObject.Parse(responseString);
+            var jsonResponse = JToken.Parse(responseString);
             var text = jsonResponse["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
 
             if (string.IsNullOrEmpty(text)) throw new Exception("IA retornou vazio.");
 
+            // Log da resposta bruta para debug
+            Console.WriteLine($"[DEBUG] Resposta bruta da IA: {text}");
+
+            // Limpeza manual para o Gemma (que não tem JSON Mode nativo)
             text = text.Replace("```json", "").Replace("```", "").Trim();
+            var jsonStart = text.IndexOf('{');
+            var jsonEnd = text.LastIndexOf('}');
+            if (jsonStart != -1 && jsonEnd != -1)
+            {
+                text = text.Substring(jsonStart, jsonEnd - jsonStart + 1);
+            }
+            Console.WriteLine($"[DEBUG] JSON extraído: {text}");
 
             return JsonConvert.DeserializeObject<ProdutoIA_IDs>(text);
         }
@@ -287,5 +491,15 @@ namespace AbiaApp.API.Controllers
                 throw;
             }
         }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Request para iniciar sessão
+    /// </summary>
+    public class IniciarSessaoRequest
+    {
+        public string? OrigemFixa { get; set; }
     }
 }

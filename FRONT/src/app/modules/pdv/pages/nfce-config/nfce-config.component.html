@@ -1,0 +1,177 @@
+<div class="nfce-config-page">
+    <header class="page-header">
+        <h1>⚙️ Configurações Fiscais - NFC-e</h1>
+        <a routerLink="/pdv" class="btn-back">← Voltar ao PDV</a>
+    </header>
+
+    <!-- Loading -->
+    <div class="loading-container" *ngIf="carregando">
+        <div class="spinner"></div>
+        <p>Carregando configurações...</p>
+    </div>
+
+    <div class="config-container" *ngIf="!carregando">
+        <!-- Status da Configuração -->
+        <div class="status-card" [class.valid]="validacao?.valido" [class.invalid]="validacao && !validacao.valido">
+            <div class="status-icon">
+                {{ validacao?.valido ? '✅' : '⚠️' }}
+            </div>
+            <div class="status-text">
+                <strong>{{ validacao?.valido ? 'Configuração Completa' : 'Configuração Incompleta' }}</strong>
+                <span *ngIf="validacao?.erro">{{ validacao.erro }}</span>
+            </div>
+        </div>
+
+        <!-- Mensagem -->
+        <div class="alert" *ngIf="mensagem" [class.success]="mensagem.tipo === 'success'"
+            [class.error]="mensagem.tipo === 'error'">
+            {{ mensagem.texto }}
+            <button class="close-btn" (click)="limparMensagem()">×</button>
+        </div>
+
+        <form (ngSubmit)="salvar()">
+            <!-- Dados da Empresa -->
+            <section class="form-section">
+                <h2>📋 Dados da Empresa</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>CNPJ *</label>
+                        <input type="text" [(ngModel)]="config.cnpj" name="cnpj" placeholder="00.000.000/0001-00"
+                            maxlength="18">
+                    </div>
+                    <div class="form-group">
+                        <label>Inscrição Estadual *</label>
+                        <input type="text" [(ngModel)]="config.inscricaoEstadual" name="inscricaoEstadual"
+                            placeholder="000000000">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Razão Social *</label>
+                        <input type="text" [(ngModel)]="config.razaoSocial" name="razaoSocial">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Nome Fantasia</label>
+                        <input type="text" [(ngModel)]="config.nomeFantasia" name="nomeFantasia">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endereço -->
+            <section class="form-section">
+                <h2>📍 Endereço</h2>
+                <div class="form-grid">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Logradouro</label>
+                        <input type="text" [(ngModel)]="config.logradouro" name="logradouro">
+                    </div>
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" [(ngModel)]="config.numero" name="numero" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Complemento</label>
+                        <input type="text" [(ngModel)]="config.complemento" name="complemento">
+                    </div>
+                    <div class="form-group">
+                        <label>Bairro</label>
+                        <input type="text" [(ngModel)]="config.bairro" name="bairro">
+                    </div>
+                    <div class="form-group">
+                        <label>Município</label>
+                        <input type="text" [(ngModel)]="config.municipio" name="municipio">
+                    </div>
+                    <div class="form-group">
+                        <label>Código IBGE</label>
+                        <input type="text" [(ngModel)]="config.codigoMunicipio" name="codigoMunicipio" maxlength="7"
+                            placeholder="0000000">
+                    </div>
+                    <div class="form-group">
+                        <label>UF *</label>
+                        <select [(ngModel)]="config.uf" name="uf">
+                            <option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>CEP</label>
+                        <input type="text" [(ngModel)]="config.cep" name="cep" maxlength="8" placeholder="00000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" [(ngModel)]="config.telefone" name="telefone">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configurações NFC-e -->
+            <section class="form-section">
+                <h2>📄 Configurações NFC-e</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Ambiente *</label>
+                        <select [(ngModel)]="config.ambiente" name="ambiente">
+                            <option [value]="2">Homologação (Testes)</option>
+                            <option [value]="1">Produção</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>CRT (Regime Tributário) *</label>
+                        <select [(ngModel)]="config.crt" name="crt">
+                            <option [value]="4">MEI</option>
+                            <option [value]="1">Simples Nacional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Série</label>
+                        <input type="number" [(ngModel)]="config.serie" name="serie" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Próximo Número</label>
+                        <input type="number" [(ngModel)]="config.proximoNumero" name="proximoNumero" min="1" disabled>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CSC -->
+            <section class="form-section">
+                <h2>🔑 CSC (Código de Segurança do Contribuinte)</h2>
+                <p class="section-description">Gere o CSC no portal da SEFAZ do seu estado após obter a Inscrição
+                    Estadual.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>CSC ID</label>
+                        <input type="text" [(ngModel)]="config.cscId" name="cscId" placeholder="1 ou 2" maxlength="6">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>CSC (Token)</label>
+                        <input type="text" [(ngModel)]="config.csc" name="csc"
+                            placeholder="Código de Segurança do Contribuinte">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Certificado Digital -->
+            <section class="form-section">
+                <h2>🔐 Certificado Digital</h2>
+                <p class="section-description">O certificado A1 (.pfx) deve estar acessível no servidor da API.</p>
+                <div class="form-grid">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Caminho do Certificado</label>
+                        <input type="text" [(ngModel)]="config.certificadoPath" name="certificadoPath"
+                            placeholder="/caminho/para/certificado.pfx">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha do Certificado</label>
+                        <input type="password" [(ngModel)]="config.certificadoSenha" name="certificadoSenha"
+                            placeholder="••••••">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Botão Salvar -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save" [disabled]="salvando">
+                    {{ salvando ? 'Salvando...' : '💾 Salvar Configurações' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
