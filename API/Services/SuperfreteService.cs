@@ -359,7 +359,7 @@ namespace ABrechozeiraApp.Services
         public async Task<List<EtiquetaInfo>> ListarEtiquetasAsync()
         {
             var client = CriarCliente();
-            var response = await client.GetAsync("/api/v0/me/orders");
+            var response = await client.GetAsync("/api/v0/me/orders?limit=100&per_page=100");
 
             if (!response.IsSuccessStatusCode)
             {
