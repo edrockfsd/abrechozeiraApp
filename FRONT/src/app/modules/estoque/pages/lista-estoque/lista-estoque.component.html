@@ -1,0 +1,89 @@
+<div class="estoque-container">
+  <ejs-toast #toast 
+             [position]="toastSettings.position" 
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <h1>Controle de Estoque</h1>
+  </div>
+
+  <ejs-grid #grid
+            [dataSource]="data"
+            [editSettings]="editSettings"
+            [toolbar]="toolbar"
+            [allowPaging]="true"
+            [pageSettings]="pageSettings"
+            [filterSettings]="filterSettings"
+            [allowFiltering]="true"
+            [allowSorting]="true"
+            (actionBegin)="actionBegin($event)"
+            (toolbarClick)="toolbarClick($event)">
+    
+    <e-columns>
+      <e-column field="codigoEstoque" headerText="Código" width="100" textAlign="Left" isPrimaryKey="true" [validationRules]="{ required: true }"></e-column>
+      <e-column field="descricao" headerText="Produto" width="200" [allowEditing]="false"></e-column>
+      <e-column field="quantidade" headerText="Quantidade" width="100" textAlign="Right" editType="numericedit" [edit]="quantidadeParams" [validationRules]="{ required: true }"></e-column>
+      <e-column field="localizacao" headerText="Localização" width="150" [validationRules]="{ required: true }"></e-column>
+      <e-column field="dataAlteracao" headerText="Data Alteração" width="150" type="date" format="dd/MM/yyyy HH:mm" [allowEditing]="false" [visible]="true" [edit]="{ visible: false }"></e-column>
+      <e-column field="nome" headerText="Usuário" width="150" [allowEditing]="false" [visible]="true" [edit]="{ visible: false }"></e-column>
+      <e-column headerText="Ações" width="100" [commands]="commands"></e-column>
+    </e-columns>
+  </ejs-grid>
+</div>
+
+<!-- Template do Cabeçalho do Diálogo -->
+<ng-template #headerTemplate let-data>
+  <div class="e-dlg-header-content">
+    {{ isEdicao ? 'Editar Estoque' : 'Novo Estoque' }}
+  </div>
+</ng-template>
+
+<!-- Template do Diálogo de Edição -->
+<ng-template #dialogTemplate let-data>
+  <div class="dialog-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="codigoEstoque">Código do Estoque</label>
+        <input type="text" id="codigoEstoque" name="codigoEstoque" 
+               [(ngModel)]="data.codigoEstoque" 
+               [disabled]="isEdicao"
+               (blur)="onCodigoEstoqueBlur($event)"
+               class="e-input" required>
+      </div>
+      <div class="form-group">
+        <label for="descricao">Produto</label>
+        <input type="text" id="descricao" name="descricao"
+               [(ngModel)]="data.descricao"
+               class="e-input" disabled>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="quantidade">Quantidade</label>
+        <ejs-numerictextbox id="quantidade" name="quantidade"
+                           [(ngModel)]="data.quantidade"
+                           [min]="0"
+                           format="N0"
+                           class="e-input" required>
+        </ejs-numerictextbox>
+      </div>
+      <div class="form-group">
+        <label for="localizacao">Localização</label>
+        <input type="text" id="localizacao" name="localizacao"
+               [(ngModel)]="data.localizacao"
+               class="e-input" required>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Template do Rodapé do Diálogo -->
+<ng-template #footerTemplate let-data>
+  <div class="e-footer-content">
+    <button class="e-btn e-flat" (click)="grid.closeEdit()">Cancelar</button>
+    <button class="e-btn e-primary" [disabled]="!isFormValid(data)" (click)="onSave(data)">Salvar</button>
+  </div>
+</ng-template> 

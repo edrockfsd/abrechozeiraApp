@@ -1,0 +1,39 @@
+<div class="dashboard-container">
+  <div class="summary-cards">
+    <mat-card class="summary-card">
+      <div class="summary-title">Integrações</div>
+      <div class="summary-value">2</div>
+    </mat-card>
+    <mat-card class="summary-card">
+      <div class="summary-title">Relatórios de Live</div>
+      <div class="summary-value">10</div>
+    </mat-card>
+    <mat-card class="summary-card">
+      <div class="summary-title">Mensagens recebidas</div>
+      <div class="summary-value">57</div>
+    </mat-card>
+    <mat-card class="summary-card">
+      <div class="summary-title">Usuários em lives</div>
+      <div class="summary-value">4</div>
+    </mat-card>
+  </div>
+  <div class="sessions-list">
+    <!-- Aqui virá a lista/grid de sessões de live -->
+    <div class="sessions-header">
+      <h2>setterbrazil</h2>
+      <span>Criado em 19/06/2025, 19:35:10</span>
+    </div>
+    <ejs-grid [dataSource]="[]">
+      <e-columns>
+        <e-column field="acesso" headerText="Acesso" width="80"></e-column>
+        <e-column field="data" headerText="Data da live" width="120"></e-column>
+        <e-column field="primeiraMensagem" headerText="Primeira mensagem" width="120"></e-column>
+        <e-column field="mensagens" headerText="Mensagens" width="100"></e-column>
+        <e-column field="relatorio" headerText="" width="120"></e-column>
+      </e-columns>
+    </ejs-grid>
+    <div class="see-all-link">
+      <a href="#">Veja tudo →</a>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,64 @@
+<div class="lista-container">
+  <ejs-toast #toast
+    [position]="toastSettings.position"
+    [showCloseButton]="toastSettings.showCloseButton"
+    [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>Pessoas</h1>
+      <div class="header-actions" style="display: flex; gap: 8px;">
+        <button ejs-button cssClass="e-success" (click)="onCopiarLinkCadastro()" style="background-color: #25D366 !important; border-color: #25D366 !important; color: white !important;">
+          <span class="e-btn-icon e-icons e-link e-icon-left"></span>
+          Link Auto-Cadastro
+        </button>
+        <button ejs-button cssClass="e-primary" (click)="onNovaPessoa()">
+          <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+          Nova Pessoa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ejs-grid 
+    #grid 
+    [dataSource]="pessoas"
+    [allowPaging]="true"
+    [pageSettings]="pageSettings"
+    [toolbar]="toolbar"
+    [filterSettings]="filterSettings"
+    [allowFiltering]="true"
+    [allowSorting]="true">
+    <e-columns>
+      <e-column headerText="Ações" width="200">
+        <ng-template #template let-data>
+          <div class="action-buttons" style="display: flex; gap: 8px;">
+            <button ejs-button cssClass="e-flat e-small" (click)="onEditar(data)" title="Editar">
+              <span class="material-icons" style="font-size: 18px;">edit</span>
+            </button>
+            <button ejs-button cssClass="e-flat e-danger e-small" (click)="onExcluir(data)" title="Excluir">
+              <span class="material-icons" style="font-size: 18px;">delete</span>
+            </button>
+            <button ejs-button cssClass="e-flat e-small" (click)="onListarEnderecos(data)" title="Listar Endereços">
+              <span class="material-icons" style="font-size: 18px;">location_on</span>
+            </button>
+          </div>
+        </ng-template>
+      </e-column>
+      <e-column field="nome" headerText="Nome" width="200"></e-column>
+      <e-column field="cpf" headerText="CPF" width="150"></e-column>
+      <e-column field="dataNascimento" headerText="Data de Nascimento" width="150">
+        <ng-template #template let-data>
+          {{ formatarData(data.dataNascimento) }}
+        </ng-template>
+      </e-column>
+      <e-column field="email" headerText="E-mail" width="200"></e-column>
+      <e-column field="telefone" headerText="Telefone" width="120"></e-column>
+      <e-column field="nickName" headerText="Apelido na rede social" width="120"></e-column>
+      <e-column field="generoDescricao" headerText="Gênero" width="100"></e-column>
+      <e-column field="categoriaDescricao" headerText="Categoria" width="120"></e-column>
+      <e-column field="statusDescricao" headerText="Status" width="100"></e-column>
+    </e-columns>
+  </ejs-grid>
+</div> 

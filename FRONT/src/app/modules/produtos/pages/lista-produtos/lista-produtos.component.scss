@@ -1,0 +1,184 @@
+// Lista de Produtos - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-6;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: $spacing-4;
+  margin-bottom: $spacing-5;
+  flex-wrap: wrap;
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+
+    label {
+      font-size: $font-size-sm;
+      color: var(--text-secondary);
+      font-weight: $font-weight-medium;
+    }
+
+    input,
+    select {
+      padding: $spacing-2 $spacing-3;
+      border: 1px solid var(--border-color);
+      border-radius: $border-radius-md;
+      font-size: $font-size-sm;
+      background: var(--bg-card);
+      color: var(--text-primary);
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+    }
+  }
+}
+
+// Status badges
+::ng-deep {
+  .status-ativo {
+    display: inline-flex;
+    align-items: center;
+    padding: $spacing-1 $spacing-2;
+    background: $success-light;
+    color: $success;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  .status-inativo {
+    display: inline-flex;
+    align-items: center;
+    padding: $spacing-1 $spacing-2;
+    background: $warning-light;
+    color: $warning;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  .status-excluido {
+    display: inline-flex;
+    align-items: center;
+    padding: $spacing-1 $spacing-2;
+    background: $danger-light;
+    color: $danger;
+    border-radius: $border-radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  // Action buttons
+  .action-buttons {
+    display: flex;
+    gap: $spacing-2;
+    justify-content: center;
+
+    button {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: $border-radius-md;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      i,
+      .material-icons {
+        font-size: 18px;
+        color: var(--text-secondary);
+      }
+
+      &:hover {
+        background: var(--bg-main);
+
+        i,
+        .material-icons {
+          color: var(--primary);
+        }
+      }
+
+      &.danger:hover {
+
+        i,
+        .material-icons {
+          color: $danger;
+        }
+      }
+    }
+  }
+
+  // Syncfusion Grid Styling
+  .e-grid {
+    border: 1px solid var(--border-color) !important;
+    border-radius: $border-radius-lg !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+
+    .e-gridheader {
+      background: var(--bg-main) !important;
+    }
+
+    .e-headercell {
+      background: var(--bg-main) !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-xs !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      color: var(--text-secondary) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .e-rowcell {
+      font-size: $font-size-sm !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+      padding: $spacing-3 !important;
+    }
+
+    .e-row:hover .e-rowcell {
+      background: rgba(99, 102, 241, 0.03) !important;
+    }
+
+    .e-selectionbackground {
+      background: rgba(99, 102, 241, 0.1) !important;
+    }
+
+    .e-pager {
+      background: var(--bg-card) !important;
+      border-color: var(--border-color) !important;
+
+      .e-numericitem {
+        border-radius: $border-radius-sm !important;
+      }
+
+      .e-currentitem {
+        background: var(--primary) !important;
+        color: #fff !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+@use 'sass:color';
+@use './variables' as *;
+
+:root {
+  --md-primary: #{$md-primary};
+  --md-accent:  #{$md-accent};
+  --md-warn:    #{$md-warn};
+  --md-bg:      #{$md-bg};
+  --md-surface: #{$md-surface};
+  --md-text:    #{$md-text};
+  --md-muted:   #{$md-muted};
+
+  --elev-1: #{$elev-1};
+  --elev-2: #{$elev-2};
+}
+
+/* Dark theme variables */
+.dark {
+  --md-primary: #9c27b0;
+  --md-accent:  #e91e63;
+  --md-warn:    #ef5350;
+  --md-bg:      #0f1115;
+  --md-surface: #1a1d24;
+  --md-text:    #e5e7eb;
+  --md-muted:   #9ca3af;
+
+  --elev-1: 0 1px 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.5);
+  --elev-2: 0 3px 6px rgba(0,0,0,0.6), 0 3px 6px rgba(0,0,0,0.5);
+}
+
+.bg-surface { background: var(--md-surface); }
+.bg-primary { background: var(--md-primary); }
+.text-muted { color: var(--md-muted); }
+.shadow-1 { box-shadow: var(--elev-1); }
+.shadow-2 { box-shadow: var(--elev-2); }
+
+// Material Dashboard-inspired toolbar gradient
+.md-toolbar {
+  background: linear-gradient(60deg, color.scale($md-primary, $lightness: -5%), color.scale($md-accent, $lightness: -5%));
+  color: white;
+}

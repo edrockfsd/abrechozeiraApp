@@ -1,0 +1,116 @@
+<div class="lista-container">
+  <ejs-toast #toast
+             [position]="toastSettings.position"
+             [showCloseButton]="toastSettings.showCloseButton"
+             [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <span class="material-icons">local_shipping</span>
+        </div>
+        <div>
+          <h1>Envios — Superfrete</h1>
+          <p class="header-subtitle">Gerencie suas etiquetas de envio</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="carregarEtiquetas()" title="Atualizar lista">
+          <span class="material-icons">refresh</span>
+          <span>Atualizar</span>
+        </button>
+        <button class="btn-refresh" style="border-color: #6c5ce7; color: #6c5ce7;" (click)="onImportarWhatsApp()" title="Importar envios do WhatsApp">
+          <span class="material-icons">upload_file</span>
+          <span>Importar WhatsApp</span>
+        </button>
+        <button ejs-button cssClass="e-primary" (click)="onNovoPedido()">
+          <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+          Novo Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="carregando">
+    <div class="loading-spinner">
+      <span class="material-icons spin">autorenew</span>
+      <span>Carregando etiquetas...</span>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-panel" *ngIf="!carregando">
+    <div class="filter-group">
+      <div class="filter-field">
+        <label for="filtroStatus">Status</label>
+        <select id="filtroStatus" class="filter-select" [(ngModel)]="filtroStatus" (change)="filtrarDados()">
+          <option value="all">Todos os Status</option>
+          <option value="pending">Aguardando Pagamento</option>
+          <option value="released">Aguardando Postagem</option>
+          <option value="posted">Postado</option>
+          <option value="delivered">Entregue</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label for="dataInicio">Data Inicial</label>
+        <input id="dataInicio" type="date" class="filter-input" [(ngModel)]="filtroDataInicio" (change)="filtrarDados()">
+      </div>
+
+      <div class="filter-field">
+        <label for="dataFim">Data Final</label>
+        <input id="dataFim" type="date" class="filter-input" [(ngModel)]="filtroDataFim" (change)="filtrarDados()">
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-clear-filters" (click)="limparFiltros()" [disabled]="filtroStatus === 'all' && !filtroDataInicio && !filtroDataFim" title="Limpar Filtros">
+          <span class="material-icons">filter_alt_off</span>
+          <span>Limpar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-container" *ngIf="!carregando">
+    <ejs-grid
+      #grid
+      [dataSource]="data"
+      [allowPaging]="true"
+      [pageSettings]="gridSettings.pageSettings"
+      [toolbar]="gridSettings.toolbar"
+      [searchSettings]="gridSettings.searchSettings"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      [filterSettings]="filterSettings">
+      <e-columns>
+        <e-column field="id" headerText="ID Etiqueta" width="220" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column field="protocol" headerText="Protocolo" width="140" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column field="destinatario" headerText="Destinatário" width="200" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column field="service_name" headerText="Serviço" width="140" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column field="tracking" headerText="Rastreio" width="200" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column field="price" headerText="Valor" width="120" format="C2"></e-column>
+        <e-column headerText="Status" width="200">
+          <ng-template #template let-data>
+            <span class="status-badge" [ngClass]="getStatusClass(data.status)">
+              {{ data.statusLabel || data.status }}
+            </span>
+          </ng-template>
+        </e-column>
+        <e-column field="created_at" headerText="Data Criação" width="160"></e-column>
+      </e-columns>
+    </ejs-grid>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!carregando && data.length === 0">
+    <span class="material-icons empty-icon">inventory</span>
+    <h3>Nenhuma etiqueta gerada</h3>
+    <p>Gere sua primeira etiqueta abrindo um pedido e usando o painel de <strong>Envio / Frete</strong>.</p>
+  </div>
+</div>

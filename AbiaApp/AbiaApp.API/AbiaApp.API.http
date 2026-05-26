@@ -1,0 +1,6 @@
+@AbiaApp.API_HostAddress = http://localhost:5253
+
+GET {{AbiaApp.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

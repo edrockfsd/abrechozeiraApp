@@ -1,0 +1,26 @@
+<div class="sales-list">
+  <div class="header">
+    <h3>Vendas (recentes)</h3>
+    <div class="filters">
+      <ejs-daterangepicker [(ngModel)]="range" placeholder="Período"></ejs-daterangepicker>
+      <ejs-dropdownlist [dataSource]="statusOptions" [fields]="{ text: 'text', value: 'value' }" [(ngModel)]="status" width="160" placeholder="Status"></ejs-dropdownlist>
+      <button ejs-button cssClass="e-primary" (click)="load()" [disabled]="loading">Aplicar</button>
+    </div>
+  </div>
+  <ejs-grid [dataSource]="vendas" height="400" [allowFiltering]="true" [filterSettings]="{ type: 'Menu' }">
+    <e-columns>
+      <e-column field="id" headerText="ID" width="100" textAlign="Right"></e-column>
+      <e-column field="dataVenda" headerText="Data" width="200" type="dateTime" format="dd/MM/y HH:mm"></e-column>
+      <e-column field="status" headerText="Status" width="140"></e-column>
+      <e-column field="valorBruto" headerText="Bruto" width="140" format="C2" textAlign="Right"></e-column>
+      <e-column field="desconto" headerText="Desc" width="140" format="C2" textAlign="Right"></e-column>
+      <e-column field="valorLiquido" headerText="Líquido" width="160" format="C2" textAlign="Right"></e-column>
+      <e-column headerText="Ações" width="240" [template]="actionTpl"></e-column>
+    </e-columns>
+    <ng-template #actionTpl let-data>
+      <a [routerLink]="['/pdv']" [queryParams]="{ id: data.id }" ejs-button class="e-flat e-small">Editar</a>
+      <a [routerLink]="['/pdv/vendas', data.id, 'cupom']" target="_blank" ejs-button class="e-flat e-small">Imprimir</a>
+      <button *ngIf="data.status !== 'Cancelada'" ejs-button class="e-flat e-small" (click)="cancelarVenda(data)">Cancelar</button>
+    </ng-template>
+  </ejs-grid>
+</div>

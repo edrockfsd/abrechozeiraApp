@@ -1,0 +1,106 @@
+// Cadastro de Pessoa - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.cadastro-container {
+  max-width: 1000px;
+  margin: 0 auto;
+
+  .header {
+    margin-bottom: $spacing-6;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h1 {
+        margin: 0;
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-bold;
+        color: var(--text-primary);
+      }
+    }
+  }
+}
+
+.form-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  padding: $spacing-6;
+  box-shadow: var(--shadow-card);
+}
+
+.form-section {
+  margin-bottom: $spacing-6;
+
+  h2,
+  h3 {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    margin: 0 0 $spacing-4 0;
+    padding-bottom: $spacing-3;
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-4;
+  margin-bottom: $spacing-4;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: var(--text-primary);
+  }
+
+  input,
+  select,
+  textarea {
+    padding: $spacing-3;
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  margin-top: $spacing-6;
+  padding-top: $spacing-6;
+  border-top: 1px solid var(--border-color);
+}
+
+::ng-deep {
+  .e-float-input input {
+    border-radius: $border-radius-md !important;
+  }
+
+  .e-toast-success .e-toast-message {
+    background: $success !important;
+  }
+
+  .e-toast-danger .e-toast-message {
+    background: $danger !important;
+  }
+}

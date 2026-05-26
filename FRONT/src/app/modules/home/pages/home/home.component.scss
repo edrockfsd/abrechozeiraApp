@@ -1,0 +1,268 @@
+// Dashboard Home - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Header
+.dashboard-header {
+  margin-bottom: $spacing-6;
+}
+
+.page-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: $font-size-sm;
+  color: var(--text-secondary);
+  margin-top: $spacing-1;
+}
+
+// Loading & Error States
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-12;
+  color: var(--text-secondary);
+
+  .material-icons {
+    font-size: 48px;
+    margin-bottom: $spacing-4;
+  }
+
+  p {
+    margin: 0;
+    font-size: $font-size-base;
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state .material-icons {
+  color: var(--danger);
+}
+
+// KPI Grid
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-5;
+  margin-bottom: $spacing-6;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Content Grid
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-5;
+  margin-bottom: $spacing-6;
+}
+
+.chart-card {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    grid-column: span 1;
+  }
+}
+
+// Chart Container
+.chart-container {
+  height: 220px;
+  padding: $spacing-4 0;
+}
+
+.bar-chart {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 100%;
+  gap: $spacing-3;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.bar-wrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.bar {
+  width: 100%;
+  max-width: 50px;
+  background: linear-gradient(180deg, $chart-blue 0%, $chart-purple 100%);
+  border-radius: $border-radius-sm $border-radius-sm 0 0;
+  min-height: 4px;
+  transition: height $transition-base;
+}
+
+.bar-value {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--text-primary);
+  margin-bottom: $spacing-2;
+  white-space: nowrap;
+}
+
+.bar-label {
+  margin-top: $spacing-2;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+// Table Container
+.table-container {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.product-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Empty State
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-8;
+  color: var(--text-muted);
+
+  .material-icons {
+    font-size: 40px;
+    margin-bottom: $spacing-3;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+  }
+
+  &.success {
+    color: $success;
+
+    .material-icons {
+      opacity: 1;
+    }
+  }
+}
+
+// Quick Access Section
+.quick-access {
+  margin-top: $spacing-6;
+}
+
+.section-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--text-primary);
+  margin: 0 0 $spacing-4 0;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: $spacing-3;
+}
+
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-5 $spacing-4;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  text-decoration: none;
+  color: inherit;
+  transition: all $transition-fast;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+    border-color: var(--primary);
+
+    .quick-icon {
+      color: var(--primary);
+    }
+  }
+}
+
+.quick-icon {
+  font-size: 28px;
+  color: var(--text-secondary);
+  margin-bottom: $spacing-2;
+  transition: color $transition-fast;
+}
+
+.quick-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+}
+
+// Utility classes local
+.font-semibold {
+  font-weight: $font-weight-semibold;
+}
+
+.text-warning {
+  color: $warning;
+}

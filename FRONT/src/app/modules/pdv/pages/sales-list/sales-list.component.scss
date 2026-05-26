@@ -1,0 +1,6 @@
+.sales-list { padding: 8px; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.table { background:#fff; border:1px solid #e6e6e6; border-radius:8px; }
+.row { display:grid; grid-template-columns: 100px 220px 140px 160px 160px 160px; padding:8px 12px; border-top:1px solid #f0f0f0; align-items:center; }
+.row.head { font-weight:600; background:#fafafa; border-top:none; }
+.empty { padding:16px; color:#777; }

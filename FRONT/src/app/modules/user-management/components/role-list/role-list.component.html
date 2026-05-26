@@ -1,0 +1,71 @@
+<div class="role-list-container">
+  <div class="header-section">
+    <div class="header-left">
+      <h2>Gerenciamento de Funções</h2>
+      <div class="nav-tabs">
+        <button class="nav-tab" routerLink="/user-management">
+          <span class="material-icons" style="font-size: 18px; vertical-align: middle;">group</span> Usuários
+        </button>
+        <button class="nav-tab active" routerLink="/user-management/roles">
+          <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> Funções
+        </button>
+      </div>
+    </div>
+    <button ejs-button cssClass="e-primary" (click)="createRole()">
+      <span class="material-icons" style="font-size: 18px; vertical-align: middle;">add</span> Nova Função
+    </button>
+  </div>
+
+  <div class="grid-section">
+    <ejs-grid 
+      *ngIf="!loading"
+      [dataSource]="roles" 
+      [allowPaging]="true" 
+      [pageSettings]="pageSettings"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      [filterSettings]="filterSettings"
+      [toolbar]="toolbar"
+      (toolbarClick)="toolbarClickHandler($event)">
+      
+      <e-columns>
+        <e-column field="id" headerText="ID" width="80" textAlign="Right"></e-column>
+        <e-column field="name" headerText="Nome da Função" width="200"></e-column>
+        <e-column field="description" headerText="Descrição" width="300"></e-column>
+        <e-column headerText="Permissões" width="250">
+        <ng-template #template let-data>
+          <span>{{ getRolePermissions(data) }}</span>
+        </ng-template>
+      </e-column>
+        <e-column headerText="Ações" width="120">
+          <ng-template #template let-data>
+            <div class="action-buttons" style="display: flex; gap: 8px;">
+              <button ejs-button cssClass="e-small e-flat" (click)="editRole(data)" title="Editar">
+                <span class="material-icons" style="font-size: 18px;">edit</span>
+              </button>
+              <button ejs-button cssClass="e-small e-flat e-danger" (click)="deleteRole(data)" title="Excluir">
+                <span class="material-icons" style="font-size: 18px;">delete</span>
+              </button>
+            </div>
+          </ng-template>
+        </e-column>
+      </e-columns>
+      
+
+      
+
+    </ejs-grid>
+    
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando funções...</p>
+    </div>
+  </div>
+</div>
+
+<app-role-form
+  *ngIf="showRoleForm"
+  [role]="selectedRole"
+  [isEditMode]="isEditMode"
+  (onClose)="onRoleFormClose()">
+</app-role-form>

@@ -1,0 +1,95 @@
+<div class="pdv-container">
+  <div class="pdv-header">
+    <div class="search-wrap">
+      <ejs-autocomplete class="scan-input"
+                        [formControl]="searchCtrl"
+                        [dataSource]="suggestions"
+                        [fields]="autoFields"
+                        [allowCustom]="true"
+                        [placeholder]="'Código/Descrição (F3)'"
+                        (filtering)="onFiltering($event)"
+                        (select)="onSelect($event)"
+                        (keydown.enter)="onSearchEnter()">
+        <ng-template #itemTemplate let-data>
+          <div class="suggestion">
+            <span class="code">{{ data.codigoEstoque || '-' }}</span>
+            <span class="desc">{{ data.descricao }}</span>
+            <span class="price">{{ data.precoVenda | currency:'BRL' }}</span>
+          </div>
+        </ng-template>
+      </ejs-autocomplete>
+    </div>
+    <div class="actions">
+      <button class="btn" (click)="novaVenda()">Nova venda (F2)</button>
+      <button class="btn primary" (click)="finalizar()">Finalizar (F8)</button>
+    </div>
+  </div>
+
+  <div class="pdv-body">
+    <div class="col left">
+      <ng-container *ngIf="vm$ | async as vm">
+        <ng-container *ngIf="getSelectedItemFromVm(vm) as sel; else hint">
+          <div class="item-detail">
+            <div class="detail-header">Detalhes do item</div>
+            <div class="detail-row"><span>Código</span><strong>{{ sel.codigoEstoque || '-' }}</strong></div>
+            <div class="detail-row"><span>Descrição</span><strong>{{ sel.descricaoItem }}</strong></div>
+            <div class="detail-row"><span>Preço</span><strong>{{ sel.precoUnitario | currency:'BRL' }}</strong></div>
+            <div class="detail-row"><span>Qtd</span><strong>{{ sel.quantidade }}</strong></div>
+            <div class="detail-row"><span>Desconto</span><strong>{{ (sel.descontoValor||0) | currency:'BRL' }}</strong></div>
+            <div class="detail-row total"><span>Total</span><strong>{{ sel.total | currency:'BRL' }}</strong></div>
+            <div class="detail-actions">
+              <button ejs-button cssClass="e-small e-flat e-icon-btn" title="Editar quantidade" (click)="editarQuantidadeItem(sel)"><span class="e-icons e-circle-add"></span></button>
+              <button ejs-button cssClass="e-small e-flat e-icon-btn" title="Editar desconto" (click)="editarDescontoItem(sel)"><span class="e-icons e-strikethrough"></span></button>
+              <button ejs-button cssClass="e-small e-flat e-icon-btn" title="Remover item" (click)="removerItem(sel)"><span class="e-icons e-delete-2"></span></button>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #hint>
+          <div class="product-hint">Use o campo acima para ler/buscar produtos.</div>
+        </ng-template>
+      </ng-container>
+    </div>
+
+    <div class="col right">
+      <ng-container *ngIf="vm$ | async as vm; else empty">
+        <ejs-grid [dataSource]="vm.itens" height="320" (rowSelected)="onItemRowSelected($event)">
+          <e-columns>
+            <e-column field="codigoEstoque" headerText="Cód" [valueAccessor]="codeAccessor.bind(this)" width="120"></e-column>
+            <e-column field="descricaoItem" headerText="Descrição"></e-column>
+            <e-column field="quantidade" headerText="Qtd" textAlign="Right" width="90"></e-column>
+            <e-column field="precoUnitario" headerText="Preço" textAlign="Right" width="140" format="C2"></e-column>
+            <e-column field="descontoValor" headerText="Desc" textAlign="Right" width="140" format="C2"></e-column>
+            <e-column field="total" headerText="Total" textAlign="Right" width="160" format="C2"></e-column>
+            <e-column headerText="Ações" width="160" [template]="gridActions"></e-column>
+          </e-columns>
+          <ng-template #gridActions let-data>
+            <button ejs-button cssClass="e-flat e-icon-btn pdv-icon-btn" title="Quantidade" (click)="editarQuantidadeItem(data)"><span class="e-icons e-circle-add"></span></button>
+            <button ejs-button cssClass="e-flat e-icon-btn pdv-icon-btn" title="Desconto" (click)="editarDescontoItem(data)"><span class="e-icons e-strikethrough"></span></button>
+            <button ejs-button cssClass="e-flat e-icon-btn pdv-icon-btn" title="Remover" (click)="removerItem(data)"><span class="e-icons e-delete-2"></span></button>
+          </ng-template>
+        </ejs-grid>
+
+        <div class="totals">
+          <div><span>Itens:</span><strong>{{ vm.itens.length }}</strong></div>
+          <div><span>Subtotal:</span><strong>{{ vm.venda?.valorBruto || 0 | currency:'BRL' }}</strong></div>
+          <div><span>Descontos:</span><strong>{{ vm.venda?.desconto || 0 | currency:'BRL' }}</strong></div>
+          <div><span>Total:</span><strong>{{ vm.venda?.valorLiquido || 0 | currency:'BRL' }}</strong></div>
+        </div>
+      </ng-container>
+      <ng-template #empty>
+        <div class="cart-empty">Carrinho vazio</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="pdv-footer">
+    <span>F2 Nova</span>
+    <span>F3 Buscar</span>
+    <span>F4 Qtd</span>
+    <span>F6 Desconto</span>
+    <span>DEL Remover</span>
+    <span>F8 Finalizar</span>
+    <span>ESC Cancelar</span>
+  </div>
+</div>
+<app-payment-panel *ngIf="showPayments" (close)="showPayments=false" (finalized)="onFinalized()"></app-payment-panel>

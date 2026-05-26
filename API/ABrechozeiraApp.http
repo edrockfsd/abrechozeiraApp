@@ -1,0 +1,6 @@
+@ABrechozeiraApp_HostAddress = http://localhost:5206
+
+GET {{ABrechozeiraApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Roupas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f0f; --surface: #1a1a1a; --border: #2e2e2e;
+      --accent: #e8ff4d; --text: #f0f0f0; --muted: #666;
+      --success: #4dffb0; --error: #ff4d6d;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: .4;
+    }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.88);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: var(--surface); border: 1px solid var(--accent);
+      border-radius: 4px; padding: 40px 36px; width: 100%; max-width: 360px;
+      text-align: center; box-shadow: 0 0 60px rgba(232,255,77,.14);
+      animation: popIn .25s ease;
+    }
+    @keyframes popIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-label { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: .04em; margin-bottom: 6px; }
+    .modal p { font-size: 12px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    #modalInput {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 2px; color: var(--accent); font-family: 'DM Mono', monospace;
+      font-size: 52px; font-weight: 500; padding: 12px 16px; text-align: center;
+      outline: none; transition: border-color .15s, box-shadow .15s; margin-bottom: 16px;
+    }
+    #modalInput:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,255,77,.12); }
+    .modal-btn {
+      width: 100%; background: var(--accent); color: #0f0f0f; border: none;
+      border-radius: 2px; font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+      letter-spacing: .08em; padding: 14px; cursor: pointer; transition: opacity .15s;
+    }
+    .modal-btn:hover { opacity: .88; }
+    .card {
+      position: relative; z-index: 1; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px; width: 100%;
+      max-width: 560px; padding: 48px 40px 40px;
+      box-shadow: 0 0 60px rgba(232,255,77,.05);
+    }
+    .header { margin-bottom: 40px; }
+    .header-label { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 8vw, 56px); letter-spacing: .04em; line-height: 1; }
+    .field { margin-bottom: 28px; }
+    label { display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .auto-badge {
+      background: rgba(232,255,77,.12); color: var(--accent); font-size: 9px;
+      letter-spacing: .1em; padding: 2px 8px; border-radius: 100px;
+      border: 1px solid rgba(232,255,77,.3);
+    }
+    input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 2px; color: var(--text); font-family: 'DM Mono', monospace;
+      font-size: clamp(22px, 5vw, 32px); font-weight: 500; padding: 14px 16px;
+      outline: none; transition: border-color .15s, box-shadow .15s; letter-spacing: .02em;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,255,77,.1); }
+    input[readonly] { color: var(--accent); border-color: rgba(232,255,77,.2); cursor: default; font-size: clamp(26px, 6vw, 38px); }
+    input::placeholder { color: #333; }
+    .btn {
+      width: 100%; margin-top: 8px; background: var(--accent); color: #0f0f0f;
+      border: none; border-radius: 2px; font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: .08em; padding: 16px; cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.99); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .config-note {
+      margin-top: 24px; padding: 14px; border: 1px solid #2a2a2a;
+      border-radius: 2px; font-size: 11px; color: var(--muted); line-height: 1.6;
+    }
+    .config-url { display: flex; gap: 8px; margin-top: 10px; }
+    .config-url input { font-size: 12px; padding: 8px 10px; border-color: #2a2a2a; flex: 1; }
+    .config-url button {
+      background: #2a2a2a; color: var(--text); border: 1px solid #333;
+      border-radius: 2px; padding: 8px 14px; font-family: 'DM Mono', monospace;
+      font-size: 11px; cursor: pointer; white-space: nowrap; transition: background .15s;
+    }
+    .config-url button:hover { background: #333; }
+    .history { margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px; }
+    .history-title { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+    .history-item {
+      display: flex; justify-content: space-between; font-size: 12px; color: #555;
+      padding: 5px 0; border-bottom: 1px solid #1e1e1e; gap: 8px; animation: fadeIn .3s ease;
+    }
+    .history-item .code { color: var(--accent); min-width: 48px; }
+    .history-item .desc { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-item .val { color: var(--success); }
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 300;
+      background: var(--success); color: #0f0f0f; font-family: 'DM Mono', monospace;
+      font-size: 13px; font-weight: 500; padding: 12px 20px; border-radius: 2px;
+      transform: translateY(20px); opacity: 0; transition: all .3s; pointer-events: none;
+    }
+    .toast.error { background: var(--error); color: #fff; }
+    .toast.show  { transform: translateY(0); opacity: 1; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
+    #sender { display: none; width: 0; height: 0; border: none; }
+  </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-label">Configuração Inicial</div>
+    <h2>Número Inicial</h2>
+    <p>Digite o código a partir do qual o cadastro deve começar.</p>
+    <input type="number" id="modalInput" min="1" value="1" />
+    <button class="modal-btn" onclick="confirmarInicio()">COMEÇAR →</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="header">
+    <div class="header-label">Estoque</div>
+    <h1>Cadastro<br>de Roupas</h1>
+  </div>
+
+  <div class="field">
+    <label>Código <span class="auto-badge">AUTOMÁTICO</span></label>
+    <input id="codigo" type="text" readonly tabindex="-1" />
+  </div>
+
+  <div class="field">
+    <label for="descricao">Descrição</label>
+    <input id="descricao" type="text" placeholder="Ex: Camisa Polo Azul" autocomplete="off" />
+  </div>
+
+  <div class="field">
+    <label for="valor">Valor (R$)</label>
+    <input id="valor" type="text" placeholder="Ex: 89,90" autocomplete="off" inputmode="decimal" />
+  </div>
+
+  <button class="btn" id="btnGravar">GRAVAR</button>
+
+  <div class="config-note">
+    <strong style="color:#888">⚙ Google Sheets — URL do Web App</strong><br/>
+    Cole a URL <code style="color:var(--accent)">/exec</code> do Apps Script e salve.
+    <div class="config-url">
+      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      <button onclick="saveUrl()">Salvar URL</button>
+    </div>
+  </div>
+
+  <div class="history" id="historySection" style="display:none">
+    <div class="history-title">Últimos cadastros</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- iframe oculto para receber o redirect do Apps Script -->
+<iframe id="sender" name="sender"></iframe>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let codigoAtual = 1;
+  let historico   = [];
+
+  // ── MODAL ──
+  const modalInput = document.getElementById('modalInput');
+  window.addEventListener('load', () => setTimeout(() => modalInput.focus(), 120));
+  modalInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmarInicio(); });
+
+  function confirmarInicio() {
+    const val = parseInt(modalInput.value);
+    if (!val || val < 1) { modalInput.focus(); return; }
+    codigoAtual = val;
+    document.getElementById('codigo').value = codigoAtual;
+    document.getElementById('modalOverlay').style.display = 'none';
+    setTimeout(() => document.getElementById('descricao').focus(), 80);
+  }
+
+  // ── NAVEGAÇÃO ──
+  document.getElementById('descricao').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('valor').focus(); }
+  });
+  document.getElementById('valor').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); gravar(); }
+  });
+  document.getElementById('btnGravar').addEventListener('click', gravar);
+
+  // ── URL SHEETS ──
+  document.getElementById('scriptUrl').value = localStorage.getItem('sheets_url') || '';
+  function saveUrl() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    if (!url) { showToast('Cole a URL antes de salvar.', true); return; }
+    localStorage.setItem('sheets_url', url);
+    showToast('URL salva!');
+  }
+
+  // ── GRAVAR ──
+  // Cria um form dinamicamente com os valores no momento do clique
+  // e submete via iframe oculto — contorna CORS e redirects do Google
+  function gravar() {
+    const codigo    = document.getElementById('codigo').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const valor     = document.getElementById('valor').value.trim();
+    const url       = document.getElementById('scriptUrl').value.trim() || localStorage.getItem('sheets_url');
+
+    if (!descricao) { showToast('Preencha a Descrição.', true); document.getElementById('descricao').focus(); return; }
+    if (!valor)     { showToast('Preencha o Valor.', true);     document.getElementById('valor').focus();     return; }
+    if (!url)       { showToast('Configure a URL do Apps Script primeiro.', true); return; }
+
+    const btn = document.getElementById('btnGravar');
+    btn.disabled = true;
+    btn.textContent = 'GRAVANDO...';
+
+    // Monta a URL completa com os parâmetros e abre no iframe
+    const params = new URLSearchParams({
+      codigo:    codigo,
+      descricao: descricao,
+      valor:     valor
+    });
+    const fullUrl = url + '?' + params.toString();
+    document.getElementById('sender').src = fullUrl;
+
+    // Aguarda 2.5s para garantir que o Apps Script processou
+    setTimeout(() => {
+      addHistorico(codigo, descricao, valor);
+      showToast('✓ Código ' + codigo + ' gravado!');
+      codigoAtual++;
+      document.getElementById('codigo').value    = codigoAtual;
+      document.getElementById('descricao').value = '';
+      document.getElementById('valor').value     = '';
+      document.getElementById('descricao').focus();
+      btn.disabled = false;
+      btn.textContent = 'GRAVAR';
+    }, 2500);
+  }
+
+  // ── HISTÓRICO ──
+  function addHistorico(codigo, descricao, valor) {
+    historico.unshift({ codigo, descricao, valor });
+    if (historico.length > 5) historico.pop();
+    document.getElementById('historySection').style.display = 'block';
+    document.getElementById('historyList').innerHTML = historico.map(h => `
+      <div class="history-item">
+        <span class="code">${h.codigo}</span>
+        <span class="desc">${h.descricao}</span>
+        <span class="val">R$ ${h.valor}</span>
+      </div>
+    `).join('');
+  }
+
+  // ── TOAST ──
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '') + ' show';
+    setTimeout(() => { t.className = 'toast' + (isError ? ' error' : ''); }, 3000);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<div class="cadastro-container">
+  <ejs-toast #toast [position]="{ X: 'Right', Y: 'Top' }"></ejs-toast>
+  <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
+    <div class="form-grid">
+      <app-card title="Dados do Pedido" variant="primary">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="numeroPedido">Número do Pedido</label>
+            <ejs-textbox
+              id="numeroPedido"
+              formControlName="numeroPedido"
+              readonly="true"
+              cssClass="e-outline">
+            </ejs-textbox>
+          </div>
+
+          <div class="form-group">
+            <label for="dataLancamento">Data Lançamento</label>
+            <ejs-datepicker
+              id="dataLancamento"
+              formControlName="dataLancamento"
+              readonly="true"
+              cssClass="e-outline"
+              format="dd/MM/yyyy">
+            </ejs-datepicker>
+          </div>
+
+          <div class="form-group">
+            <label for="horaLancamento">Hora Lançamento</label>
+            <ejs-textbox
+              id="horaLancamento"
+              formControlName="horaLancamento"
+              readonly="true"
+              cssClass="e-outline">
+            </ejs-textbox>
+          </div>
+
+          <div class="form-group">
+            <label for="statusPedidoId">Status *</label>
+            <ejs-dropdownlist
+              id="statusPedidoId"
+              formControlName="statusPedidoId"
+              [dataSource]="statusPedido"
+              [fields]="{ text: 'descricao', value: 'id' }"
+              placeholder="Selecione o status"
+              [showClearButton]="true"
+              [enabled]="!carregandoStatus"
+              cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoStatus">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando status...</span>
+                </div>
+              </ng-template>
+            </ejs-dropdownlist>
+            <small class="text-danger" *ngIf="pedidoForm.get('statusPedidoId')?.touched && pedidoForm.get('statusPedidoId')?.errors?.['required']">
+              Status é obrigatório
+            </small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clienteId">Cliente *</label>
+            <ejs-dropdownlist
+              id="clienteId"
+              formControlName="clienteId"
+              [dataSource]="clientes"
+              [fields]="{ text: 'nome', value: 'id' }"
+              placeholder="Selecione o cliente"
+              [showClearButton]="true"
+              [allowFiltering]="true"
+              cssClass="e-outline">
+            </ejs-dropdownlist>
+            <small class="text-danger" *ngIf="pedidoForm.get('clienteId')?.touched && pedidoForm.get('clienteId')?.errors?.['required']">
+              Cliente é obrigatório
+            </small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="codigo-produto-container">
+              <div class="form-group">
+                <label for="codigoEstoque">Cd Estoque</label>
+                <ejs-textbox
+                  id="codigoEstoque"
+                  placeholder="Digite o código de estoque"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  [(value)]="codigoEstoque"
+                  (change)="onCodigoEstoqueChange($event)"
+                  [enabled]="!camposBloqueados">
+                </ejs-textbox>
+              </div>
+
+              <div class="form-group">
+                <label for="descricaoProduto">Descrição do Produto</label>
+                <ejs-textbox
+                  id="descricaoProduto"
+                  placeholder="Descrição do produto"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  [enabled]="!camposBloqueados"
+                  [(value)]="descricaoProduto">
+                  <ng-template #headerTemplate>
+                    <div class="loading-container" *ngIf="carregandoProduto">
+                      <span class="e-spinner-pane">
+                        <span class="e-spinner-inner"></span>
+                      </span>
+                      <span>Buscando produto...</span>
+                    </div>
+                  </ng-template>
+                </ejs-textbox>
+              </div>
+
+              <div class="form-group">
+                <label for="quantidade">Quantidade</label>
+                <ejs-numerictextbox
+                  id="quantidade"
+                  placeholder="Qtd"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  format="N0"
+                  min="1"
+                  showSpinButton="false"
+                  [(value)]="quantidade"
+                  [enabled]="!camposBloqueados">
+                </ejs-numerictextbox>
+              </div>
+
+              <div class="form-group">
+                <label for="percentualDesconto">% Desconto</label>
+                <ejs-numerictextbox
+                  id="percentualDesconto"
+                  placeholder="% Desc"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  format="P2"
+                  min="0"
+                  max="100"
+                  showSpinButton="false"
+                  [(value)]="percentualDesconto"
+                  [enabled]="!camposBloqueados">
+                </ejs-numerictextbox>
+              </div>
+
+              <div class="form-group">
+                <label for="valorDesconto">Valor Desconto</label>
+                <ejs-numerictextbox
+                  id="valorDesconto"
+                  placeholder="Vlr Desconto"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  format="C2"
+                  min="0"
+                  showSpinButton="false"
+                  [(value)]="valorDesconto"
+                  [enabled]="!camposBloqueados">
+                </ejs-numerictextbox>
+              </div>
+
+              <div class="form-group">
+                <label for="valorUnitario">Valor Unitário</label>
+                <ejs-numerictextbox
+                  id="valorUnitario"
+                  placeholder="Valor Unitário"
+                  cssClass="e-outline"
+                  floatLabelType="Never"
+                  format="C2"
+                  min="0"
+                  showSpinButton="false"
+                  [(value)]="valorUnitario"
+                  [enabled]="!camposBloqueados">
+                </ejs-numerictextbox>
+              </div>
+
+              <div class="form-group">
+                <button ejs-button cssClass="e-primary" (click)="onAdicionarProduto()" [disabled]="camposBloqueados">Adicionar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <ejs-grid
+              #gridProdutos
+              [dataSource]="produtos"
+              [allowPaging]="true"
+              [pageSettings]="{ pageSize: 10 }"
+              [allowSorting]="true"
+              [allowFiltering]="true"
+              [toolbar]="['Delete']"
+              [editSettings]="{ allowDeleting: true }"
+              (actionComplete)="actionComplete($event)">
+              
+              <e-columns>
+                <e-column field="id" headerText="ID" [visible]="false" isPrimaryKey="true"></e-column>
+                <e-column field="codigoEstoque" headerText="Código" width="120"></e-column>
+                <e-column field="descricao" headerText="Descrição" width="200"></e-column>
+                <e-column field="quantidade" headerText="Qtd" width="100" format="N0"></e-column>
+                <e-column field="preco" headerText="Preço" width="120" format="C2"></e-column>
+                <e-column field="desconto" headerText="Desconto" width="120" format="C2"></e-column>
+                <e-column field="valorFinal" headerText="Valor Final" width="120" format="C2"></e-column>
+              </e-columns>
+            </ejs-grid>
+          </div>
+        </div>
+
+        <div class="form-row totalizadores">
+          <div class="form-group">
+            <label for="descontoGeral">Desconto Geral %</label>
+            <ejs-numerictextbox
+              id="descontoGeral"
+              formControlName="descontoGeral"
+              placeholder="Desconto Geral"
+              cssClass="e-outline"
+              format="P2"
+              min="0"
+              max="100"
+              showSpinButton="false">
+            </ejs-numerictextbox>
+          </div>
+
+          <div class="form-group">
+            <label for="valorFrete">Valor Frete</label>
+            <ejs-numerictextbox
+              id="valorFrete"
+              formControlName="valorFrete"
+              placeholder="Valor Frete"
+              cssClass="e-outline"
+              format="C2"
+              min="0"
+              showSpinButton="false">
+            </ejs-numerictextbox>
+          </div>
+
+          <div class="form-group">
+            <label for="valorTotal">Valor Total</label>
+            <ejs-numerictextbox
+              id="valorTotal"
+              formControlName="valorTotal"
+              placeholder="Valor Total"
+              cssClass="e-outline"
+              format="C2"
+              min="0"
+              readonly="true"
+              showSpinButton="false">
+            </ejs-numerictextbox>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="condicaoPagamento">Condição de Pagamento *</label>
+            <ejs-dropdownlist
+              id="condicaoPagamento"
+              formControlName="condicaoPagamento"
+              [dataSource]="condicoesPagamento"
+              [fields]="{ text: 'descricao', value: 'id' }"
+              placeholder="Selecione a condição de pagamento"
+              [showClearButton]="true"
+              [enabled]="!carregandoCondicoesPagamento && !camposBloqueados"
+              cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoCondicoesPagamento">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando condições de pagamento...</span>
+                </div>
+              </ng-template>
+            </ejs-dropdownlist>
+            <small class="text-danger" *ngIf="pedidoForm.get('condicaoPagamento')?.touched && pedidoForm.get('condicaoPagamento')?.errors?.['required']">
+              Condição de pagamento é obrigatória
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="formaPagamento">Forma de Pagamento *</label>
+            <ejs-dropdownlist
+              id="formaPagamento"
+              formControlName="formaPagamento"
+              [dataSource]="formasPagamento"
+              [fields]="{ text: 'descricao', value: 'id' }"
+              placeholder="Selecione a forma de pagamento"
+              [showClearButton]="true"
+              [enabled]="!carregandoFormasPagamento && !camposBloqueados"
+              cssClass="e-outline">
+              <ng-template #headerTemplate>
+                <div class="loading-container" *ngIf="carregandoFormasPagamento">
+                  <span class="e-spinner-pane">
+                    <span class="e-spinner-inner"></span>
+                  </span>
+                  <span>Carregando formas de pagamento...</span>
+                </div>
+              </ng-template>
+            </ejs-dropdownlist>
+            <small class="text-danger" *ngIf="pedidoForm.get('formaPagamento')?.touched && pedidoForm.get('formaPagamento')?.errors?.['required']">
+              Forma de pagamento é obrigatória
+            </small>
+          </div>
+          
+        </div>
+
+        <!-- Grid de Endereços -->
+        <div class="form-row">
+          <div class="form-group full-width">
+            <h3>Endereço de Entrega</h3>
+            <ejs-grid
+              #gridEnderecos
+              [dataSource]="enderecos"
+              [allowPaging]="true"
+              [pageSettings]="{ pageSize: 5 }"
+              [allowSorting]="true">
+              <e-columns>
+                <e-column headerText='Selecionar' width='120'>
+                    <ng-template #template let-data>                        
+                         <ejs-radiobutton name="endereco-selecionado" [value]="data.id" (change)="onEnderecoSelecionado(data.id)" [checked]="data.id === pedidoForm.get('enderecoId')?.value"></ejs-radiobutton>
+                    </ng-template>
+                </e-column>
+                 <e-column field="id" headerText="ID" isPrimaryKey="true" visible="false"></e-column>
+                <e-column field="logradouro" headerText="Logradouro" width="250"></e-column>
+                <e-column field="numeroComplemento" headerText="Número/Complemento" width="150"></e-column>
+                <e-column field="bairro" headerText="Bairro" width="150"></e-column>
+                <e-column field="localidade" headerText="Cidade" width="150"></e-column>
+                <e-column field="estado" headerText="Estado" width="100"></e-column>
+              </e-columns>
+            </ejs-grid>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- PAINEL DE ENVIO / SUPERFRETE                                        -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="frete-panel" *ngIf="pedidoSalvo">
+          <div class="frete-panel-header">
+            <div class="frete-panel-title">
+              <span class="material-icons">local_shipping</span>
+              <h3>Envio — Superfrete</h3>
+            </div>
+
+            <!-- Etiqueta já gerada -->
+            <div class="etiqueta-gerada" *ngIf="etiquetaGerada">
+              <span class="material-icons check-icon">check_circle</span>
+              <div>
+                <span class="etiqueta-label">Etiqueta gerada</span>
+                <span class="etiqueta-id">{{ etiquetaGerada.id }}</span>
+              </div>
+              <span class="status-badge" [ngClass]="'badge-' + etiquetaGerada.status">
+                {{ etiquetaGerada.statusLabel || etiquetaGerada.status }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Destinatário -->
+          <div class="destinatario-info-card" *ngIf="pedidoForm.get('clienteId')?.value">
+            <span class="material-icons info-icon">person</span>
+            <div class="destinatario-details">
+              <span class="destinatario-label">Destinatário:</span>
+              <span class="destinatario-value">{{ getClienteNome() }}</span>
+              <span class="destinatario-sub" *ngIf="clienteCpf"> — CPF: {{ formatarCpf(clienteCpf) }}</span>
+            </div>
+          </div>
+
+          <!-- Formulário de Cotação -->
+          <div class="frete-form" [class.frete-form--disabled]="cotandoFrete">
+            <div class="frete-form-row">
+              <div class="frete-field">
+                <label>CEP Destino *</label>
+                <input
+                  id="cepDestino"
+                  type="text"
+                  class="frete-input"
+                  placeholder="00000-000"
+                  [(ngModel)]="freteCepDestino"
+                  [ngModelOptions]="{standalone: true}"
+                  maxlength="9"
+                  (input)="onCepInput($event)">
+              </div>
+              <div class="frete-field">
+                <label>Peso (kg) *</label>
+                <input
+                  id="fretePeso"
+                  type="number"
+                  class="frete-input"
+                  placeholder="0.5"
+                  [(ngModel)]="fretePeso"
+                  [ngModelOptions]="{standalone: true}"
+                  min="0.001" step="0.1">
+              </div>
+              <div class="frete-field">
+                <label>Altura (cm)</label>
+                <input
+                  id="fretefAltura"
+                  type="number"
+                  class="frete-input"
+                  placeholder="5"
+                  [(ngModel)]="fretefAltura"
+                  [ngModelOptions]="{standalone: true}"
+                  min="1">
+              </div>
+              <div class="frete-field">
+                <label>Largura (cm)</label>
+                <input
+                  id="freteLargura"
+                  type="number"
+                  class="frete-input"
+                  placeholder="11"
+                  [(ngModel)]="freteLargura"
+                  [ngModelOptions]="{standalone: true}"
+                  min="1">
+              </div>
+              <div class="frete-field">
+                <label>Comprimento (cm)</label>
+                <input
+                  id="freteComprimento"
+                  type="number"
+                  class="frete-input"
+                  placeholder="16"
+                  [(ngModel)]="freteComprimento"
+                  [ngModelOptions]="{standalone: true}"
+                  min="1">
+              </div>
+              <div class="frete-field frete-field--btn">
+                <label>&nbsp;</label>
+                <button
+                  class="btn-cotar"
+                  (click)="onCotarFrete()"
+                  [disabled]="cotandoFrete || !freteCepDestino || !fretePeso">
+                  <span class="material-icons" *ngIf="!cotandoFrete">search</span>
+                  <span class="material-icons spin" *ngIf="cotandoFrete">autorenew</span>
+                  {{ cotandoFrete ? 'Cotando...' : 'Cotar Frete' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultados da Cotação -->
+          <div class="cotacao-resultados" *ngIf="cotacaoResultados.length > 0">
+            <h4 class="cotacao-title">Selecione a transportadora:</h4>
+            <div class="cotacao-cards">
+              <div
+                class="cotacao-card"
+                *ngFor="let opcao of cotacaoResultados"
+                [class.cotacao-card--selected]="cotacaoSelecionada?.id === opcao.id"
+                (click)="selecionarCotacao(opcao)">
+                <div class="cotacao-card-logo">
+                  <img *ngIf="opcao.company?.picture" [src]="opcao.company?.picture" [alt]="opcao.company?.name" onerror="this.style.display='none'">
+                  <span *ngIf="!opcao.company?.picture" class="material-icons carrier-icon">local_post_office</span>
+                </div>
+                <div class="cotacao-card-info">
+                  <span class="cotacao-servico">{{ opcao.name }}</span>
+                  <span class="cotacao-empresa">{{ opcao.company?.name }}</span>
+                </div>
+                <div class="cotacao-card-values">
+                  <span class="cotacao-preco">R$ {{ opcao.price | number:'1.2-2' }}</span>
+                  <span class="cotacao-prazo">{{ opcao.delivery_time }} dia(s)</span>
+                </div>
+                <div class="cotacao-check" *ngIf="cotacaoSelecionada?.id === opcao.id">
+                  <span class="material-icons">check_circle</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botão Gerar Etiqueta -->
+            <div class="gerar-etiqueta-row" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+              <button
+                class="btn-gerar-etiqueta"
+                [disabled]="!cotacaoSelecionada || gerandoEtiqueta || !enderecoSelecionadoParaFrete || produtos.length === 0"
+                (click)="onGerarEtiqueta()">
+                <span class="material-icons" *ngIf="!gerandoEtiqueta">local_shipping</span>
+                <span class="material-icons spin" *ngIf="gerandoEtiqueta">autorenew</span>
+                {{ gerandoEtiqueta ? 'Gerando etiqueta...' : 'Gerar Etiqueta no Superfrete' }}
+              </button>
+              <span class="gerar-hint" *ngIf="!enderecoSelecionadoParaFrete">
+                <span class="material-icons warn-icon">warning</span>
+                Selecione um endereço de entrega acima
+              </span>
+              <span class="gerar-hint" *ngIf="enderecoSelecionadoParaFrete && produtos.length === 0" style="color: #ff9800; display: inline-flex; align-items: center; gap: 4px; font-size: 0.875rem; margin-top: 4px;">
+                <span class="material-icons warn-icon" style="color: #ff9800;">warning</span>
+                Adicione pelo menos um produto ao pedido antes de gerar a etiqueta
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+          <button ejs-button cssClass="e-primary" (click)="onSalvar()" [disabled]="salvando">
+            <span *ngIf="!salvando">Salvar</span>
+            <span *ngIf="salvando">
+              <span class="e-spinner-pane">
+                <span class="e-spinner-inner"></span>
+              </span>
+              Salvando...
+            </span>
+          </button>          
+          <button ejs-button cssClass="e-outline" (click)="onNovoPedido()" [disabled]="salvando">Novo</button>
+          <button ejs-button cssClass="e-outline" (click)="onGerarNFe()" [disabled]="salvando">Gerar NFe</button>
+          <button ejs-button cssClass="e-outline" (click)="onGerarNFCe()" [disabled]="salvando">Gerar NFCe</button>
+          <button ejs-button cssClass="e-outline" (click)="onImprimir()" [disabled]="salvando">Imprimir</button>
+          <button ejs-button cssClass="e-info" (click)="onVoltar()" [disabled]="salvando">Listagem</button>
+        </div>
+      </app-card>
+    </div>
+  </form>
+</div>

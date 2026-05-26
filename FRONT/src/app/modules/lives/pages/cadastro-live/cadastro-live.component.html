@@ -1,0 +1,78 @@
+<div class="cadastro-container">
+  <ejs-toast #toast
+    [position]="toastSettings.position"
+    [showCloseButton]="toastSettings.showCloseButton"
+    [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>{{ isEdicao ? 'Editar' : 'Nova' }} Live</h1>
+      <button ejs-button cssClass="e-info" (click)="onCancelar()">
+        <span class="e-btn-icon e-list e-icons e-icon-left"></span>
+        Listagem de Lives
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="liveForm" (ngSubmit)="onSubmit()" class="form-container">
+    <div class="form-section">
+      <div class="form-row">
+        <div class="form-field">
+          <label for="titulo">Título <span class="required">*</span></label>
+          <ejs-textbox 
+            id="titulo"
+            formControlName="titulo"
+            placeholder="Digite o título da live"
+            cssClass="e-outline"
+            floatLabelType="Auto">
+          </ejs-textbox>
+          <div class="error-message" *ngIf="liveForm.get('titulo')?.errors?.['required'] && liveForm.get('titulo')?.touched">
+            Título é obrigatório
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="dataLive">Data da Live <span class="required">*</span></label>
+          <ejs-datetimepicker
+            id="dataLive"
+            formControlName="dataLive"
+            placeholder="Selecione a data e hora"
+            format="dd/MM/yyyy HH:mm"
+            cssClass="e-outline"
+            [enableRtl]="false">
+          </ejs-datetimepicker>
+          <div class="error-message" *ngIf="liveForm.get('dataLive')?.errors?.['required'] && liveForm.get('dataLive')?.touched">
+            Data da live é obrigatória
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="observacoes">Observações</label>
+          <ejs-textbox
+            id="observacoes"
+            formControlName="observacoes"
+            placeholder="Digite as observações"
+            cssClass="e-outline"
+            multiline="true"
+            floatLabelType="Auto"
+            rows="3">
+          </ejs-textbox>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button ejs-button type="button" cssClass="e-secondary" (click)="onCancelar()">
+        Cancelar
+      </button>
+      <button ejs-button type="submit" cssClass="e-primary" [disabled]="!liveForm.valid">
+        {{ isEdicao ? 'Atualizar' : 'Cadastrar' }}
+      </button>
+    </div>
+  </form>
+</div> 

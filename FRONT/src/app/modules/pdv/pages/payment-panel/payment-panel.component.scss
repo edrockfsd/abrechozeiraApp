@@ -1,0 +1,261 @@
+// Payment Panel - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: $z-modal - 1;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 520px;
+  max-width: 95vw;
+  background: var(--bg-card);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: $z-modal;
+  animation: slideIn 0.3s ease;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-4 $spacing-5;
+  border-bottom: 1px solid var(--border-color);
+
+  h2 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all $transition-fast;
+
+  &:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+  }
+}
+
+.totals {
+  display: flex;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color);
+
+  >div {
+    background: var(--bg-main);
+    padding: $spacing-2 $spacing-4;
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+
+    span {
+      color: var(--text-secondary);
+    }
+
+    strong {
+      color: var(--text-primary);
+      margin-left: $spacing-2;
+    }
+  }
+
+  .warn {
+    background: $warning-light;
+
+    strong {
+      color: $warning;
+    }
+  }
+
+  .ok {
+    background: $success-light;
+
+    strong {
+      color: $success;
+    }
+  }
+
+  &.finalized {
+    justify-content: space-between;
+    font-size: $font-size-lg;
+
+    >div {
+      padding: $spacing-3 $spacing-5;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: $font-size-sm;
+  color: var(--text-secondary);
+  gap: $spacing-1;
+
+  span {
+    font-weight: $font-weight-medium;
+  }
+}
+
+input,
+select {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+}
+
+.grow {
+  flex: 1;
+  min-width: 100px;
+}
+
+.btn {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $border-radius-md;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: var(--bg-main);
+  }
+
+  &.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+
+    &:hover {
+      background: $primary-dark;
+    }
+  }
+
+  &.success {
+    background: $success;
+    color: #fff;
+    border-color: $success;
+  }
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: $font-size-sm;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.list {
+  flex: 1;
+  overflow: auto;
+  padding: $spacing-4 $spacing-5;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr 100px;
+  padding: $spacing-3 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: $font-size-sm;
+
+  &.head {
+    font-weight: $font-weight-semibold;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: $font-size-xs;
+    letter-spacing: 0.5px;
+    background: var(--bg-main);
+    padding: $spacing-2 0;
+    border-radius: $border-radius-sm;
+    margin-bottom: $spacing-2;
+  }
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-main);
+}
+
+// Syncfusion grid inside panel
+.panel ejs-grid {
+  flex: 1;
+  margin: 0 $spacing-5;
+
+  .e-grid {
+    border: 1px solid var(--border-color) !important;
+    border-radius: $border-radius-md !important;
+  }
+}

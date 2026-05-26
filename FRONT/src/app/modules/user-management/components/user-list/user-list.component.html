@@ -1,0 +1,81 @@
+<ejs-toast #toast [position]="{ X: 'Right', Y: 'Top' }" [showCloseButton]="true" [timeOut]="5000"></ejs-toast>
+<div class="user-list-container">
+  <div class="header-section">
+    <div class="header-left">
+      <h2>Gerenciamento de Usuários</h2>
+      <div class="nav-tabs">
+        <button class="nav-tab active" routerLink="/user-management">
+          <span class="material-icons" style="font-size: 18px; vertical-align: middle;">group</span> Usuários
+        </button>
+        <button class="nav-tab" routerLink="/user-management/roles">
+          <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> Funções
+        </button>
+      </div>
+    </div>
+    <button ejs-button cssClass="e-primary" (click)="createUser()">
+      <span class="material-icons" style="font-size: 18px; vertical-align: middle;">add</span> Novo Usuário
+    </button>
+  </div>
+
+  <div class="grid-section">
+    <ejs-grid 
+      *ngIf="!loading"
+      [dataSource]="users" 
+      [allowPaging]="true" 
+      [pageSettings]="pageSettings"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      [filterSettings]="filterSettings"
+      [allowGrouping]="true"
+      [toolbar]="toolbar"
+      (toolbarClick)="toolbarClickHandler($event)">
+      
+      <e-columns>
+        <e-column field="id" headerText="ID" width="80" textAlign="Right"></e-column>
+        <e-column field="username" headerText="Usuário" width="150"></e-column>
+        <e-column field="email" headerText="Email" width="200"></e-column>
+        <e-column field="firstName" headerText="Nome" width="150"></e-column>
+        <e-column field="lastName" headerText="Sobrenome" width="150"></e-column>
+        <e-column headerText="Funções" width="200">
+          <ng-template #template let-data>
+            <span>{{ getUserRoles(data) }}</span>
+          </ng-template>
+        </e-column>
+        <e-column field="isActive" headerText="Ativo" width="80">
+          <ng-template #template let-data>
+            <span [class]="data.isActive ? 'status-active' : 'status-inactive'">
+              {{ data.isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </ng-template>
+        </e-column>
+        <e-column headerText="Ações" width="120">
+          <ng-template #template let-data>
+            <div class="action-buttons" style="display: flex; gap: 8px;">
+              <button ejs-button cssClass="e-small e-flat" (click)="editUser(data)" title="Editar">
+                <span class="material-icons" style="font-size: 18px;">edit</span>
+              </button>
+              <button ejs-button cssClass="e-small e-flat e-danger" (click)="deleteUser(data)" title="Excluir">
+                <span class="material-icons" style="font-size: 18px;">delete</span>
+              </button>
+            </div>
+          </ng-template>
+        </e-column>
+      </e-columns>
+      
+
+    </ejs-grid>
+    
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+  </div>
+</div>
+
+<app-user-form
+  *ngIf="showUserForm"
+  [user]="selectedUser"
+  [isEditMode]="isEditMode"
+  (onClose)="onUserFormClose()">
+</app-user-form>
+

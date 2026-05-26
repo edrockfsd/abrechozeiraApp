@@ -1,0 +1,6 @@
+.receipt { width: 280px; margin: 0 auto; font-family: monospace; font-size: 12px; }
+.row { display:grid; grid-template-columns: 1fr 40px 60px 70px; gap:6px; padding:4px 0; }
+.row.head { font-weight:700; border-bottom:1px dashed #999; }
+.totals { margin-top:8px; }
+.totals div { display:flex; justify-content:space-between; }
+@media print { body { background: #fff !important; } }

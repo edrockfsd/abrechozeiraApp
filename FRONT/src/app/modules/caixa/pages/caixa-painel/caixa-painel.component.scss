@@ -1,0 +1,6 @@
+.caixa-container { display:flex; flex-direction:column; gap:16px; padding:16px; }
+.status-card { background:#fff; border:1px solid #eee; border-radius:8px; padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.status-card div { min-width:160px; }
+.actions { display:flex; gap:16px; flex-wrap:wrap; }
+.form-block { background:#fff; border:1px solid #eee; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px; width:280px; }
+.abrir-form { background:#fff; border:1px solid #eee; border-radius:8px; padding:20px; display:flex; flex-direction:column; gap:12px; width:320px; margin:0 auto; }

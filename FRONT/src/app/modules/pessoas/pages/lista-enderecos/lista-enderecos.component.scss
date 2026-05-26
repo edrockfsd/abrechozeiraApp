@@ -1,0 +1,40 @@
+// Lista de Endereços - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.lista-container {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    margin-bottom: $spacing-6;
+
+    h1 {
+      margin: 0;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      color: var(--text-primary);
+    }
+  }
+}
+
+::ng-deep {
+  .e-grid {
+    border: 1px solid var(--border-color) !important;
+    border-radius: $border-radius-lg !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+
+    .e-headercell {
+      background: var(--bg-main) !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-xs !important;
+      text-transform: uppercase !important;
+      color: var(--text-secondary) !important;
+    }
+
+    .e-rowcell {
+      font-size: $font-size-sm !important;
+      color: var(--text-primary) !important;
+    }
+  }
+}

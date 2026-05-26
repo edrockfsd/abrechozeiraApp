@@ -1,0 +1,52 @@
+<div class="overlay" (click)="close.emit()"></div>
+<div class="panel">
+  <div class="panel-header">
+    <h3>Pagamentos</h3>
+    <button ejs-button cssClass="e-flat e-small e-icon-btn" (click)="close.emit()"><span class="e-icons e-close"></span></button>
+  </div>
+
+  <ng-container *ngIf="!finalizedId; else finalizedTpl">
+    <div class="totals">
+      <div><span>Total:</span><strong>{{ total | currency:'BRL' }}</strong></div>
+      <div><span>Pago:</span><strong>{{ sumPagos | currency:'BRL' }}</strong></div>
+      <div [class.warn]="restante>0"><span>Restante:</span><strong>{{ restante | currency:'BRL' }}</strong></div>
+      <div [class.ok]="troco>0"><span>Troco:</span><strong>{{ troco | currency:'BRL' }}</strong></div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="addPagamento()" class="form-row">
+      <ejs-dropdownlist width="180px" [dataSource]="config?.formasPagamento" [fields]="formasFields" placeholder="Forma" formControlName="formaPagamentoId"></ejs-dropdownlist>
+      <ejs-dropdownlist width="160px" [dataSource]="config?.condicaoPagamento" [fields]="condicaoFields" placeholder="Condição" formControlName="condicaoPagamentoId"></ejs-dropdownlist>
+      <ejs-numerictextbox width="140px" formControlName="valor" [min]="0.01" [format]="'c2'" [decimals]="2" placeholder="Valor"></ejs-numerictextbox>
+      <ejs-textbox cssClass="grow" placeholder="Obs (opcional)" formControlName="observacao"></ejs-textbox>
+      <button ejs-button type="submit" cssClass="e-primary" [disabled]="form.invalid">Adicionar</button>
+    </form>
+
+    <ejs-grid [dataSource]="pagamentos" height="220">
+      <e-columns>
+        <e-column field="formaPagamentoId" headerText="Forma" [valueAccessor]="formaAccessor.bind(this)" width="160"></e-column>
+        <e-column field="valor" headerText="Valor" textAlign="Right" width="140" format="C2"></e-column>
+        <e-column field="observacao" headerText="Obs"></e-column>
+        <e-column headerText="Ações" width="120" [template]="actionTpl"></e-column>
+      </e-columns>
+      <ng-template #actionTpl let-data>
+        <button ejs-button cssClass="e-danger e-small e-icon-btn" (click)="remover(data)"><span class="e-icons e-delete"></span></button>
+      </ng-template>
+    </ejs-grid>
+
+    <div class="panel-actions">
+      <button ejs-button (click)="close.emit()">Cancelar</button>
+      <button ejs-button cssClass="e-primary" [disabled]="sumPagos < total" (click)="finalizarVenda()">Finalizar</button>
+    </div>
+  </ng-container>
+
+  <ng-template #finalizedTpl>
+    <div class="totals finalized">
+      <div><span>Venda finalizada!</span><strong>#{{ finalizedId }}</strong></div>
+      <div><span>Total:</span><strong>{{ total | currency:'BRL' }}</strong></div>
+    </div>
+    <div class="panel-actions">
+      <button ejs-button (click)="printCupom()">Imprimir cupom</button>
+      <button ejs-button cssClass="e-primary" (click)="confirmarNovaVenda()">Nova venda</button>
+    </div>
+  </ng-template>
+</div>

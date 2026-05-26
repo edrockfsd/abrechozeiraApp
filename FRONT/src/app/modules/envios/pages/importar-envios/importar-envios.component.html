@@ -1,0 +1,323 @@
+<div class="importar-container">
+  <ejs-toast #toast
+    [position]="toastSettings.position"
+    [showCloseButton]="toastSettings.showCloseButton"
+    [timeOut]="toastSettings.timeOut">
+  </ejs-toast>
+
+  <!-- ─── Header ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <span class="material-icons">upload_file</span>
+        </div>
+        <div>
+          <h1>Importar Envios — WhatsApp</h1>
+          <p class="header-subtitle">Cole o texto do WhatsApp, revise os dados, cote o frete e gere as etiquetas.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" (click)="onIrParaEnvios()">
+          <span class="material-icons">arrow_back</span>
+          <span>Voltar p/ Envios</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- ETAPA 1: INPUT                                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="card" *ngIf="etapaAtual === 'input'">
+    <div class="card-header">
+      <span class="material-icons card-icon">content_paste</span>
+      <div>
+        <h2>Cole o texto do WhatsApp</h2>
+        <p class="card-desc">Copie as mensagens encaminhadas e cole no campo abaixo</p>
+      </div>
+    </div>
+
+    <div class="example-block">
+      <strong>Formato esperado:</strong>
+      <pre>Vanessa Reinstein Alnoch
+R$ 159,00
+135g
+3x13x20</pre>
+    </div>
+
+    <textarea
+      class="texto-input"
+      [(ngModel)]="textoWhatsApp"
+      placeholder="Cole aqui o texto das mensagens do WhatsApp..."
+      rows="14"
+      [disabled]="processando"
+    ></textarea>
+
+    <div class="card-actions">
+      <button class="btn-outline" (click)="onLimparTexto()" [disabled]="!textoWhatsApp || processando">
+        <span class="material-icons">clear</span>
+        Limpar
+      </button>
+      <button class="btn-primary" (click)="onProcessarTexto()" [disabled]="!textoWhatsApp.trim() || processando">
+        <span class="material-icons">{{ processando ? 'hourglass_empty' : 'play_arrow' }}</span>
+        {{ processando ? 'Processando...' : 'Processar Texto' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- ETAPA 2: OPERAÇÃO (Revisão, Cotação e Etiquetas)                       -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="etapaAtual === 'review'">
+
+    <!-- Resumo Global -->
+    <div class="summary-bar">
+      <div class="summary-item summary-total">
+        <span class="material-icons">inventory_2</span>
+        <strong>{{ totalParseados }}</strong>
+        <span>lidos</span>
+      </div>
+      <div class="summary-item summary-ok">
+        <span class="material-icons">check_circle</span>
+        <strong>{{ enviosValidos.length }}</strong>
+        <span>válidos</span>
+      </div>
+      <div class="summary-item summary-success">
+        <span class="material-icons">local_shipping</span>
+        <strong>{{ etiquetasGeradas }}</strong>
+        <span>etiquetas</span>
+      </div>
+      <div class="summary-item summary-cost">
+        <span class="material-icons">payments</span>
+        <strong>R$ {{ custoTotalEtiquetas.toFixed(2).replace('.', ',') }}</strong>
+        <span>custo total</span>
+      </div>
+    </div>
+
+    <!-- Tabela Principal Operacional -->
+    <div class="card">
+      <div class="card-header flex-between">
+        <div class="flex-align">
+          <span class="material-icons card-icon">list_alt</span>
+          <div>
+            <h2>Envios Válidos ({{ enviosValidos.length }})</h2>
+            <p class="card-desc">Cote e gere etiquetas individualmente ou em lote</p>
+          </div>
+        </div>
+        <button class="btn-outline" (click)="onNovaImportacao()">
+          <span class="material-icons">add</span>
+          Nova Importação
+        </button>
+      </div>
+
+      <!-- Bulk Actions Toolbar -->
+      <div class="bulk-actions-toolbar" *ngIf="enviosValidos.length > 0">
+        <div class="flex-align">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="selecionarTodos" (change)="onSelecionarTodos()">
+            <span class="checkmark"></span>
+            <span class="label-text">Selecionar Todos</span>
+          </label>
+          <span class="selected-count" *ngIf="temSelecionados">
+            {{ selecionados.length }} selecionado(s)
+          </span>
+        </div>
+        
+        <div class="flex-align gap-2" *ngIf="temSelecionados">
+          <button class="btn-sm btn-danger" (click)="onExcluirSelecionados()" title="Excluir selecionados">
+            <span class="material-icons">delete</span>
+            Excluir Lote
+          </button>
+          <button class="btn-sm btn-outline-primary" (click)="onCotarSelecionados()" [disabled]="cotandoLote" title="Cotar selecionados">
+            <span class="material-icons">{{ cotandoLote ? 'hourglass_empty' : 'calculate' }}</span>
+            Cotar Lote
+          </button>
+          <button class="btn-sm btn-primary" (click)="onGerarEtiquetasSelecionados()" [disabled]="gerandoLote" title="Gerar etiquetas para cotados">
+            <span class="material-icons">{{ gerandoLote ? 'hourglass_empty' : 'rocket_launch' }}</span>
+            Gerar Etiquetas Lote
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="envios-table-wrapper" *ngIf="enviosValidos.length > 0">
+        <table class="envios-table operational-table">
+          <thead>
+            <tr>
+              <th class="col-check"></th>
+              <th class="col-cliente">Cliente / Endereço</th>
+              <th class="col-dados">Dados do Pacote</th>
+              <th class="col-cotacao">Cotação</th>
+              <th class="col-etiqueta">Etiqueta</th>
+              <th class="col-acoes"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let envio of enviosValidos" [class.row-success]="envio.etiquetaGerada" [class.row-error]="envio.cotacaoErro || envio.etiquetaErro">
+              <!-- Checkbox -->
+              <td class="col-check">
+                <label class="checkbox-container">
+                  <input type="checkbox" [(ngModel)]="envio.selecionado" (change)="onSelecaoItemChange()">
+                  <span class="checkmark"></span>
+                </label>
+              </td>
+
+              <!-- Cliente / Endereço -->
+              <td class="col-cliente">
+                <div class="info-group">
+                  <div class="nome-cliente">{{ envio.nome }}</div>
+                  <div class="status-cliente" *ngIf="envio.clienteEncontrado">
+                    <span class="badge badge-found" title="Cliente encontrado no sistema">
+                      <span class="material-icons">person</span> Encontrado
+                    </span>
+                    <span class="nome-sistema" style="display: block; font-size: 0.8rem; color: #666; margin-top: 4px;">
+                      {{ envio.clienteNomeSistema }}
+                    </span>
+                  </div>
+                  <div class="status-cliente" *ngIf="!envio.clienteEncontrado">
+                    <span class="badge badge-notfound"><span class="material-icons">person_off</span> Não Cadastrado</span>
+                  </div>
+                  
+                  <div class="cep-editor mt-1">
+                    <div class="cep-cell" *ngIf="envio.clienteEncontrado && envio.cepDestino">
+                      <span class="material-icons cep-ok">location_on</span>
+                      <span>{{ envio.cepDestino }}</span>
+                    </div>
+                    <div class="cep-input-group" *ngIf="!envio.clienteEncontrado || !envio.cepDestino">
+                      <input
+                        type="text"
+                        class="input-cep"
+                        [(ngModel)]="envio.cepDestinoEdit"
+                        placeholder="CEP (Obrigatório)"
+                        maxlength="9"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Dados do Pacote -->
+              <td class="col-dados">
+                <div class="dados-pacote">
+                  <span title="Valor Declarado"><span class="material-icons">payments</span> {{ formatarValor(envio.valor) }}</span>
+                  <span title="Peso"><span class="material-icons">scale</span> {{ formatarPeso(envio.pesoGramas) }}</span>
+                  <span title="Dimensões"><span class="material-icons">straighten</span> {{ formatarDimensoes(envio) }}</span>
+                </div>
+              </td>
+
+              <!-- Cotação -->
+              <td class="col-cotacao">
+                <div class="cotacao-cell">
+                  <!-- Botão Cotar -->
+                  <button *ngIf="!envio.cotacaoFeita && !envio.cotando" class="btn-sm btn-outline-primary" (click)="onCotarItem(envio)" [disabled]="envioSemCep(envio)">
+                    Cotar Frete
+                  </button>
+                  
+                  <!-- Loading -->
+                  <div class="loading-state" *ngIf="envio.cotando">
+                    <span class="material-icons spin">refresh</span> Cotando...
+                  </div>
+
+                  <!-- Resultado Cotação -->
+                  <div class="resultado-cotacao" *ngIf="envio.cotacaoFeita">
+                    <div class="preco-destaque">
+                      <span class="badge" [class.badge-pac]="envio.cotacaoServicoId === 1" [class.badge-sedex]="envio.cotacaoServicoId === 2">
+                        {{ envio.cotacaoServicoNome }}
+                      </span>
+                      <strong>R$ {{ envio.cotacaoPrecoEscolhido?.toFixed(2)?.replace('.', ',') }}</strong>
+                    </div>
+                    <div class="motivo-texto" [title]="envio.cotacaoMotivoEscolha">{{ envio.cotacaoMotivoEscolha }}</div>
+                    <button class="btn-text-sm" (click)="onCotarItem(envio)" *ngIf="!envio.etiquetaGerada">Recotar</button>
+                  </div>
+
+                  <!-- Erro -->
+                  <div class="erro-texto" *ngIf="envio.cotacaoErro">
+                    <span class="material-icons">error</span> {{ envio.cotacaoErro }}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Etiqueta -->
+              <td class="col-etiqueta">
+                <div class="etiqueta-cell">
+                  <!-- Botão Gerar -->
+                  <button *ngIf="envio.cotacaoFeita && !envio.etiquetaGerada && !envio.gerandoEtiqueta" class="btn-sm btn-primary" (click)="onGerarEtiquetaItem(envio)">
+                    Gerar Etiqueta
+                  </button>
+                  
+                  <span class="placeholder-text" *ngIf="!envio.cotacaoFeita && !envio.cotacaoErro && !envio.cotando">Aguardando cotação</span>
+
+                  <!-- Loading -->
+                  <div class="loading-state" *ngIf="envio.gerandoEtiqueta">
+                    <span class="material-icons spin">refresh</span> Gerando...
+                  </div>
+
+                  <!-- Resultado Etiqueta -->
+                  <div class="resultado-etiqueta" *ngIf="envio.etiquetaGerada">
+                    <span class="badge badge-success"><span class="material-icons">check</span> Gerada</span>
+                    <div class="id-etiqueta" *ngIf="envio.etiquetaId">#{{ envio.etiquetaId }}</div>
+                  </div>
+
+                  <!-- Erro -->
+                  <div class="erro-texto" *ngIf="envio.etiquetaErro">
+                    <span class="material-icons">error</span> Falha ao gerar
+                  </div>
+                </div>
+              </td>
+
+              <!-- Ações -->
+              <td class="col-acoes">
+                <button class="btn-icon-danger" (click)="onExcluirItem(envio)" title="Remover da lista">
+                  <span class="material-icons">delete_outline</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="empty-state" *ngIf="enviosValidos.length === 0">
+        <span class="material-icons empty-icon">assignment_turned_in</span>
+        <h3>Nenhum envio na lista</h3>
+        <p>Todos os envios foram processados ou removidos.</p>
+      </div>
+    </div>
+
+    <!-- Não Processados (Erros do Parser) -->
+    <div class="card card-warn mt-3" *ngIf="enviosInvalidos.length > 0">
+      <div class="card-header">
+        <span class="material-icons card-icon warn-icon">warning</span>
+        <div>
+          <h2>Não Processados pelo Parser ({{ enviosInvalidos.length }})</h2>
+          <p class="card-desc">Esses registros do texto colado foram ignorados por falta de dados.</p>
+        </div>
+      </div>
+
+      <div class="envios-table-wrapper">
+        <table class="envios-table invalid-table">
+          <thead>
+            <tr>
+              <th class="col-nome">Nome Identificado</th>
+              <th>Motivo da Recusa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let envio of enviosInvalidos">
+              <td class="col-nome">{{ envio.nome || 'Desconhecido' }}</td>
+              <td>
+                <div class="erros-list">
+                  <span class="erro-item" *ngFor="let erro of envio.erros">
+                    <span class="material-icons">error_outline</span>
+                    {{ erro }}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

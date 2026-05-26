@@ -1,0 +1,202 @@
+// Lista de Estoque - Sales Dashboard Style
+@use 'design-tokens' as *;
+
+.estoque-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+
+  .header {
+    h1 {
+      margin: 0;
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-bold;
+      color: var(--text-primary);
+    }
+  }
+
+  ::ng-deep {
+
+    // Grid styling
+    .e-grid {
+      border: 1px solid var(--border-color) !important;
+      border-radius: $border-radius-lg !important;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+
+      .e-gridheader {
+        background: var(--bg-main) !important;
+        border-radius: $border-radius-lg $border-radius-lg 0 0;
+      }
+
+      .e-gridpager {
+        border-radius: 0 0 $border-radius-lg $border-radius-lg;
+        background: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+      }
+
+      .e-headercell {
+        background: var(--bg-main) !important;
+        font-weight: $font-weight-semibold !important;
+        font-size: $font-size-xs !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: var(--text-secondary) !important;
+      }
+
+      .e-rowcell {
+        font-size: $font-size-sm !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+      }
+
+      .e-row:hover .e-rowcell {
+        background: rgba(99, 102, 241, 0.03) !important;
+      }
+
+      .e-toolbar {
+        border-radius: $border-radius-lg $border-radius-lg 0 0;
+        background: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+      }
+
+      .e-btn.e-flat {
+        min-width: 32px;
+        height: 32px;
+        padding: 0;
+        margin: 0 $spacing-1;
+        border-radius: $border-radius-md !important;
+
+        &:hover {
+          background: var(--bg-main) !important;
+        }
+      }
+
+      .e-pager {
+        .e-numericitem {
+          border-radius: $border-radius-sm !important;
+        }
+
+        .e-currentitem {
+          background: var(--primary) !important;
+          color: #fff !important;
+        }
+      }
+    }
+
+    // Dialog styling
+    .e-dialog {
+      border-radius: $border-radius-lg !important;
+      box-shadow: $shadow-lg !important;
+      overflow: hidden;
+
+      .e-dlg-header-content {
+        background: var(--bg-card) !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: $spacing-4 $spacing-5 !important;
+      }
+
+      .e-dlg-header {
+        font-size: $font-size-lg !important;
+        font-weight: $font-weight-semibold !important;
+        color: var(--text-primary) !important;
+      }
+
+      .e-dlg-content {
+        padding: $spacing-5 !important;
+        background: var(--bg-card) !important;
+
+        .dialog-form {
+          .form-row {
+            display: flex;
+            gap: $spacing-4;
+            margin-bottom: $spacing-4;
+
+            .form-group {
+              flex: 1;
+
+              label {
+                display: block;
+                margin-bottom: $spacing-2;
+                font-size: $font-size-sm;
+                font-weight: $font-weight-medium;
+                color: var(--text-primary);
+              }
+
+              .e-input {
+                width: 100%;
+                padding: $spacing-2 $spacing-3;
+                border: 1px solid var(--border-color);
+                border-radius: $border-radius-md;
+                font-size: $font-size-sm;
+                color: var(--text-primary);
+                background: var(--bg-card);
+
+                &:disabled {
+                  background: var(--bg-main);
+                  cursor: not-allowed;
+                }
+
+                &:focus {
+                  border-color: var(--primary);
+                  outline: none;
+                  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+                }
+              }
+
+              .e-numerictextbox {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+
+      .e-footer-content {
+        padding: $spacing-4 $spacing-5 !important;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-main) !important;
+        display: flex;
+        justify-content: flex-end;
+        gap: $spacing-3;
+
+        .e-btn {
+          min-width: 80px;
+          height: 36px;
+          border-radius: $border-radius-md !important;
+          font-size: $font-size-sm !important;
+          font-weight: $font-weight-medium !important;
+
+          &.e-primary {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #fff !important;
+
+            &:hover {
+              background: $primary-dark !important;
+            }
+          }
+
+          &.e-flat {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+
+            &:hover {
+              background: var(--bg-main) !important;
+            }
+          }
+        }
+      }
+    }
+
+    // Toast
+    .e-toast-container {
+      .e-toast {
+        border-radius: $border-radius-md !important;
+      }
+    }
+  }
+}

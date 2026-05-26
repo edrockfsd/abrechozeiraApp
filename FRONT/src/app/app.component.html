@@ -1,0 +1,72 @@
+<div class="app-shell" *ngIf="!isAuthRoute; else authOnly">
+  <!-- Fundo decorativo com bolhas de profundidade (Estilo Portal de Clientes) -->
+  <div class="background-decor-global">
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isCollapsed" *ngIf="isAuthenticated">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="A.Brechozeira" class="logo-full" *ngIf="!isCollapsed">
+      <span class="logo-icon" *ngIf="isCollapsed">AB</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <ng-container *ngFor="let item of menu">
+        <a *ngIf="isVisible(item)" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon material-icons">{{ item.icon }}</span>
+          <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+        </a>
+      </ng-container>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="user-info" *ngIf="!isCollapsed && userName">
+        <span class="user-avatar">{{ userName.charAt(0).toUpperCase() }}</span>
+        <span class="user-name">{{ userName }}</span>
+      </div>
+      <button class="btn-logout" (click)="onLogout()" [title]="isCollapsed ? 'Sair' : ''">
+        <span class="material-icons">logout</span>
+        <span *ngIf="!isCollapsed">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn-toggle" (click)="toggleSidebar()" aria-label="Alternar menu">
+          <span class="material-icons">{{ isCollapsed ? 'menu_open' : 'menu' }}</span>
+        </button>
+        <h1 class="page-title">{{ pageTitle }}</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-icon" title="Notificações">
+          <span class="material-icons">notifications_none</span>
+        </button>
+        <button class="btn-icon" title="Tema" (click)="toggleTheme()">
+          <span class="material-icons">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
+        <div class="user-menu">
+          <span class="user-avatar-small">{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <section class="page-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+
+<ng-template #authOnly>
+  <router-outlet></router-outlet>
+</ng-template>

@@ -1,0 +1,49 @@
+<div class="caixa-container">
+  <ng-container *ngIf="current as cx; else abrirTpl">
+    <div class="status-card">
+      <h3>Caixa aberto #{{ cx.id }}</h3>
+      <div><span>Data abertura:</span><strong>{{ cx.dataAbertura | date:'short' }}</strong></div>
+      <div><span>Saldo inicial:</span><strong>{{ cx.saldoInicial | currency:'BRL' }}</strong></div>
+      <div><span>Observação:</span><strong>{{ cx.observacao || '-' }}</strong></div>
+      <button ejs-button cssClass="e-flat" (click)="caixa.refreshAberto().subscribe()">Atualizar</button>
+    </div>
+
+    <div class="actions">
+      <form [formGroup]="suprimentoForm" (ngSubmit)="registrar('suprimento')" class="form-block">
+        <h4>Suprimento</h4>
+        <ejs-numerictextbox placeholder="Valor" formControlName="valor" [format]="'c2'" [decimals]="2"></ejs-numerictextbox>
+        <ejs-textbox placeholder="Observação" formControlName="observacao"></ejs-textbox>
+        <button ejs-button type="submit" cssClass="e-primary" [disabled]="suprimentoForm.invalid">Registrar</button>
+      </form>
+      <form [formGroup]="sangriaForm" (ngSubmit)="registrar('sangria')" class="form-block">
+        <h4>Sangria</h4>
+        <ejs-numerictextbox placeholder="Valor" formControlName="valor" [format]="'c2'" [decimals]="2"></ejs-numerictextbox>
+        <ejs-textbox placeholder="Observação" formControlName="observacao"></ejs-textbox>
+        <button ejs-button type="submit" cssClass="e-primary" [disabled]="sangriaForm.invalid">Registrar</button>
+      </form>
+      <form [formGroup]="fecharForm" (ngSubmit)="fecharCaixa()" class="form-block">
+        <h4>Fechar caixa</h4>
+        <ejs-numerictextbox placeholder="Saldo fechamento" formControlName="saldoFechamento" [format]="'c2'" [decimals]="2"></ejs-numerictextbox>
+        <button ejs-button type="submit" cssClass="e-danger" [disabled]="fecharForm.invalid">Fechar</button>
+      </form>
+    </div>
+
+    <ejs-grid [dataSource]="caixa.movimentos$ | async" height="300">
+      <e-columns>
+        <e-column field="dataRegistro" headerText="Data" width="200" format="dd/MM/y HH:mm"></e-column>
+        <e-column field="tipo" headerText="Tipo" width="140"></e-column>
+        <e-column field="valor" headerText="Valor" textAlign="Right" width="140" format="C2"></e-column>
+        <e-column field="observacao" headerText="Observação"></e-column>
+      </e-columns>
+    </ejs-grid>
+  </ng-container>
+
+  <ng-template #abrirTpl>
+    <form [formGroup]="abrirForm" (ngSubmit)="abrirCaixa()" class="abrir-form">
+      <h3>Abrir caixa</h3>
+      <ejs-numerictextbox placeholder="Saldo inicial" formControlName="saldoInicial" [format]="'c2'" [decimals]="2"></ejs-numerictextbox>
+      <ejs-textbox placeholder="Observação" formControlName="observacao"></ejs-textbox>
+      <button ejs-button type="submit" cssClass="e-primary" [disabled]="abrirForm.invalid">Abrir</button>
+    </form>
+  </ng-template>
+</div>

@@ -1,0 +1,19 @@
+<div class="receipt">
+  <h3>Comprovante de Venda</h3>
+  <div>Venda: {{ venda?.id }} | Data: {{ venda?.dataVenda | date:'short' }}</div>
+  <div>Status: {{ venda?.status }}</div>
+  <hr>
+  <div class="items">
+    <div class="row head"><div>Desc</div><div>Qtd</div><div>Vlr</div><div>Total</div></div>
+    <div class="row" *ngFor="let i of itens">
+      <div>{{ i.descricaoItem }}</div><div>{{ i.quantidade }}</div><div>{{ i.precoUnitario | currency:'BRL' }}</div><div>{{ i.total | currency:'BRL' }}</div>
+    </div>
+  </div>
+  <hr>
+  <div class="totals">
+    <div><span>Bruto:</span><strong>{{ venda?.valorBruto | currency:'BRL' }}</strong></div>
+    <div><span>Desc:</span><strong>{{ venda?.desconto | currency:'BRL' }}</strong></div>
+    <div><span>Líquido:</span><strong>{{ venda?.valorLiquido | currency:'BRL' }}</strong></div>
+  </div>
+</div>
+
