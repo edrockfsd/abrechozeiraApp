@@ -35,7 +35,7 @@ export interface EnvioParseado {
   cotando?: boolean;
   cotacaoPrecoPAC?: number;
   cotacaoPrecoSEDEX?: number | null;
-  cotacaoServicoId?: number;
+  cotacaoServicoId?: string;
   cotacaoServicoNome?: string;
   cotacaoPrecoEscolhido?: number;
   cotacaoMotivoEscolha?: string;
@@ -47,6 +47,10 @@ export interface EnvioParseado {
   etiquetaStatus?: string;
   etiquetaPreco?: number;
   etiquetaErro?: string;
+  // Novos status independentes
+  statusPagamento?: string;
+  statusSuperfrete?: string;
+  transacaoId?: string;
 }
 
 export interface ParseTextoResultado {
@@ -88,10 +92,11 @@ export interface CotacaoLoteItem {
   nome: string;
   precoPAC: number;
   precoSEDEX: number | null;
-  servicoIdRecomendado: number;
+  servicoIdRecomendado: string;
   servicoRecomendado: string;
   precoRecomendado: number;
   motivoEscolha: string;
+  transacaoId?: string;
   sucesso: boolean;
   erro: string | null;
 }
@@ -105,7 +110,8 @@ export interface CotarLoteResultado {
 // ─── Geração de Etiquetas Separada ────────────────────────────────────────────
 
 export interface EnvioParaGerarEtiqueta extends EnvioParaCotar {
-  servicoId: number;
+  servicoId: string;
+  transacaoId?: string;
 }
 
 export interface GerarEtiquetasLoteInput {
@@ -158,4 +164,27 @@ export interface CotarEGerarResultado {
   totalSucesso: number;
   totalErro: number;
   custoTotal: number;
+}
+
+// ─── Envio de Rastreio em Lote ──────────────────────────────────────────────
+
+export interface EnviarRastreioLoteItemInput {
+  etiquetaId: string;
+  email: string;
+  nome: string;
+}
+
+export interface EnviarRastreioLoteInput {
+  envios: EnviarRastreioLoteItemInput[];
+}
+
+export interface RastreioLoteItemErro {
+  nome: string;
+  erro: string;
+}
+
+export interface EnviarRastreioLoteResultado {
+  totalSucesso: number;
+  totalErro: number;
+  erros: RastreioLoteItemErro[];
 }

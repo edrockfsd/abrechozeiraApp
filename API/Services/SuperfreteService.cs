@@ -481,5 +481,21 @@ namespace ABrechozeiraApp.Services
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<EtiquetaInfo>(json);
         }
+        public async Task<bool> CheckoutAsync(string etiquetaId)
+        {
+            var client = CriarCliente();
+            var payload = new { orders = new[] { etiquetaId } };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync("/api/v0/checkout", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Falha no Checkout do Superfrete para etiqueta {Id}: {Status} - {Erro}", etiquetaId, response.StatusCode, error);
+                return false;
+            }
+
+            return true;
+        }
     }
 }

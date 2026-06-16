@@ -88,6 +88,10 @@ export interface EtiquetaInfo {
   // Campos extras que adicionamos no front para exibição
   statusLabel?: string;
   statusClass?: string;
+  statusPagamento?: string;
+  statusSuperfrete?: string;
+  email?: string;
+  transacaoId?: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────────

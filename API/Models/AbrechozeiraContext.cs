@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
@@ -58,6 +58,9 @@ public partial class AbrechozeiraContext : DbContext
     public DbSet<Nfce> Nfce { get; set; } = default!;
     public DbSet<NfceItem> NfceItem { get; set; } = default!;
     public DbSet<NfcePagamento> NfcePagamento { get; set; } = default!;
+
+    // Envio em Lote (Superfrete/InfinitePay)
+    public DbSet<EnvioLoteMap> EnvioLoteMap { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

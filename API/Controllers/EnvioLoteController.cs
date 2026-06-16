@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
 using ABrechozeiraApp.Services;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace ABrechozeiraApp.Controllers
 {
@@ -121,10 +122,11 @@ namespace ABrechozeiraApp.Controllers
         public string Nome { get; set; } = "";
         public decimal PrecoPAC { get; set; }
         public decimal? PrecoSEDEX { get; set; }
-        public int ServicoIdRecomendado { get; set; }
+        public string ServicoIdRecomendado { get; set; } = "";
         public string ServicoRecomendado { get; set; } = "";
         public decimal PrecoRecomendado { get; set; }
         public string MotivoEscolha { get; set; } = "";
+        public string TransacaoId { get; set; } = "";
         public bool Sucesso { get; set; }
         public string? Erro { get; set; }
     }
@@ -143,7 +145,8 @@ namespace ABrechozeiraApp.Controllers
 
     public class EnvioParaGerarEtiqueta : EnvioParaCotar
     {
-        public int ServicoId { get; set; }
+        public string ServicoId { get; set; } = "";
+        public string TransacaoId { get; set; } = "";
     }
 
     public class EtiquetaLoteItem
@@ -157,6 +160,15 @@ namespace ABrechozeiraApp.Controllers
         public string? Erro { get; set; }
     }
 
+    public class PaymentTagMapInfo
+    {
+        public string EtiquetaId { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Nome { get; set; } = "";
+        public string StatusPagamento { get; set; } = "Aguardando";
+        public string StatusSuperfrete { get; set; } = "Carrinho";
+    }
+
     public class GerarEtiquetasLoteResultado
     {
         public List<EtiquetaLoteItem> Resultados { get; set; } = new();
@@ -165,27 +177,57 @@ namespace ABrechozeiraApp.Controllers
         public decimal CustoTotal { get; set; }
     }
 
-    // ─── Controller ──────────────────────────────────────────────────────────────
+    public class EnviarRastreioLoteInput
+    {
+        public List<EnviarRastreioLoteItemInput>? Envios { get; set; }
+    }
 
+    public class EnviarRastreioLoteItemInput
+    {
+        public string? EtiquetaId { get; set; }
+        public string? Email { get; set; }
+        public string? Nome { get; set; }
+    }
+
+    public class EnviarRastreioLoteResultado
+    {
+        public int TotalSucesso { get; set; }
+        public int TotalErro { get; set; }
+        public List<RastreioLoteItemErro>? Erros { get; set; }
+    }
+
+    public class RastreioLoteItemErro
+    {
+        public string? Nome { get; set; }
+        public string? Erro { get; set; }
+    }
+
+    // ─── Controller ──────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/[controller]")]
     public class EnvioLoteController : ControllerBase
     {
-        private readonly AbrechozeiraContext _context;
+        private readonly EmailService _emailService;
         private readonly SuperfreteService _superfrete;
-        private readonly IConfiguration _config;
+        private readonly InfinitePayService _infinitePay;
         private readonly ILogger<EnvioLoteController> _logger;
+        private readonly AbrechozeiraContext _context;
+        private readonly IConfiguration _config;
 
         public EnvioLoteController(
-            AbrechozeiraContext context,
+            EmailService emailService,
             SuperfreteService superfrete,
-            IConfiguration config,
-            ILogger<EnvioLoteController> logger)
+            InfinitePayService infinitePay,
+            ILogger<EnvioLoteController> logger,
+            AbrechozeiraContext context,
+            IConfiguration config)
         {
-            _context = context;
+            _emailService = emailService;
             _superfrete = superfrete;
-            _config = config;
+            _infinitePay = infinitePay;
             _logger = logger;
+            _context = context;
+            _config = config;
         }
 
         /// <summary>
@@ -456,10 +498,12 @@ namespace ABrechozeiraApp.Controllers
 
             foreach (var envio in input.Envios)
             {
+                var transacaoId = Guid.NewGuid().ToString("N");
                 var resultado = new CotacaoLoteItem
                 {
                     Indice = envio.Indice,
-                    Nome = envio.Nome
+                    Nome = envio.Nome,
+                    TransacaoId = transacaoId
                 };
 
                 try
@@ -512,28 +556,28 @@ namespace ABrechozeiraApp.Controllers
                     // Aplicar regra PAC/SEDEX
                     if (pac == null && sedex != null)
                     {
-                        resultado.ServicoIdRecomendado = 2;
+                        resultado.ServicoIdRecomendado = "2";
                         resultado.ServicoRecomendado = "SEDEX";
                         resultado.PrecoRecomendado = sedex.Price;
                         resultado.MotivoEscolha = "PAC indisponível";
                     }
                     else if (sedex != null && sedex.Price <= pac!.Price)
                     {
-                        resultado.ServicoIdRecomendado = 2;
+                        resultado.ServicoIdRecomendado = "2";
                         resultado.ServicoRecomendado = "SEDEX";
                         resultado.PrecoRecomendado = sedex.Price;
                         resultado.MotivoEscolha = $"SEDEX mais barato (R${sedex.Price:F2} vs PAC R${pac.Price:F2})";
                     }
                     else if (sedex != null && (sedex.Price - pac!.Price) <= 3.0m)
                     {
-                        resultado.ServicoIdRecomendado = 2;
+                        resultado.ServicoIdRecomendado = "2";
                         resultado.ServicoRecomendado = "SEDEX";
                         resultado.PrecoRecomendado = sedex.Price;
                         resultado.MotivoEscolha = $"SEDEX +R${(sedex.Price - pac.Price):F2} do PAC";
                     }
                     else
                     {
-                        resultado.ServicoIdRecomendado = 1;
+                        resultado.ServicoIdRecomendado = "1";
                         resultado.ServicoRecomendado = "PAC";
                         resultado.PrecoRecomendado = pac!.Price;
                         resultado.MotivoEscolha = sedex != null
@@ -542,6 +586,48 @@ namespace ABrechozeiraApp.Controllers
                     }
 
                     resultado.Sucesso = true;
+
+                    // Enviar e-mail de cotação ao cliente (fire-and-forget, não bloqueia)
+                    if (!string.IsNullOrWhiteSpace(envio.DestinatarioEmail))
+                    {
+                        _logger.LogInformation("➡️ Disparando Task em segundo plano para o e-mail: {Email}", envio.DestinatarioEmail);
+                        var factory = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>();
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using var scope = factory.CreateScope();
+                                var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+                                var infinitePayService = scope.ServiceProvider.GetRequiredService<InfinitePayService>();
+                                var logger = scope.ServiceProvider.GetRequiredService<ILogger<EnvioLoteController>>();
+
+                                logger.LogInformation("✅ [Task] Escopo criado. Iniciando geração do link de checkout InfinitePay...");
+
+                                var checkoutUrl = await infinitePayService.GerarLinkCheckoutAsync(resultado.PrecoRecomendado, $"Frete {resultado.ServicoRecomendado}", transacaoId, envio.Nome, envio.DestinatarioEmail ?? "");
+                                
+                                logger.LogInformation("✅ [Task] Link gerado com sucesso: {Url}. Iniciando disparo do E-mail...", checkoutUrl);
+
+                                await emailService.EnviarCotacaoAsync(
+                                    envio.DestinatarioEmail,
+                                    envio.Nome,
+                                    resultado.ServicoRecomendado,
+                                    resultado.PrecoRecomendado,
+                                    resultado.PrecoPAC,
+                                    resultado.PrecoSEDEX ?? 0m,
+                                    checkoutUrl);
+
+                                logger.LogInformation("✅ [Task] E-mail de cotação ENVIADO com sucesso para {Email}!", envio.DestinatarioEmail);
+                            }
+                            catch (Exception emailEx)
+                            {
+                                Console.WriteLine($"❌ [Task] ERRO FATAL: {emailEx.Message} - {emailEx.StackTrace}");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ Cliente {Nome} não possui e-mail cadastrado. Pulando envio de e-mail.", envio.Nome);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -587,7 +673,7 @@ namespace ABrechozeiraApp.Controllers
 
                     var etiquetaRequest = new CriarEtiquetaRequest
                     {
-                        Service = envio.ServicoId,
+                        Service = int.Parse(envio.ServicoId),
                         Platform = "Abrechozeira",
                         From = new EtiquetaEndereco(),
                         To = new EtiquetaDestinatario
@@ -630,6 +716,12 @@ namespace ABrechozeiraApp.Controllers
                     resultado.EtiquetaId = etiqueta.Id;
                     resultado.EtiquetaStatus = etiqueta.Status;
                     resultado.EtiquetaPreco = etiqueta.Price;
+
+                    // Mapear transacaoId -> dados do envio para o Webhook
+                    if (!string.IsNullOrWhiteSpace(envio.TransacaoId))
+                    {
+                        await SalvarMapeamento(envio.TransacaoId, etiqueta.Id, envio.DestinatarioEmail ?? "", envio.Nome, "Aguardando");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -646,8 +738,248 @@ namespace ABrechozeiraApp.Controllers
                 Resultados = resultados,
                 TotalSucesso = resultados.Count(r => r.Sucesso),
                 TotalErro = resultados.Count(r => !r.Sucesso),
-                CustoTotal = resultados.Where(r => r.Sucesso && r.EtiquetaPreco.HasValue).Sum(r => r.EtiquetaPreco!.Value)
+                CustoTotal = resultados.Where(r => r.Sucesso).Sum(r => r.EtiquetaPreco ?? 0m)
             });
+        }
+
+        /// <summary>
+        /// Reenvia o e-mail de rastreio manualmente para uma etiqueta já gerada.
+        /// </summary>
+        [HttpPost("EnviarRastreio/{etiquetaId}")]
+        public async Task<IActionResult> EnviarRastreio(string etiquetaId, [FromQuery] string? email = null, [FromQuery] string? nome = null)
+        {
+            try
+            {
+                var info = await _superfrete.ObterEtiquetaAsync(etiquetaId);
+                if (info == null)
+                    return NotFound(new { message = "Etiqueta não encontrada." });
+
+                if (string.IsNullOrWhiteSpace(info.Tracking))
+                    return BadRequest(new { message = "Código de rastreio ainda não disponível para esta etiqueta." });
+
+                var destinatarioEmail = email;
+                var destinatarioNome = nome ?? info.Destinatario ?? "Cliente";
+
+                // Se não passou e-mail por query, tentar buscar do destinatário da etiqueta
+                if (string.IsNullOrWhiteSpace(destinatarioEmail))
+                    return BadRequest(new { message = "Informe o e-mail do destinatário via query parameter 'email'." });
+
+                var enviado = await _emailService.EnviarRastreioAsync(
+                    destinatarioEmail,
+                    destinatarioNome,
+                    info.Tracking,
+                    info.ServiceName);
+
+                if (enviado)
+                    return Ok(new { message = $"E-mail de rastreio enviado para {destinatarioEmail}." });
+                else
+                    return StatusCode(500, new { message = "Falha ao enviar e-mail." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao reenviar rastreio para etiqueta {Id}", etiquetaId);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        private async Task SalvarMapeamento(string transacaoId, string etiquetaId, string email, string nome, string statusPagamento)
+        {
+            try
+            {
+                var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+                if (map == null)
+                {
+                    map = new EnvioLoteMap
+                    {
+                        TransacaoId = transacaoId,
+                        EtiquetaId = etiquetaId,
+                        Email = email,
+                        Nome = nome,
+                        StatusPagamento = statusPagamento,
+                        StatusSuperfrete = "Carrinho",
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.EnvioLoteMap.Add(map);
+                }
+                else
+                {
+                    map.EtiquetaId = etiquetaId;
+                    map.Email = email;
+                    map.Nome = nome;
+                    map.StatusPagamento = statusPagamento;
+                }
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Não foi possível salvar o mapeamento TransacaoId: {TransacaoId}", transacaoId);
+            }
+        }
+
+        /// <summary>
+        /// Retorna todos os mapeamentos de pagamento salvos (para merge na listagem de envios).
+        /// </summary>
+        [HttpGet("Mapeamentos")]
+        public async Task<IActionResult> GetMapeamentos()
+        {
+            try
+            {
+                var dict = await _context.EnvioLoteMap.ToDictionaryAsync(x => x.TransacaoId, x => new PaymentTagMapInfo
+                {
+                    EtiquetaId = x.EtiquetaId,
+                    Email = x.Email,
+                    Nome = x.Nome,
+                    StatusPagamento = x.StatusPagamento,
+                    StatusSuperfrete = x.StatusSuperfrete
+                });
+                return Ok(dict);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao ler mapeamentos de pagamento");
+                return StatusCode(500, new { message = "Erro ao ler mapeamentos." });
+            }
+        }
+
+        /// <summary>
+        /// Envia e-mails de rastreio em lote.
+        /// </summary>
+        [HttpPost("EnviarRastreioLote")]
+        public async Task<IActionResult> EnviarRastreioLote([FromBody] EnviarRastreioLoteInput input)
+        {
+            if (input.Envios == null || input.Envios.Count == 0)
+                return BadRequest(new { message = "Nenhum envio recebido para rastreio." });
+
+            var resultado = new EnviarRastreioLoteResultado
+            {
+                Erros = new List<RastreioLoteItemErro>()
+            };
+
+            foreach (var envio in input.Envios)
+            {
+                if (string.IsNullOrWhiteSpace(envio.EtiquetaId) || string.IsNullOrWhiteSpace(envio.Email))
+                {
+                    resultado.TotalErro++;
+                    resultado.Erros.Add(new RastreioLoteItemErro { Nome = envio.Nome ?? "Desconhecido", Erro = "EtiquetaId ou E-mail ausentes." });
+                    continue;
+                }
+
+                try
+                {
+                    var info = await _superfrete.ObterEtiquetaAsync(envio.EtiquetaId);
+                    if (info == null)
+                    {
+                        resultado.TotalErro++;
+                        resultado.Erros.Add(new RastreioLoteItemErro { Nome = envio.Nome, Erro = "Etiqueta não encontrada." });
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(info.Tracking))
+                    {
+                        resultado.TotalErro++;
+                        resultado.Erros.Add(new RastreioLoteItemErro { Nome = envio.Nome, Erro = "Código de rastreio ainda não gerado pela Superfrete/Correios." });
+                        continue;
+                    }
+
+                    var destinatarioNome = envio.Nome ?? info.Destinatario ?? "Cliente";
+                    var enviado = await _emailService.EnviarRastreioAsync(
+                        envio.Email,
+                        destinatarioNome,
+                        info.Tracking,
+                        info.ServiceName);
+
+                    if (enviado)
+                    {
+                        resultado.TotalSucesso++;
+                    }
+                    else
+                    {
+                        resultado.TotalErro++;
+                        resultado.Erros.Add(new RastreioLoteItemErro { Nome = destinatarioNome, Erro = "Falha ao enviar e-mail." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao reenviar rastreio para etiqueta {Id}", envio.EtiquetaId);
+                    resultado.TotalErro++;
+                    resultado.Erros.Add(new RastreioLoteItemErro { Nome = envio.Nome, Erro = "Erro interno ao processar rastreio." });
+                }
+            }
+
+            return Ok(resultado);
+        }
+
+        /// <summary>
+        /// Verifica o status atualizado do pagamento e da superfrete para uma lista de transações.
+        /// </summary>
+        [HttpPost("VerificarStatus")]
+        public async Task<IActionResult> VerificarStatus([FromBody] List<string> transacaoIds)
+        {
+            var resultados = new List<object>();
+
+            try
+            {
+                var maps = await _context.EnvioLoteMap.Where(x => transacaoIds.Contains(x.TransacaoId)).ToListAsync();
+                var dict = maps.ToDictionary(x => x.TransacaoId);
+
+                foreach (var transacaoId in transacaoIds)
+                {
+                    if (dict.TryGetValue(transacaoId, out var info))
+                    {
+                        // Sincroniza em tempo real com a Superfrete (caso o rastreio ou status mudou lá)
+                        if (!string.IsNullOrEmpty(info.EtiquetaId))
+                        {
+                            try
+                            {
+                                var etiquetaInfo = await _superfrete.ObterEtiquetaAsync(info.EtiquetaId);
+                                if (etiquetaInfo != null && !string.IsNullOrEmpty(etiquetaInfo.Status))
+                                {
+                                    info.StatusSuperfrete = etiquetaInfo.Status;
+                                }
+
+                                // Se está pago na loja mas falhou/ainda está no carrinho na Superfrete, tenta o checkout de novo!
+                                if (info.StatusPagamento == "Pago" && info.StatusSuperfrete != "Liberada" && info.StatusSuperfrete != "Cancelada")
+                                {
+                                    var sucessoCheckout = await _superfrete.CheckoutAsync(info.EtiquetaId);
+                                    if (sucessoCheckout)
+                                    {
+                                        info.StatusSuperfrete = "Liberada";
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Falha ao sincronizar status da Superfrete para a etiqueta {Id}", info.EtiquetaId);
+                            }
+                        }
+
+                        resultados.Add(new
+                        {
+                            TransacaoId = transacaoId,
+                            StatusPagamento = info.StatusPagamento,
+                            StatusSuperfrete = info.StatusSuperfrete
+                        });
+                    }
+                    else
+                    {
+                        resultados.Add(new
+                        {
+                            TransacaoId = transacaoId,
+                            StatusPagamento = "Aguardando",
+                            StatusSuperfrete = "Não Criada"
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(resultados);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao verificar status em lote.");
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // ─── Parsing de texto do WhatsApp ────────────────────────────────────────

@@ -363,6 +363,45 @@ namespace ABrechozeiraApp.Migrations
                     b.ToTable("Endereco");
                 });
 
+            modelBuilder.Entity("ABrechozeiraApp.Models.EnvioLoteMap", b =>
+                {
+                    b.Property<string>("TransacaoId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("EtiquetaId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("StatusPagamento")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("StatusSuperfrete")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("TransacaoId");
+
+                    b.ToTable("tb_enviolote_map");
+                });
+
             modelBuilder.Entity("ABrechozeiraApp.Models.Estoque", b =>
                 {
                     b.Property<int>("Id")

@@ -6,6 +6,7 @@ import { GridComponent, GridModule, PageService, SortService, FilterService, Too
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { SuperfreteService } from '../../services/superfrete.service';
+import { EnvioLoteService } from '../../services/envio-lote.service';
 import { EtiquetaInfo, SUPERFRETE_SERVICOS } from '../../interfaces/superfrete.interface';
 
 @Component({
@@ -67,6 +68,7 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private superfreteService: SuperfreteService,
+    private envioLoteService: EnvioLoteService,
     private router: Router
   ) {}
 
@@ -74,44 +76,63 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.carregarEtiquetas();
+    this.carregarEtiquetasEMapeamentos();
   }
 
-  carregarEtiquetas(): void {
+  carregarEtiquetasEMapeamentos(): void {
     this.carregando = true;
-    console.log('Iniciando requisição de carregar etiquetas do Superfrete...');
-    this.superfreteService.listarEtiquetas().subscribe({
-      next: (etiquetas) => {
-        console.log('API Superfrete retornou com sucesso. Dados brutos:', etiquetas);
-        this.rawData = (etiquetas || [])
-          .filter(e => !!e)
-          .map(e => ({
-            ...e,
-            created_at_raw: e.created_at,
-            created_at: e.created_at ? this.formatarData(e.created_at) : '',
-            tracking: e.tracking || 'Aguardando postagem'
-          }));
-        console.log('Dados mapeados e armazenados em rawData:', this.rawData);
-        this.filtrarDados();
-        this.carregando = false;
-      },
-      error: (err) => {
-        console.error('Erro ao carregar etiquetas do Superfrete:', err);
-        if (this.toast) {
-          this.toast.show({
-            title: 'Erro',
-            content: 'Não foi possível carregar as etiquetas do Superfrete.',
-            cssClass: 'e-toast-danger',
-            icon: 'e-error toast-icons'
-          });
-        } else {
-          console.warn('Toast component not ready to display error block.');
+    
+    import('rxjs').then(rxjs => {
+      rxjs.forkJoin({
+        etiquetas: this.superfreteService.listarEtiquetas(),
+        mapeamentos: this.envioLoteService.getMapeamentos()
+      }).subscribe({
+        next: (result: any) => {
+          const etiquetas = result.etiquetas || [];
+          const mapeamentosDict = result.mapeamentos || {};
+          
+          this.rawData = etiquetas
+            .filter((e: any) => !!e)
+            .map((e: any) => {
+              // O C# pode serializar com PascalCase (EtiquetaId) ou camelCase (etiquetaId)
+              const transacaoId = Object.keys(mapeamentosDict).find(k => {
+                 const m = mapeamentosDict[k];
+                 return m.etiquetaId === e.id || m.EtiquetaId === e.id;
+              });
+              const mapInfo = transacaoId ? mapeamentosDict[transacaoId] : null;
+
+              return {
+                ...e,
+                created_at_raw: e.created_at,
+                created_at: e.created_at ? this.formatarData(e.created_at) : '',
+                tracking: e.tracking || 'Aguardando postagem',
+                statusPagamento: mapInfo ? (mapInfo.statusPagamento || mapInfo.StatusPagamento) : 'N/A',
+                statusSuperfrete: mapInfo ? (mapInfo.statusSuperfrete || mapInfo.StatusSuperfrete) : e.statusLabel,
+                email: mapInfo ? (mapInfo.email || mapInfo.Email) : '',
+                transacaoId: transacaoId
+              };
+            });
+
+          this.filtrarDados();
+          this.carregando = false;
+        },
+        error: (err: any) => {
+          console.error('Erro ao carregar dados:', err);
+          if (this.toast) {
+            this.toast.show({
+              title: 'Erro',
+              content: 'Não foi possível carregar as etiquetas.',
+              cssClass: 'e-toast-danger',
+              icon: 'e-error toast-icons'
+            });
+          }
+          this.carregando = false;
         }
-        this.carregando = false;
-      }
+      });
     });
   }
 
+  // --- Funções omitidas foram substituídas. Vou recolocar o filtrarDados aqui só para o diff não quebrar
   filtrarDados(): void {
     console.log('Executando filtrarDados(). Filtros ativos:', {
       status: this.filtroStatus,
@@ -155,6 +176,94 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
     this.filtroDataInicio = '';
     this.filtroDataFim = '';
     this.filtrarDados();
+  }
+
+  // ─── Ações em Lote ─────────────────────────────────────────────────────────
+
+  verificandoStatus = false;
+  enviandoRastreiosLote = false;
+
+  onVerificarStatusSelecionados(): void {
+    const selecionados = this.grid.getSelectedRecords() as any[];
+    if (selecionados.length === 0) return;
+
+    const transacaoIds = selecionados
+      .filter(e => e.transacaoId)
+      .map(e => e.transacaoId!);
+
+    if (transacaoIds.length === 0) {
+      if (this.toast) {
+        this.toast.show({ title: 'Atenção', content: 'Nenhum dos selecionados possui transação InfinitePay.', cssClass: 'e-toast-warning' });
+      }
+      return;
+    }
+
+    this.verificandoStatus = true;
+    this.envioLoteService.verificarStatus(transacaoIds).subscribe({
+      next: (resultados) => {
+        resultados.forEach(res => {
+          const envio = this.rawData.find(e => (e as any).transacaoId === res.transacaoId) as any;
+          if (envio) {
+            envio.statusPagamento = res.statusPagamento;
+            envio.statusSuperfrete = res.statusSuperfrete;
+            if (res.statusSuperfrete === 'Liberada') {
+              envio.statusLabel = 'Aguardando Postagem';
+              envio.statusClass = 'status-released';
+            }
+          }
+        });
+        this.filtrarDados(); // refresh grid
+        this.grid.refresh();
+        this.verificandoStatus = false;
+        if (this.toast) this.toast.show({ title: 'Sucesso', content: 'Status atualizados!', cssClass: 'e-toast-success' });
+      },
+      error: (err) => {
+        console.error('Erro ao verificar status:', err);
+        this.verificandoStatus = false;
+        if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao sincronizar status.', cssClass: 'e-toast-danger' });
+      }
+    });
+  }
+
+  onEnviarRastreiosSelecionados(): void {
+    const selecionados = this.grid.getSelectedRecords() as any[];
+    const enviosParaRastreio = selecionados.filter(e => e.id && e.email);
+
+    if (enviosParaRastreio.length === 0) {
+      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Nenhum selecionado possui etiqueta e e-mail.', cssClass: 'e-toast-warning' });
+      return;
+    }
+
+    this.enviandoRastreiosLote = true;
+
+    const payload = {
+      envios: enviosParaRastreio.map(e => ({
+        etiquetaId: e.id,
+        email: e.email,
+        nome: e.destinatario
+      }))
+    };
+
+    this.envioLoteService.enviarRastreioLote(payload).subscribe({
+      next: (res) => {
+        this.enviandoRastreiosLote = false;
+        if (res.totalErro > 0) {
+          const nomesErros = res.erros.map((err: any) => `${err.nome} (${err.erro})`).join(', ');
+          if (this.toast) this.toast.show({
+            title: 'Atenção',
+            content: `${res.totalSucesso} e-mail(s) enviado(s). Erro(s) em ${res.totalErro}: ${nomesErros}`,
+            cssClass: 'e-toast-warning'
+          });
+        } else {
+          if (this.toast) this.toast.show({ title: 'Sucesso', content: `${res.totalSucesso} e-mail(s) enviado(s)!`, cssClass: 'e-toast-success' });
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao enviar rastreios:', err);
+        this.enviandoRastreiosLote = false;
+        if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar rastreios.', cssClass: 'e-toast-danger' });
+      }
+    });
   }
 
   onNovoPedido(): void {

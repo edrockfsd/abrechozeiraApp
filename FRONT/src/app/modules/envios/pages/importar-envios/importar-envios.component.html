@@ -129,6 +129,14 @@ R$ 159,00
             <span class="material-icons">delete</span>
             Excluir Lote
           </button>
+          <button class="btn-sm btn-outline-primary" (click)="onVerificarStatusSelecionados()" [disabled]="verificandoStatus" title="Sincronizar status com InfinitePay e Superfrete">
+            <span class="material-icons">{{ verificandoStatus ? 'hourglass_empty' : 'sync' }}</span>
+            Atualizar Status
+          </button>
+          <button class="btn-sm btn-outline-primary" (click)="onEnviarRastreiosSelecionados()" [disabled]="enviandoRastreiosLote" title="Enviar rastreios por e-mail para os itens selecionados">
+            <span class="material-icons">{{ enviandoRastreiosLote ? 'hourglass_empty' : 'forward_to_inbox' }}</span>
+            Enviar Rastreios
+          </button>
           <button class="btn-sm btn-outline-primary" (click)="onCotarSelecionados()" [disabled]="cotandoLote" title="Cotar selecionados">
             <span class="material-icons">{{ cotandoLote ? 'hourglass_empty' : 'calculate' }}</span>
             Cotar Lote
@@ -149,7 +157,8 @@ R$ 159,00
               <th class="col-cliente">Cliente / Endereço</th>
               <th class="col-dados">Dados do Pacote</th>
               <th class="col-cotacao">Cotação</th>
-              <th class="col-etiqueta">Etiqueta</th>
+              <th class="col-pagamento">Pagamento</th>
+              <th class="col-superfrete">Superfrete</th>
               <th class="col-acoes"></th>
             </tr>
           </thead>
@@ -166,7 +175,12 @@ R$ 159,00
               <!-- Cliente / Endereço -->
               <td class="col-cliente">
                 <div class="info-group">
-                  <div class="nome-cliente">{{ envio.nome }}</div>
+                  <div class="nome-cliente">
+                    {{ envio.nome }}
+                    <span class="badge badge-email" *ngIf="envio.destinatarioEmail" title="E-mail: {{ envio.destinatarioEmail }}">
+                      <span class="material-icons" style="font-size: 14px;">email</span>
+                    </span>
+                  </div>
                   <div class="status-cliente" *ngIf="envio.clienteEncontrado">
                     <span class="badge badge-found" title="Cliente encontrado no sistema">
                       <span class="material-icons">person</span> Encontrado
@@ -222,7 +236,7 @@ R$ 159,00
                   <!-- Resultado Cotação -->
                   <div class="resultado-cotacao" *ngIf="envio.cotacaoFeita">
                     <div class="preco-destaque">
-                      <span class="badge" [class.badge-pac]="envio.cotacaoServicoId === 1" [class.badge-sedex]="envio.cotacaoServicoId === 2">
+                      <span class="badge" [class.badge-pac]="envio.cotacaoServicoId === '1'" [class.badge-sedex]="envio.cotacaoServicoId === '2'">
                         {{ envio.cotacaoServicoNome }}
                       </span>
                       <strong>R$ {{ envio.cotacaoPrecoEscolhido?.toFixed(2)?.replace('.', ',') }}</strong>
@@ -238,15 +252,27 @@ R$ 159,00
                 </div>
               </td>
 
-              <!-- Etiqueta -->
-              <td class="col-etiqueta">
+              <!-- Pagamento -->
+              <td class="col-pagamento">
+                <div class="pagamento-cell">
+                  <div *ngIf="envio.transacaoId">
+                    <span class="badge" [ngClass]="{'badge-success': envio.statusPagamento === 'Pago', 'badge-warning': envio.statusPagamento !== 'Pago'}">
+                      {{ envio.statusPagamento || 'Aguardando' }}
+                    </span>
+                  </div>
+                  <div *ngIf="!envio.transacaoId" class="placeholder-text">-</div>
+                </div>
+              </td>
+
+              <!-- Superfrete -->
+              <td class="col-superfrete">
                 <div class="etiqueta-cell">
                   <!-- Botão Gerar -->
                   <button *ngIf="envio.cotacaoFeita && !envio.etiquetaGerada && !envio.gerandoEtiqueta" class="btn-sm btn-primary" (click)="onGerarEtiquetaItem(envio)">
                     Gerar Etiqueta
                   </button>
                   
-                  <span class="placeholder-text" *ngIf="!envio.cotacaoFeita && !envio.cotacaoErro && !envio.cotando">Aguardando cotação</span>
+                  <span class="placeholder-text" *ngIf="!envio.cotacaoFeita && !envio.cotacaoErro && !envio.cotando">Aguardando</span>
 
                   <!-- Loading -->
                   <div class="loading-state" *ngIf="envio.gerandoEtiqueta">
@@ -255,8 +281,13 @@ R$ 159,00
 
                   <!-- Resultado Etiqueta -->
                   <div class="resultado-etiqueta" *ngIf="envio.etiquetaGerada">
-                    <span class="badge badge-success"><span class="material-icons">check</span> Gerada</span>
+                    <span class="badge" [ngClass]="{'badge-success': envio.statusSuperfrete === 'Liberada', 'badge-primary': envio.statusSuperfrete !== 'Liberada'}">
+                      {{ envio.statusSuperfrete || 'Carrinho' }}
+                    </span>
                     <div class="id-etiqueta" *ngIf="envio.etiquetaId">#{{ envio.etiquetaId }}</div>
+                    <button class="btn-text-sm" *ngIf="envio.etiquetaId && envio.destinatarioEmail" (click)="onReenviarRastreio(envio)" title="Reenviar e-mail de rastreio">
+                      <span class="material-icons" style="font-size: 14px; vertical-align: middle;">email</span> Rastreio
+                    </button>
                   </div>
 
                   <!-- Erro -->

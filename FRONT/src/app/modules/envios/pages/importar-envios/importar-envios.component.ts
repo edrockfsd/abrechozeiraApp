@@ -43,6 +43,7 @@ export class ImportarEnviosComponent {
   // Bulk operation loading
   cotandoLote = false;
   gerandoLote = false;
+  enviandoRastreiosLote = false;
 
   toastSettings = {
     position: { X: 'Right', Y: 'Top' },
@@ -54,6 +55,90 @@ export class ImportarEnviosComponent {
     private envioLoteService: EnvioLoteService,
     private router: Router
   ) {}
+
+  // ─── Atualização de Status em Lote ─────────────────────────────────────────
+
+  verificandoStatus = false;
+
+  onVerificarStatusSelecionados(): void {
+    if (this.selecionados.length === 0) return;
+
+    // Pega apenas os que têm transacaoId gerado (já cotados)
+    const transacaoIds = this.selecionados
+      .filter(e => (e as any).transacaoId)
+      .map(e => (e as any).transacaoId!);
+
+    if (transacaoIds.length === 0) {
+      this.showToast('Atenção', 'Nenhum dos selecionados foi cotado ainda.', 'e-toast-warning');
+      return;
+    }
+
+    this.verificandoStatus = true;
+    this.envioLoteService.verificarStatus(transacaoIds).subscribe({
+      next: (resultados) => {
+        resultados.forEach(res => {
+          const envio = this.enviosValidos.find(e => (e as any).transacaoId === res.transacaoId);
+          if (envio) {
+            (envio as any).statusPagamento = res.statusPagamento;
+            (envio as any).statusSuperfrete = res.statusSuperfrete;
+            if (res.statusSuperfrete === 'Liberada') {
+              envio.etiquetaStatus = 'Liberada';
+            }
+          }
+        });
+        this.verificandoStatus = false;
+        this.showToast('Sucesso', 'Status atualizados!', 'e-toast-success');
+      },
+      error: (err) => {
+        console.error('Erro ao verificar status:', err);
+        this.verificandoStatus = false;
+        this.showToast('Erro', 'Falha ao sincronizar status com o servidor.', 'e-toast-danger');
+      }
+    });
+  }
+
+  // ─── Envio de Rastreios em Lote ────────────────────────────────────────────
+
+  onEnviarRastreiosSelecionados(): void {
+    const enviosParaRastreio = this.selecionados.filter(e => e.etiquetaGerada && e.etiquetaId && e.destinatarioEmail);
+
+    if (enviosParaRastreio.length === 0) {
+      this.showToast('Atenção', 'Nenhum envio selecionado possui etiqueta gerada e e-mail cadastrado.', 'e-toast-warning');
+      return;
+    }
+
+    this.enviandoRastreiosLote = true;
+
+    const payload = {
+      envios: enviosParaRastreio.map(e => ({
+        etiquetaId: e.etiquetaId!,
+        email: e.destinatarioEmail!,
+        nome: e.nome
+      }))
+    };
+
+    this.envioLoteService.enviarRastreioLote(payload).subscribe({
+      next: (res) => {
+        this.enviandoRastreiosLote = false;
+        
+        if (res.totalErro > 0) {
+          const nomesErros = res.erros.map((err: any) => `${err.nome} (${err.erro})`).join(', ');
+          this.showToast(
+            'Atenção',
+            `${res.totalSucesso} e-mail(s) enviado(s). Houve erro(s) em ${res.totalErro} envio(s): ${nomesErros}`,
+            'e-toast-warning'
+          );
+        } else {
+          this.showToast('Sucesso', `${res.totalSucesso} e-mail(s) de rastreio enviado(s)!`, 'e-toast-success');
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao enviar rastreios em lote:', err);
+        this.enviandoRastreiosLote = false;
+        this.showToast('Erro', 'Falha ao processar envio de rastreios.', 'e-toast-danger');
+      }
+    });
+  }
 
   // ─── Etapa 1: Processar Texto ──────────────────────────────────────────────
 
@@ -152,7 +237,15 @@ export class ImportarEnviosComponent {
           envio.cotacaoServicoId = item.servicoIdRecomendado;
           envio.cotacaoServicoNome = item.servicoRecomendado;
           envio.cotacaoPrecoEscolhido = item.precoRecomendado;
+          envio.cotacaoServicoNome = item.servicoRecomendado;
+          envio.cotacaoPrecoEscolhido = item.precoRecomendado;
           envio.cotacaoMotivoEscolha = item.motivoEscolha;
+          (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
+
+          // Notificar que e-mail foi enviado (se cliente tem email)
+          if (envio.destinatarioEmail) {
+            this.showToast('📧 E-mail', `Cotação enviada por e-mail para ${envio.nome}`, 'e-toast-info');
+          }
         } else {
           envio.cotacaoErro = item?.erro || 'Erro desconhecido';
           this.showToast('Erro', `Cotação falhou para ${envio.nome}: ${envio.cotacaoErro}`, 'e-toast-danger');
@@ -190,8 +283,10 @@ export class ImportarEnviosComponent {
             envio.cotacaoPrecoSEDEX = item.precoSEDEX;
             envio.cotacaoServicoId = item.servicoIdRecomendado;
             envio.cotacaoServicoNome = item.servicoRecomendado;
+            envio.cotacaoServicoNome = item.servicoRecomendado;
             envio.cotacaoPrecoEscolhido = item.precoRecomendado;
             envio.cotacaoMotivoEscolha = item.motivoEscolha;
+            (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
           } else {
             envio.cotacaoErro = item.erro || 'Erro';
           }
@@ -234,6 +329,11 @@ export class ImportarEnviosComponent {
           envio.etiquetaStatus = item.etiquetaStatus || undefined;
           envio.etiquetaPreco = item.etiquetaPreco || undefined;
           this.showToast('Sucesso', `Etiqueta gerada para ${envio.nome}!`, 'e-toast-success');
+
+          // Notificar sobre e-mail de rastreio
+          if (envio.destinatarioEmail) {
+            this.showToast('📧 Rastreio', `Código de rastreio será enviado por e-mail para ${envio.nome}`, 'e-toast-info');
+          }
         } else {
           envio.etiquetaErro = item?.erro || 'Erro desconhecido';
           this.showToast('Erro', `Erro ao gerar etiqueta: ${envio.etiquetaErro}`, 'e-toast-danger');
@@ -313,8 +413,28 @@ export class ImportarEnviosComponent {
   private buildEtiquetaPayload(e: EnvioParseado): EnvioParaGerarEtiqueta {
     return {
       ...this.buildCotarPayload(e),
-      servicoId: e.cotacaoServicoId!
+      servicoId: e.cotacaoServicoId!,
+      transacaoId: (e as any).transacaoId
     };
+  }
+
+  // ─── Reenviar Rastreio por E-mail ─────────────────────────────────────────────────
+
+  onReenviarRastreio(envio: EnvioParseado): void {
+    if (!envio.etiquetaId || !envio.destinatarioEmail) {
+      this.showToast('Atenção', 'Etiqueta ou e-mail não disponíveis para reenvio.', 'e-toast-warning');
+      return;
+    }
+
+    this.envioLoteService.enviarRastreio(envio.etiquetaId, envio.destinatarioEmail, envio.nome).subscribe({
+      next: (res) => {
+        this.showToast('📧 Enviado', res.message, 'e-toast-success');
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Erro ao reenviar rastreio.';
+        this.showToast('Erro', msg, 'e-toast-danger');
+      }
+    });
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────

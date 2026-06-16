@@ -18,7 +18,16 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn-refresh" (click)="carregarEtiquetas()" title="Atualizar lista">
+        <button class="btn-refresh" style="border-color: #00b894; color: #00b894;" (click)="onVerificarStatusSelecionados()" [disabled]="verificandoStatus" title="Sincronizar status com InfinitePay e Superfrete">
+          <span class="material-icons">{{ verificandoStatus ? 'hourglass_empty' : 'sync' }}</span>
+          <span>Atualizar Status</span>
+        </button>
+        <button class="btn-refresh" style="border-color: #0984e3; color: #0984e3;" (click)="onEnviarRastreiosSelecionados()" [disabled]="enviandoRastreiosLote" title="Enviar rastreios por e-mail para os itens selecionados">
+          <span class="material-icons">{{ enviandoRastreiosLote ? 'hourglass_empty' : 'forward_to_inbox' }}</span>
+          <span>Enviar Rastreios</span>
+        </button>
+        <div class="divider" style="width: 1px; height: 32px; background-color: #e0e0e0; margin: 0 8px;"></div>
+        <button class="btn-refresh" (click)="carregarEtiquetasEMapeamentos()" title="Atualizar lista">
           <span class="material-icons">refresh</span>
           <span>Atualizar</span>
         </button>
@@ -77,28 +86,37 @@
   </div>
 
   <!-- Grid -->
-  <div class="grid-container" *ngIf="!carregando">
+  <div class="grid-card shadow-sm" *ngIf="!carregando">
     <ejs-grid
       #grid
       [dataSource]="data"
       [allowPaging]="true"
+      [allowSorting]="true"
+      [allowFiltering]="true"
       [pageSettings]="gridSettings.pageSettings"
       [toolbar]="gridSettings.toolbar"
       [searchSettings]="gridSettings.searchSettings"
-      [allowSorting]="true"
-      [allowFiltering]="true"
-      [filterSettings]="filterSettings">
+      width="100%">
       <e-columns>
-        <e-column field="id" headerText="ID Etiqueta" width="220" [filter]="{ operator: 'contains' }"></e-column>
-        <e-column field="protocol" headerText="Protocolo" width="140" [filter]="{ operator: 'contains' }"></e-column>
-        <e-column field="destinatario" headerText="Destinatário" width="200" [filter]="{ operator: 'contains' }"></e-column>
-        <e-column field="service_name" headerText="Serviço" width="140" [filter]="{ operator: 'contains' }"></e-column>
-        <e-column field="tracking" headerText="Rastreio" width="200" [filter]="{ operator: 'contains' }"></e-column>
+        <e-column type="checkbox" width="50"></e-column>
+        <e-column field="id" headerText="ID Etiqueta" width="220"></e-column>
+        <e-column field="protocol" headerText="Protocolo" width="140"></e-column>
+        <e-column field="destinatario" headerText="Destinatário" width="200"></e-column>
+        <e-column field="service_name" headerText="Serviço" width="140"></e-column>
+        <e-column field="tracking" headerText="Rastreio" width="180"></e-column>
         <e-column field="price" headerText="Valor" width="120" format="C2"></e-column>
-        <e-column headerText="Status" width="200">
+        <e-column field="statusPagamento" headerText="Pgto (Loja)" width="150">
           <ng-template #template let-data>
-            <span class="status-badge" [ngClass]="getStatusClass(data.status)">
-              {{ data.statusLabel || data.status }}
+            <span class="badge" 
+                  [ngClass]="data.statusPagamento === 'Pago' ? 'badge-delivered' : 'badge-pending'">
+              {{ data.statusPagamento }}
+            </span>
+          </ng-template>
+        </e-column>
+        <e-column field="statusLabel" headerText="Status (Superfrete)" width="180">
+          <ng-template #template let-data>
+            <span class="badge" [ngClass]="getStatusClass(data.status)">
+              {{ data.statusLabel }}
             </span>
           </ng-template>
         </e-column>
