@@ -233,3 +233,8 @@ h1 {
     }
   }
 }
+
+.btn-icon { background: transparent; border: 1px solid #ccc; border-radius: 4px; padding: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-icon:hover { background: #f0f0f0; }
+.btn-icon.sent { background: #e8f5e9; border-color: #4caf50; }
+.btn-icon.sent .material-icons { color: #4caf50; }

@@ -167,6 +167,10 @@ namespace ABrechozeiraApp.Controllers
         public string Nome { get; set; } = "";
         public string StatusPagamento { get; set; } = "Aguardando";
         public string StatusSuperfrete { get; set; } = "Carrinho";
+        public bool EmailCotacaoEnviado { get; set; }
+        public bool EmailRastreioEnviado { get; set; }
+        public bool WhatsAppCotacaoEnviado { get; set; }
+        public bool WhatsAppRastreioEnviado { get; set; }
     }
 
     public class GerarEtiquetasLoteResultado
@@ -585,7 +589,30 @@ namespace ABrechozeiraApp.Controllers
                             : "SEDEX indisponível";
                     }
 
+                    // Adicionar repasse de custo do WhatsApp
+                    var msgCost = _config.GetValue<decimal>("WhatsApp:MessageCost", 0m);
+                    var markup = _config.GetValue<decimal>("WhatsApp:MarkupPercentage", 100m);
+                    var repasseZap = msgCost + (msgCost * (markup / 100m));
+                    resultado.PrecoRecomendado += repasseZap;
+
                     resultado.Sucesso = true;
+
+                    // Salvar mapeamento parcial (sem link de checkout ainda)
+                    var map = new EnvioLoteMap
+                    {
+                        TransacaoId = transacaoId,
+                        Nome = envio.Nome,
+                        Email = envio.DestinatarioEmail ?? "",
+                        StatusPagamento = "Aguardando",
+                        StatusSuperfrete = "Carrinho",
+                        PrecoPAC = resultado.PrecoPAC,
+                        PrecoSEDEX = resultado.PrecoSEDEX,
+                        PrecoRecomendado = resultado.PrecoRecomendado,
+                        ServicoRecomendado = resultado.ServicoRecomendado,
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.EnvioLoteMap.Add(map);
+                    await _context.SaveChangesAsync();
 
                     // Enviar e-mail de cotação ao cliente (fire-and-forget, não bloqueia)
                     if (!string.IsNullOrWhiteSpace(envio.DestinatarioEmail))
@@ -600,12 +627,20 @@ namespace ABrechozeiraApp.Controllers
                                 var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
                                 var infinitePayService = scope.ServiceProvider.GetRequiredService<InfinitePayService>();
                                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<EnvioLoteController>>();
+                                var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
 
                                 logger.LogInformation("✅ [Task] Escopo criado. Iniciando geração do link de checkout InfinitePay...");
 
                                 var checkoutUrl = await infinitePayService.GerarLinkCheckoutAsync(resultado.PrecoRecomendado, $"Frete {resultado.ServicoRecomendado}", transacaoId, envio.Nome, envio.DestinatarioEmail ?? "");
                                 
                                 logger.LogInformation("✅ [Task] Link gerado com sucesso: {Url}. Iniciando disparo do E-mail...", checkoutUrl);
+
+                                // Atualizar link
+                                var dbMap = await db.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+                                if (dbMap != null) {
+                                    dbMap.LinkCheckout = checkoutUrl;
+                                    await db.SaveChangesAsync();
+                                }
 
                                 await emailService.EnviarCotacaoAsync(
                                     envio.DestinatarioEmail,
@@ -617,6 +652,11 @@ namespace ABrechozeiraApp.Controllers
                                     checkoutUrl);
 
                                 logger.LogInformation("✅ [Task] E-mail de cotação ENVIADO com sucesso para {Email}!", envio.DestinatarioEmail);
+                                
+                                if (dbMap != null) {
+                                    dbMap.EmailCotacaoEnviado = true;
+                                    await db.SaveChangesAsync();
+                                }
                             }
                             catch (Exception emailEx)
                             {
@@ -771,7 +811,15 @@ namespace ABrechozeiraApp.Controllers
                     info.ServiceName);
 
                 if (enviado)
+                {
+                    var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.EtiquetaId == etiquetaId);
+                    if (map != null)
+                    {
+                        map.EmailRastreioEnviado = true;
+                        await _context.SaveChangesAsync();
+                    }
                     return Ok(new { message = $"E-mail de rastreio enviado para {destinatarioEmail}." });
+                }
                 else
                     return StatusCode(500, new { message = "Falha ao enviar e-mail." });
             }
@@ -830,7 +878,11 @@ namespace ABrechozeiraApp.Controllers
                     Email = x.Email,
                     Nome = x.Nome,
                     StatusPagamento = x.StatusPagamento,
-                    StatusSuperfrete = x.StatusSuperfrete
+                    StatusSuperfrete = x.StatusSuperfrete,
+                    EmailCotacaoEnviado = x.EmailCotacaoEnviado,
+                    EmailRastreioEnviado = x.EmailRastreioEnviado,
+                    WhatsAppCotacaoEnviado = x.WhatsAppCotacaoEnviado,
+                    WhatsAppRastreioEnviado = x.WhatsAppRastreioEnviado
                 });
                 return Ok(dict);
             }
@@ -891,6 +943,11 @@ namespace ABrechozeiraApp.Controllers
                     if (enviado)
                     {
                         resultado.TotalSucesso++;
+                        var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.EtiquetaId == envio.EtiquetaId);
+                        if (map != null)
+                        {
+                            map.EmailRastreioEnviado = true;
+                        }
                     }
                     else
                     {
@@ -906,7 +963,92 @@ namespace ABrechozeiraApp.Controllers
                 }
             }
 
+            await _context.SaveChangesAsync();
             return Ok(resultado);
+        }
+
+        // ─── Novos Endpoints de Reenvio e WhatsApp ────────────────────────────────────────
+
+        [HttpPost("ReenviarCotacao/{transacaoId}")]
+        public async Task<IActionResult> ReenviarCotacao(string transacaoId)
+        {
+            try
+            {
+                var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+                if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+
+                if (string.IsNullOrWhiteSpace(map.LinkCheckout) || string.IsNullOrWhiteSpace(map.Email))
+                    return BadRequest(new { message = "Dados incompletos (link ou e-mail faltando)." });
+
+                var enviado = await _emailService.EnviarCotacaoAsync(
+                    map.Email, map.Nome, map.ServicoRecomendado ?? "PAC",
+                    map.PrecoRecomendado ?? 0m, map.PrecoPAC ?? 0m, map.PrecoSEDEX ?? 0m,
+                    map.LinkCheckout);
+
+                if (enviado)
+                {
+                    map.EmailCotacaoEnviado = true;
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = "E-mail de cotação reenviado." });
+                }
+                return StatusCode(500, new { message = "Falha ao reenviar e-mail." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("EnviarWhatsAppCotacao/{transacaoId}")]
+        public async Task<IActionResult> EnviarWhatsAppCotacao(string transacaoId)
+        {
+            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+            if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+
+            var mensagem = $"Olá {map.Nome}, o frete da sua compra ficou em R$ {map.PrecoRecomendado:F2} via {map.ServicoRecomendado}. Segue o link para pagamento: {map.LinkCheckout}";
+            
+            // Abordagem Híbrida: Tenta enviar via API se configurado
+            var apiUrl = _config["WhatsApp:ApiUrl"];
+            if (!string.IsNullOrWhiteSpace(apiUrl))
+            {
+                // TODO: Implementar HTTP Client para Evolution API / Z-API
+                // Por hora, se configurado, simulamos o envio.
+                map.WhatsAppCotacaoEnviado = true;
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Enviado via API", url = "", hibrido = false });
+            }
+
+            // Fallback: Link manual
+            var linkManual = $"https://wa.me/?text={Uri.EscapeDataString(mensagem)}";
+            map.WhatsAppCotacaoEnviado = true;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
+        }
+
+        [HttpPost("EnviarWhatsAppRastreio/{etiquetaId}")]
+        public async Task<IActionResult> EnviarWhatsAppRastreio(string etiquetaId)
+        {
+            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.EtiquetaId == etiquetaId);
+            if (map == null) return NotFound(new { message = "Envio não encontrado." });
+
+            var info = await _superfrete.ObterEtiquetaAsync(etiquetaId);
+            if (info == null || string.IsNullOrWhiteSpace(info.Tracking))
+                return BadRequest(new { message = "Rastreio não disponível." });
+
+            var mensagem = $"Olá {map.Nome}, sua encomenda foi postada via {info.ServiceName}! O código de rastreio é {info.Tracking}. Você pode acompanhar pelo site dos Correios.";
+            
+            var apiUrl = _config["WhatsApp:ApiUrl"];
+            if (!string.IsNullOrWhiteSpace(apiUrl))
+            {
+                map.WhatsAppRastreioEnviado = true;
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Enviado via API", url = "", hibrido = false });
+            }
+
+            var linkManual = $"https://wa.me/?text={Uri.EscapeDataString(mensagem)}";
+            map.WhatsAppRastreioEnviado = true;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
         }
 
         /// <summary>

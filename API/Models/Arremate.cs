@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -37,7 +37,8 @@ public partial class Arremate
     [StringLength(200)]
     public string? DescricaoManual { get; set; }
 
-    
+    public bool ImportadoPlanilha { get; set; } = false;
 
+    [StringLength(1000)]
+    public string? Fila { get; set; }
 }
-

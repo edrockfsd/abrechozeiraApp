@@ -57,6 +57,10 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/portal-cliente/cadastro-cliente/cadastro-cliente.component').then(m => m.CadastroClienteComponent)
   },
   {
+    path: 'meus-arremates',
+    loadComponent: () => import('./modules/public/pages/consulta-arremates/consulta-arremates.component').then(m => m.ConsultaArrematesComponent)
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
   },

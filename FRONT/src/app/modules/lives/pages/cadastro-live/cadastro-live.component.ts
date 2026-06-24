@@ -65,6 +65,7 @@ export class CadastroLiveComponent implements OnInit {
     this.liveForm = this.formBuilder.group({
       titulo: ['', [Validators.required]],
       observacoes: [''],
+      googleSheetUrl: [''],
       dataLive: ['', [Validators.required]],
       usuarioModificacaoId: [1] // Valor fixo para teste
     });
@@ -76,6 +77,7 @@ export class CadastroLiveComponent implements OnInit {
         this.liveForm.patchValue({
           titulo: live.titulo,
           observacoes: live.observacoes,
+          googleSheetUrl: live.googleSheetUrl,
           dataLive: new Date(live.dataLive),
           usuarioModificacaoId: live.usuarioModificacaoId
         });

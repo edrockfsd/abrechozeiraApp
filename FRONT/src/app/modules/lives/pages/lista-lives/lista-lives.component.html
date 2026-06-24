@@ -45,9 +45,12 @@
           </button>
         </ng-template>
       </e-column>
-      <e-column headerText="Ações" width="100" textAlign="Center">
+      <e-column headerText="Ações" width="130" textAlign="Center">
         <ng-template #template let-data>
-          <div class="action-buttons">
+          <div class="action-buttons" style="display: flex; gap: 4px; justify-content: center;">
+            <button ejs-button cssClass="e-success e-small" (click)="onSyncSheet(data)" title="Sincronizar Planilha">
+              <span class="material-icons" style="font-size: 16px;">cloud_sync</span>
+            </button>
             <button ejs-button cssClass="e-primary e-small" (click)="onEditar(data)" title="Editar">
               <span class="e-btn-icon e-edit e-icons"></span>
             </button>

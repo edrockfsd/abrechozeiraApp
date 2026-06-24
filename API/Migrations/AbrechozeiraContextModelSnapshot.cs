@@ -48,6 +48,13 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
+                    b.Property<string>("Fila")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("ImportadoPlanilha")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("LiveId")
                         .HasColumnType("int");
 
@@ -377,15 +384,37 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<bool>("EmailCotacaoEnviado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EmailRastreioEnviado")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("EtiquetaId")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<string>("LinkCheckout")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
+
+                    b.Property<decimal?>("PrecoPAC")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PrecoRecomendado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PrecoSEDEX")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ServicoRecomendado")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("StatusPagamento")
                         .IsRequired()
@@ -396,6 +425,12 @@ namespace ABrechozeiraApp.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("WhatsAppCotacaoEnviado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("WhatsAppRastreioEnviado")
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("TransacaoId");
 
@@ -496,6 +531,10 @@ namespace ABrechozeiraApp.Migrations
 
                     b.Property<DateTime>("DataLive")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("GoogleSheetUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("Observacoes")
                         .HasColumnType("longtext");

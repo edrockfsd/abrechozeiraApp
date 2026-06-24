@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -148,7 +148,8 @@ namespace ABrechozeiraApp.Controllers
                                 arr.DataArremate,
                                 arr.CodigoLive,
                                 CodigoEstoque = est != null ? est.CodigoEstoque : null,
-                                arr.ValorArremate
+                                arr.ValorArremate,
+                                arr.Fila
                             };
 
             return Ok(arremates.ToList());

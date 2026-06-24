@@ -109,7 +109,11 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
                 statusPagamento: mapInfo ? (mapInfo.statusPagamento || mapInfo.StatusPagamento) : 'N/A',
                 statusSuperfrete: mapInfo ? (mapInfo.statusSuperfrete || mapInfo.StatusSuperfrete) : e.statusLabel,
                 email: mapInfo ? (mapInfo.email || mapInfo.Email) : '',
-                transacaoId: transacaoId
+                transacaoId: transacaoId,
+                emailCotacaoEnviado: mapInfo ? (mapInfo.emailCotacaoEnviado || mapInfo.EmailCotacaoEnviado) : false,
+                emailRastreioEnviado: mapInfo ? (mapInfo.emailRastreioEnviado || mapInfo.EmailRastreioEnviado) : false,
+                whatsAppCotacaoEnviado: mapInfo ? (mapInfo.whatsAppCotacaoEnviado || mapInfo.WhatsAppCotacaoEnviado) : false,
+                whatsAppRastreioEnviado: mapInfo ? (mapInfo.whatsAppRastreioEnviado || mapInfo.WhatsAppRastreioEnviado) : false
               };
             });
 
@@ -296,5 +300,58 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
 
   nomeServico(id: number): string {
     return SUPERFRETE_SERVICOS[id] ?? `Serviço ${id}`;
+  }
+
+  onReenviarCotacao(row: any): void {
+    if (!row.transacaoId) {
+      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Transação não encontrada.', cssClass: 'e-toast-warning' });
+      return;
+    }
+    this.envioLoteService.reenviarCotacao(row.transacaoId).subscribe({
+      next: (res) => {
+        row.emailCotacaoEnviado = true;
+        if (this.toast) this.toast.show({ title: 'Sucesso', content: res.message, cssClass: 'e-toast-success' });
+        this.grid.refresh();
+      },
+      error: (err) => {
+        if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao reenviar cotação.', cssClass: 'e-toast-danger' });
+      }
+    });
+  }
+
+  onEnviarWhatsApp(row: any, tipo: 'cotacao' | 'rastreio'): void {
+    if (tipo === 'cotacao') {
+      if (!row.transacaoId) return;
+      this.envioLoteService.enviarWhatsAppCotacao(row.transacaoId).subscribe({
+        next: (res) => {
+          row.whatsAppCotacaoEnviado = true;
+          this.grid.refresh();
+          if (res.hibrido && res.url) {
+            window.open(res.url, '_blank');
+          } else {
+            if (this.toast) this.toast.show({ title: 'Sucesso', content: res.message, cssClass: 'e-toast-success' });
+          }
+        },
+        error: (err) => {
+          if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar WhatsApp.', cssClass: 'e-toast-danger' });
+        }
+      });
+    } else {
+      if (!row.id) return;
+      this.envioLoteService.enviarWhatsAppRastreio(row.id).subscribe({
+        next: (res) => {
+          row.whatsAppRastreioEnviado = true;
+          this.grid.refresh();
+          if (res.hibrido && res.url) {
+            window.open(res.url, '_blank');
+          } else {
+            if (this.toast) this.toast.show({ title: 'Sucesso', content: res.message, cssClass: 'e-toast-success' });
+          }
+        },
+        error: (err) => {
+          if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar WhatsApp.', cssClass: 'e-toast-danger' });
+        }
+      });
+    }
   }
 }

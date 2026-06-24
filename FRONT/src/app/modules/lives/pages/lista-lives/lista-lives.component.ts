@@ -85,4 +85,21 @@ export class ListaLivesComponent implements OnInit {
     const d = new Date(data);
     return d.toLocaleDateString('pt-BR');
   }
+
+  onSyncSheet(live: Live): void {
+    if (!live.googleSheetUrl) {
+      this.toastService.showError('Esta live não tem uma URL de planilha configurada. Edite a live e preencha o campo.');
+      return;
+    }
+    this.toastService.showSuccess('Sincronizando... Isso pode demorar alguns segundos.');
+    this.liveService.sincronizarPlanilha(live.id).subscribe({
+      next: (res) => {
+        this.toastService.showSuccess(res.message);
+      },
+      error: (err) => {
+        console.error('Erro na sincronização:', err);
+        this.toastService.showError('Falha ao sincronizar planilha. Verifique a URL e a estrutura.');
+      }
+    });
+  }
 } 

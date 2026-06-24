@@ -62,4 +62,19 @@ export class EnvioLoteService {
   getMapeamentos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/Mapeamentos`);
   }
+
+  /** Reenvia o e-mail de cotação. */
+  reenviarCotacao(transacaoId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/ReenviarCotacao/${transacaoId}`, null);
+  }
+
+  /** Notifica a cotação via WhatsApp. */
+  enviarWhatsAppCotacao(transacaoId: string): Observable<{ message: string, url: string, hibrido: boolean }> {
+    return this.http.post<{ message: string, url: string, hibrido: boolean }>(`${this.apiUrl}/EnviarWhatsAppCotacao/${transacaoId}`, null);
+  }
+
+  /** Notifica o rastreio via WhatsApp. */
+  enviarWhatsAppRastreio(etiquetaId: string): Observable<{ message: string, url: string, hibrido: boolean }> {
+    return this.http.post<{ message: string, url: string, hibrido: boolean }>(`${this.apiUrl}/EnviarWhatsAppRastreio/${etiquetaId}`, null);
+  }
 }

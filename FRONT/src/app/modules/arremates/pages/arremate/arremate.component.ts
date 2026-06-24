@@ -280,7 +280,8 @@ export class ArremateComponent implements OnInit {
       codigoLive: codigoLive,
       arrematante: arrematanteInput.value,
       valorArremate: valorArremate,
-      observacoes: filaInput.value,
+      fila: filaInput.value,
+      observacoes: '',
       dataArremate: new Date().toISOString(),
       dataAlteracao: new Date().toISOString(),
       usuarioModificacaoId: 1

@@ -121,6 +121,39 @@
           </ng-template>
         </e-column>
         <e-column field="created_at" headerText="Data Criação" width="160"></e-column>
+        <e-column headerText="Ações / Notificações" width="220" textAlign="Center">
+          <ng-template #template let-data>
+            <div class="actions-container" style="display: flex; gap: 8px; justify-content: center;">
+              
+              <!-- Cotação -->
+              <div class="action-group" style="display: flex; flex-direction: column; align-items: center; gap: 4px;" *ngIf="data.transacaoId && data.statusPagamento === 'Aguardando'">
+                <div style="font-size: 10px; color: #888;">Cotação</div>
+                <div style="display: flex; gap: 4px;">
+                  <!-- E-mail Cotação -->
+                  <button class="btn-icon" [ngClass]="{'sent': data.emailCotacaoEnviado}" (click)="onReenviarCotacao(data)" title="Reenviar E-mail Cotação">
+                    <span class="material-icons" style="font-size: 18px;">mail</span>
+                  </button>
+                  <!-- WhatsApp Cotação -->
+                  <button class="btn-icon" [ngClass]="{'sent': data.whatsAppCotacaoEnviado}" (click)="onEnviarWhatsApp(data, 'cotacao')" title="Enviar WhatsApp Cotação">
+                    <span class="material-icons" style="font-size: 18px; color: #25D366;">chat</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Rastreio -->
+              <div class="action-group" style="display: flex; flex-direction: column; align-items: center; gap: 4px;" *ngIf="data.statusPagamento === 'Pago' || data.statusLabel === 'Postado'">
+                <div style="font-size: 10px; color: #888;">Rastreio</div>
+                <div style="display: flex; gap: 4px;">
+                  <!-- WhatsApp Rastreio -->
+                  <button class="btn-icon" [ngClass]="{'sent': data.whatsAppRastreioEnviado}" (click)="onEnviarWhatsApp(data, 'rastreio')" title="Enviar WhatsApp Rastreio">
+                    <span class="material-icons" style="font-size: 18px; color: #25D366;">chat</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </ng-template>
+        </e-column>
       </e-columns>
     </ejs-grid>
   </div>

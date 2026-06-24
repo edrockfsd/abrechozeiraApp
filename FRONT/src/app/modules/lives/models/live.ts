@@ -6,6 +6,7 @@ export interface Live {
   dataAlteracao: string;
   usuarioModificacaoId: number;
   usuarioModificacao: string;
+  googleSheetUrl?: string;
 }
 
 export interface LiveCreate {
@@ -13,4 +14,5 @@ export interface LiveCreate {
   observacoes: string;
   dataLive: string;
   usuarioModificacaoId: number;
+  googleSheetUrl?: string;
 } 
