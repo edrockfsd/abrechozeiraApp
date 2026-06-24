@@ -1,0 +1,68 @@
+<div class="consulta-container">
+  <div class="consulta-card">
+    <div class="header">
+      <span class="material-icons logo-icon">shopping_bag</span>
+      <h1>Meus Arremates</h1>
+      <p>Consulte tudo que você arrematou nas nossas lives!</p>
+    </div>
+
+    <div class="form-group">
+      <label for="liveSelect">Selecione a Live</label>
+      <select id="liveSelect" [(ngModel)]="selectedLiveId" class="form-control">
+        <option [ngValue]="null" disabled>-- Escolha uma Live --</option>
+        <option *ngFor="let live of lives" [value]="live.id">{{ live.titulo }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="nickInput">Seu usuário do Instagram</label>
+      <div class="input-wrapper">
+        <span class="at-symbol">&#64;</span>
+        <input id="nickInput" type="text" [(ngModel)]="nickInstagram" class="form-control with-icon" placeholder="seunick">
+      </div>
+    </div>
+
+    <div *ngIf="erro" class="alert-error">
+      <span class="material-icons">error_outline</span>
+      {{ erro }}
+    </div>
+
+    <button class="btn-consultar" (click)="consultar()" [disabled]="loading">
+      <span *ngIf="!loading">Consultar</span>
+      <span *ngIf="loading" class="material-icons spin">autorenew</span>
+    </button>
+  </div>
+
+  <div class="resultados-card" *ngIf="resultados">
+    <div class="resultados-header">
+      <h2>Olá, &#64;{{ nickInstagram.replace('@', '') }}!</h2>
+      <p>Aqui estão os seus arremates encontrados nesta live:</p>
+    </div>
+
+    <div class="resumo-grid">
+      <div class="resumo-item">
+        <span class="resumo-label">Total de Peças</span>
+        <span class="resumo-value">{{ resultados.totalItens }}</span>
+      </div>
+      <div class="resumo-item highlight">
+        <span class="resumo-label">Valor Total</span>
+        <span class="resumo-value">{{ resultados.totalValor | currency:'BRL':'symbol':'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="resultados.arremates.length === 0">
+      <span class="material-icons empty-icon">sentiment_dissatisfied</span>
+      <p>Nenhum arremate encontrado para este usuário.</p>
+    </div>
+
+    <div class="items-list" *ngIf="resultados.arremates.length > 0">
+      <div class="item-card" *ngFor="let item of resultados.arremates; let i = index">
+        <div class="item-number">#{{ item.codigoLive }}</div>
+        <div class="item-details">
+          <h3>{{ item.produto || item.descricaoManual }}</h3>
+          <span class="item-price">{{ item.valorArremate | currency:'BRL':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
