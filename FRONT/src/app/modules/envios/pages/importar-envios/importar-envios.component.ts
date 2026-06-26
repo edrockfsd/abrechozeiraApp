@@ -44,6 +44,7 @@ export class ImportarEnviosComponent {
   cotandoLote = false;
   gerandoLote = false;
   enviandoRastreiosLote = false;
+  preferenciaLote: 'AUTO' | 'PAC' | 'SEDEX' | '' = '';
 
   toastSettings = {
     position: { X: 'Right', Y: 'Top' },
@@ -386,6 +387,15 @@ export class ImportarEnviosComponent {
     });
   }
 
+  onAplicarPreferenciaLote(): void {
+    if (!this.preferenciaLote) return;
+    this.selecionados.forEach(e => {
+      e.preferenciaServico = this.preferenciaLote as any;
+    });
+    this.showToast('Info', `Preferência ${this.preferenciaLote} aplicada aos itens selecionados.`, 'e-toast-info');
+    this.preferenciaLote = ''; // Reseta o select
+  }
+
   // ─── Builders de payload ───────────────────────────────────────────────────
 
   private buildCotarPayload(e: EnvioParseado): EnvioParaCotar {
@@ -406,7 +416,8 @@ export class ImportarEnviosComponent {
       destinatarioCidade: e.destinatarioCidade || '',
       destinatarioEstado: e.destinatarioEstado || '',
       destinatarioEmail: e.destinatarioEmail,
-      destinatarioCpf: e.destinatarioCpf
+      destinatarioCpf: e.destinatarioCpf,
+      preferenciaServico: e.preferenciaServico || 'AUTO'
     };
   }
 

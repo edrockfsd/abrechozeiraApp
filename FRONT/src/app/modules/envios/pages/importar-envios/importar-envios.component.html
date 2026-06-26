@@ -137,6 +137,14 @@ R$ 159,00
             <span class="material-icons">{{ enviandoRastreiosLote ? 'hourglass_empty' : 'forward_to_inbox' }}</span>
             Enviar Rastreios
           </button>
+          <div class="flex-align gap-1" title="Preferência de envio para o lote">
+            <select class="input-sm" [(ngModel)]="preferenciaLote" (change)="onAplicarPreferenciaLote()">
+              <option value="" disabled>Preferencia...</option>
+              <option value="AUTO">Automático</option>
+              <option value="PAC">Apenas PAC</option>
+              <option value="SEDEX">Apenas SEDEX</option>
+            </select>
+          </div>
           <button class="btn-sm btn-outline-primary" (click)="onCotarSelecionados()" [disabled]="cotandoLote" title="Cotar selecionados">
             <span class="material-icons">{{ cotandoLote ? 'hourglass_empty' : 'calculate' }}</span>
             Cotar Lote
@@ -223,10 +231,17 @@ R$ 159,00
               <!-- Cotação -->
               <td class="col-cotacao">
                 <div class="cotacao-cell">
-                  <!-- Botão Cotar -->
-                  <button *ngIf="!envio.cotacaoFeita && !envio.cotando" class="btn-sm btn-outline-primary" (click)="onCotarItem(envio)" [disabled]="envioSemCep(envio)">
-                    Cotar Frete
-                  </button>
+                  <!-- Botão Cotar e Preferência -->
+                  <div class="flex-column gap-1" *ngIf="!envio.cotacaoFeita && !envio.cotando">
+                    <select class="input-sm" [(ngModel)]="envio.preferenciaServico" style="width: 100%;">
+                      <option value="AUTO" selected>Automático</option>
+                      <option value="PAC">PAC</option>
+                      <option value="SEDEX">SEDEX</option>
+                    </select>
+                    <button class="btn-sm btn-outline-primary" (click)="onCotarItem(envio)" [disabled]="envioSemCep(envio)">
+                      Cotar Frete
+                    </button>
+                  </div>
                   
                   <!-- Loading -->
                   <div class="loading-state" *ngIf="envio.cotando">

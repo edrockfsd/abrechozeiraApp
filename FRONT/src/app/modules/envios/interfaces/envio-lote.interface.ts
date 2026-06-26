@@ -31,6 +31,7 @@ export interface EnvioParseado {
   destinatarioEmail?: string;
   destinatarioCpf?: string;
   // Estado de cotação
+  preferenciaServico?: 'AUTO' | 'PAC' | 'SEDEX';
   cotacaoFeita?: boolean;
   cotando?: boolean;
   cotacaoPrecoPAC?: number;
@@ -81,6 +82,7 @@ export interface EnvioParaCotar {
   destinatarioEstado: string;
   destinatarioEmail?: string;
   destinatarioCpf?: string;
+  preferenciaServico?: 'AUTO' | 'PAC' | 'SEDEX';
 }
 
 export interface CotarLoteInput {

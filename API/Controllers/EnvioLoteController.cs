@@ -77,6 +77,7 @@ namespace ABrechozeiraApp.Controllers
         public string DestinatarioEstado { get; set; } = "";
         public string? DestinatarioEmail { get; set; }
         public string? DestinatarioCpf { get; set; }
+        public string PreferenciaServico { get; set; } = "AUTO"; // AUTO, PAC, SEDEX
     }
 
     public class EnvioLoteResultado
@@ -557,13 +558,29 @@ namespace ABrechozeiraApp.Controllers
                     if (pac != null) resultado.PrecoPAC = pac.Price;
                     if (sedex != null) resultado.PrecoSEDEX = sedex.Price;
 
-                    // Aplicar regra PAC/SEDEX
-                    if (pac == null && sedex != null)
+                    // Aplicar regra PAC/SEDEX ou Preferência do Usuário
+                    var pref = envio.PreferenciaServico?.ToUpper() ?? "AUTO";
+
+                    if (pref == "PAC" && pac != null)
+                    {
+                        resultado.ServicoIdRecomendado = "1";
+                        resultado.ServicoRecomendado = "PAC";
+                        resultado.PrecoRecomendado = pac.Price;
+                        resultado.MotivoEscolha = "PAC selecionado pelo usuário";
+                    }
+                    else if (pref == "SEDEX" && sedex != null)
                     {
                         resultado.ServicoIdRecomendado = "2";
                         resultado.ServicoRecomendado = "SEDEX";
                         resultado.PrecoRecomendado = sedex.Price;
-                        resultado.MotivoEscolha = "PAC indisponível";
+                        resultado.MotivoEscolha = "SEDEX selecionado pelo usuário";
+                    }
+                    else if (pac == null && sedex != null)
+                    {
+                        resultado.ServicoIdRecomendado = "2";
+                        resultado.ServicoRecomendado = "SEDEX";
+                        resultado.PrecoRecomendado = sedex.Price;
+                        resultado.MotivoEscolha = pref != "AUTO" ? $"SEDEX (preferência {pref} indisponível)" : "PAC indisponível";
                     }
                     else if (sedex != null && sedex.Price <= pac!.Price)
                     {
@@ -585,8 +602,8 @@ namespace ABrechozeiraApp.Controllers
                         resultado.ServicoRecomendado = "PAC";
                         resultado.PrecoRecomendado = pac!.Price;
                         resultado.MotivoEscolha = sedex != null
-                            ? $"SEDEX R${(sedex.Price - pac.Price):F2} acima"
-                            : "SEDEX indisponível";
+                            ? (pref != "AUTO" ? $"PAC (preferência {pref} indisponível)" : $"SEDEX R${(sedex.Price - pac.Price):F2} acima")
+                            : (pref != "AUTO" ? $"PAC (preferência {pref} indisponível)" : "SEDEX indisponível");
                     }
 
                     // Adicionar repasse de custo do WhatsApp

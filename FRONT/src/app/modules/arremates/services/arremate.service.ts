@@ -22,6 +22,9 @@ export interface Arremate {
   valorArremate: number;
   arrematante: string;
   dataArremate: string;
+  valorPago?: number;
+  dataPagamento?: string;
+  fila?: string;
 }
 
 export interface ArremateRequest {
@@ -35,6 +38,7 @@ export interface ArremateRequest {
   dataArremate: string;
   dataAlteracao: string;
   usuarioModificacaoId: number;
+  fila?: string;
 }
 
 @Injectable({
