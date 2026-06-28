@@ -171,6 +171,7 @@ jobs:
         run: |
           dotnet ef database update \
             --connection "${{ secrets.PROD_DB_CONNECTION }}" \
+            --configuration Release \
             --no-build \
             --project API/ABrechozeiraApp.csproj \
             --verbose
