@@ -197,34 +197,29 @@ jobs:
           name: frontend-build
           path: ./publish-frontend
 
-      - name: Testar conectividade SSH
+      - name: Instalar lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy API via FTP (lftp)
         run: |
-          sudo apt-get install -y sshpass
-          sshpass -p "${{ secrets.FTP_PASSWORD }}" \
-            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p 22 \
-            "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_HOST }}" \
-            "echo '✅ SSH OK'; pwd; ls -la"
+          lftp -c "
+            set ftp:ssl-allow no;
+            set net:timeout 180;
+            set net:max-retries 10;
+            set net:reconnect-interval-base 5;
+            open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
+            mirror --reverse --delete --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            quit
+          "
 
-      - name: Deploy API via SCP/SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          source: "./publish-backend/*"
-          target: ${{ secrets.FTP_API_PATH }}
-          overwrite: true
-          rm: false
-
-      - name: Deploy Frontend via SCP/SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          source: "./publish-frontend/*"
-          target: ${{ secrets.FTP_FRONT_PATH }}
-          overwrite: true
-          rm: false
+      - name: Deploy Frontend via FTP (lftp)
+        run: |
+          lftp -c "
+            set ftp:ssl-allow no;
+            set net:timeout 180;
+            set net:max-retries 10;
+            set net:reconnect-interval-base 5;
+            open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
+            mirror --reverse --delete --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
+            quit
+          "
