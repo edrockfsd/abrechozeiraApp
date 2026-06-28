@@ -177,7 +177,7 @@ jobs:
             --verbose
         working-directory: .
 
-  # ─── Estágio 4: Deploy via SFTP na KingHost ───────────────────────────────────
+  # ─── Estágio 4: Deploy via SFTP/SCP na KingHost ───────────────────────────────
   # Roda apenas após todos os estágios anteriores e somente em push para main
   deploy:
     name: Deploy para KingHost (SFTP)
@@ -197,27 +197,34 @@ jobs:
           name: frontend-build
           path: ./publish-frontend
 
-      - name: Instalar lftp
-        run: sudo apt-get install -y lftp
-
-      - name: Deploy API via SFTP
+      - name: Testar conectividade SSH
         run: |
-          lftp -c "
-            set sftp:auto-confirm yes;
-            set net:timeout 120;
-            set net:max-retries 3;
-            open sftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:22;
-            mirror --reverse --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
-            quit
-          "
+          sudo apt-get install -y sshpass
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" \
+            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p 22 \
+            "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_HOST }}" \
+            "echo '✅ SSH OK'; pwd; ls -la"
 
-      - name: Deploy Frontend via SFTP
-        run: |
-          lftp -c "
-            set sftp:auto-confirm yes;
-            set net:timeout 120;
-            set net:max-retries 3;
-            open sftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:22;
-            mirror --reverse --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
-            quit
-          "
+      - name: Deploy API via SCP/SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 22
+          source: "./publish-backend/*"
+          target: ${{ secrets.FTP_API_PATH }}
+          overwrite: true
+          rm: false
+
+      - name: Deploy Frontend via SCP/SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 22
+          source: "./publish-frontend/*"
+          target: ${{ secrets.FTP_FRONT_PATH }}
+          overwrite: true
+          rm: false
