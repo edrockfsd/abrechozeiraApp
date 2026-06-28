@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline — Abrechozeira
 
 on:
   push:
@@ -7,45 +7,210 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # ─── Estágio 1: Build do Backend (.NET) ───────────────────────────────────────
   build-backend:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-    - name: Restore dependencies
-      run: dotnet restore
-      working-directory: ./API
-    - name: Build
-      run: dotnet build --no-restore
-      working-directory: ./API
-    - name: Publish (Artefato)
-      run: dotnet publish -c Release -o publish
-      working-directory: ./API
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-publish
-        path: ./API/publish/
-
-  build-frontend:
+    name: Build Backend (.NET)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./FRONT
-    - name: Build Angular
-      run: npm run build -- --configuration production
-      working-directory: ./FRONT
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build
-        path: ./FRONT/dist/
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Gerar appsettings.json de produção
+        # Cria o arquivo de configuração a partir dos Secrets do GitHub.
+        # O arquivo NUNCA é commitado no repositório — só existe durante a pipeline.
+        run: |
+          python3 -c "
+          import json
+          config = {
+            'ConnectionStrings': {
+              'DefaultConnection': '${{ secrets.PROD_DB_CONNECTION }}'
+            },
+            'Logging': {
+              'LogLevel': {
+                'Default': 'Warning',
+                'Microsoft.AspNetCore': 'Warning'
+              }
+            },
+            'AllowedHosts': '*',
+            'Jwt': {
+              'Key': '${{ secrets.PROD_JWT_KEY }}',
+              'Issuer': 'AbrechozeiraAPI',
+              'Audience': 'AbrechozeiraApp',
+              'ExpiryMinutes': 60
+            },
+            'Superfrete': {
+              'Token': '${{ secrets.PROD_SUPERFRETE_TOKEN }}',
+              'BaseUrl': 'https://api.superfrete.com',
+              'Remetente': {
+                'Nome': 'A Brechozeira Brechó e Outlet',
+                'Endereco': 'R. Nicola Pelanda',
+                'Numero': '1117',
+                'Complemento': 'Loja 4',
+                'Bairro': 'Pinheirinho',
+                'Cidade': 'Curitiba',
+                'Estado': 'PR',
+                'CEP': '81880000'
+              }
+            },
+            'InfinitePay': {
+              'InfiniteTag': '${{ secrets.PROD_INFINITEPAY_TAG }}',
+              'WebhookUrl': '${{ secrets.PROD_INFINITEPAY_WEBHOOK_URL }}'
+            },
+            'Email': {
+              'SmtpHost': 'smtp.kinghost.net',
+              'SmtpPort': '587',
+              'SmtpUser': '${{ secrets.PROD_EMAIL_USER }}',
+              'SmtpPassword': '${{ secrets.PROD_EMAIL_PASSWORD }}',
+              'FromEmail': '${{ secrets.PROD_EMAIL_USER }}',
+              'FromName': 'A Brechozeira',
+              'EnableSsl': 'true'
+            }
+          }
+          with open('API/appsettings.json', 'w') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+          print('appsettings.json gerado com sucesso.')
+          "
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./API
+
+      - name: Publish (Release)
+        run: dotnet publish -c Release -o ./publish --no-restore
+        working-directory: ./API
+
+      - name: Upload artefato do backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: ./API/publish/
+          retention-days: 1
+
+  # ─── Estágio 2: Build do Frontend (Angular) ───────────────────────────────────
+  build-frontend:
+    name: Build Frontend (Angular)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: FRONT/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./FRONT
+
+      - name: Build Angular (production)
+        run: npm run build -- --configuration production
+        working-directory: ./FRONT
+
+      - name: Upload artefato do frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./FRONT/dist/loja-roupas-web/browser/
+          retention-days: 1
+
+  # ─── Estágio 3: Migrations no banco PROD ──────────────────────────────────────
+  # Roda apenas em push para main (não em Pull Requests)
+  migrate-database:
+    name: Migrate Database (PROD)
+    runs-on: ubuntu-latest
+    needs: build-backend
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Instalar dotnet-ef
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Gerar appsettings.json (necessário para o build do EF)
+        run: |
+          python3 -c "
+          import json
+          config = {
+            'ConnectionStrings': {
+              'DefaultConnection': '${{ secrets.PROD_DB_CONNECTION }}'
+            },
+            'Logging': { 'LogLevel': { 'Default': 'Warning' } },
+            'AllowedHosts': '*',
+            'Jwt': {
+              'Key': '${{ secrets.PROD_JWT_KEY }}',
+              'Issuer': 'AbrechozeiraAPI',
+              'Audience': 'AbrechozeiraApp',
+              'ExpiryMinutes': 60
+            }
+          }
+          with open('API/appsettings.json', 'w') as f:
+            json.dump(config, f, indent=2)
+          "
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./API
+
+      - name: Build (necessário para o EF)
+        run: dotnet build --no-restore -c Release
+        working-directory: ./API
+
+      - name: Aplicar migrations no banco PROD
+        run: |
+          dotnet ef database update \
+            --connection "${{ secrets.PROD_DB_CONNECTION }}" \
+            --no-build \
+            --project API/ABrechozeiraApp.csproj \
+            --verbose
+        working-directory: .
+
+  # ─── Estágio 4: Deploy via FTP na KingHost ────────────────────────────────────
+  # Roda apenas após todos os estágios anteriores e somente em push para main
+  deploy:
+    name: Deploy para KingHost (FTP)
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, migrate-database]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Download artefato do backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-publish
+          path: ./publish-backend
+
+      - name: Download artefato do frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./publish-frontend
+
+      - name: Deploy API via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish-backend/
+          server-dir: ${{ secrets.FTP_API_PATH }}
+          dangerous-clean-slate: false
+
+      - name: Deploy Frontend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish-frontend/
+          server-dir: ${{ secrets.FTP_FRONT_PATH }}
+          dangerous-clean-slate: false
