@@ -212,8 +212,8 @@ jobs:
             quit
           "
 
-      - name: Aguardar encerramento do AppPool (15s)
-        run: sleep 15
+      - name: Aguardar encerramento do AppPool (60s)
+        run: sleep 60
 
       - name: Deploy API via FTP (lftp)
         run: |
