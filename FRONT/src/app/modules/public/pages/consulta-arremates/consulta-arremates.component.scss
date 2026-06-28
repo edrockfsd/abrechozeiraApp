@@ -144,6 +144,30 @@
 }
 
 /* Resultados */
+.previa-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fff9db;
+  border: 1px solid #ffe066;
+  color: #f08c00;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.4;
+
+  .material-icons {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
 .resultados-header {
   text-align: center;
   margin-bottom: 24px;
