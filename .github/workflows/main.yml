@@ -203,9 +203,12 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
           local-dir: ./publish-backend/
           server-dir: ${{ secrets.FTP_API_PATH }}
           dangerous-clean-slate: false
+          timeout: 60000
 
       - name: Deploy Frontend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -213,6 +216,9 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
           local-dir: ./publish-frontend/
           server-dir: ${{ secrets.FTP_FRONT_PATH }}
           dangerous-clean-slate: false
+          timeout: 60000
