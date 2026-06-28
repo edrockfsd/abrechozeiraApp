@@ -200,6 +200,21 @@ jobs:
       - name: Instalar lftp
         run: sudo apt-get install -y lftp
 
+      - name: Criar app_offline.htm temporário
+        run: echo "<h1>Sistema em atualização. Voltamos em instantes...</h1>" > app_offline.htm
+
+      - name: Colocar API offline
+        run: |
+          lftp -c "
+            set ftp:ssl-allow no;
+            open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
+            put -O ${{ secrets.FTP_API_PATH }} app_offline.htm;
+            quit
+          "
+
+      - name: Aguardar encerramento do AppPool (5s)
+        run: sleep 5
+
       - name: Deploy API via FTP (lftp)
         run: |
           lftp -c "
@@ -209,6 +224,15 @@ jobs:
             set net:reconnect-interval-base 5;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
             mirror --reverse --delete --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            quit
+          "
+
+      - name: Colocar API online novamente
+        run: |
+          lftp -c "
+            set ftp:ssl-allow no;
+            open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
+            rm ${{ secrets.FTP_API_PATH }}/app_offline.htm;
             quit
           "
 
