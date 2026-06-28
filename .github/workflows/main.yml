@@ -212,18 +212,18 @@ jobs:
             quit
           "
 
-      - name: Aguardar encerramento do AppPool (5s)
-        run: sleep 5
+      - name: Aguardar encerramento do AppPool (15s)
+        run: sleep 15
 
       - name: Deploy API via FTP (lftp)
         run: |
           lftp -c "
             set ftp:ssl-allow no;
             set net:timeout 180;
-            set net:max-retries 10;
+            set net:max-retries 5;
             set net:reconnect-interval-base 5;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            mirror --reverse --delete --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            mirror --reverse --parallel=5 --delete --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
             quit
           "
 
@@ -241,9 +241,9 @@ jobs:
           lftp -c "
             set ftp:ssl-allow no;
             set net:timeout 180;
-            set net:max-retries 10;
+            set net:max-retries 5;
             set net:reconnect-interval-base 5;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            mirror --reverse --delete --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
+            mirror --reverse --parallel=5 --delete --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
             quit
           "
