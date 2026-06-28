@@ -69,3 +69,7 @@ appsettings.json
 appsettings.Development.json
 **/appsettings.Development.json
 *.xlsx
+
+# Arquivos sensíveis e logs gerados localmente
+API/*.txt
+API/InfinitePayTags.json
