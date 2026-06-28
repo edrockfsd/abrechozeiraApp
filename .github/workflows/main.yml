@@ -203,17 +203,18 @@ jobs:
       - name: Criar app_offline.htm temporário
         run: echo "<h1>Sistema em atualização. Voltamos em instantes...</h1>" > app_offline.htm
 
-      - name: Colocar API offline
+      - name: Colocar API offline (Renomear web.config e subir app_offline.htm)
         run: |
           lftp -c "
             set ftp:ssl-allow no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
+            mv ${{ secrets.FTP_API_PATH }}/web.config ${{ secrets.FTP_API_PATH }}/web.config.bak || true;
             put -O ${{ secrets.FTP_API_PATH }} app_offline.htm;
             quit
           "
 
-      - name: Aguardar encerramento do AppPool (60s)
-        run: sleep 60
+      - name: Aguardar encerramento do processo dotnet (20s)
+        run: sleep 20
 
       - name: Deploy API via FTP (lftp)
         run: |
@@ -227,12 +228,13 @@ jobs:
             quit
           "
 
-      - name: Colocar API online novamente
+      - name: Limpar arquivos temporários de offline (Remover web.config.bak e app_offline.htm)
         run: |
           lftp -c "
             set ftp:ssl-allow no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            rm ${{ secrets.FTP_API_PATH }}/app_offline.htm;
+            rm ${{ secrets.FTP_API_PATH }}/app_offline.htm || true;
+            rm ${{ secrets.FTP_API_PATH }}/web.config.bak || true;
             quit
           "
 
