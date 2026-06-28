@@ -177,10 +177,10 @@ jobs:
             --verbose
         working-directory: .
 
-  # ─── Estágio 4: Deploy via FTP na KingHost ────────────────────────────────────
+  # ─── Estágio 4: Deploy via SFTP na KingHost ───────────────────────────────────
   # Roda apenas após todos os estágios anteriores e somente em push para main
   deploy:
-    name: Deploy para KingHost (FTP)
+    name: Deploy para KingHost (SFTP)
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend, migrate-database]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -197,28 +197,27 @@ jobs:
           name: frontend-build
           path: ./publish-frontend
 
-      - name: Deploy API via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          local-dir: ./publish-backend/
-          server-dir: ${{ secrets.FTP_API_PATH }}
-          dangerous-clean-slate: false
-          timeout: 120000
+      - name: Instalar lftp
+        run: sudo apt-get install -y lftp
 
-      - name: Deploy Frontend via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          local-dir: ./publish-frontend/
-          server-dir: ${{ secrets.FTP_FRONT_PATH }}
-          dangerous-clean-slate: false
-          timeout: 120000
+      - name: Deploy API via SFTP
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:timeout 120;
+            set net:max-retries 3;
+            open sftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:22;
+            mirror --reverse --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            quit
+          "
+
+      - name: Deploy Frontend via SFTP
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:timeout 120;
+            set net:max-retries 3;
+            open sftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:22;
+            mirror --reverse --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
+            quit
+          "
