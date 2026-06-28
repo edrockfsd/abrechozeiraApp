@@ -205,11 +205,12 @@ jobs:
           lftp -c "
             set ftp:ssl-allow no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            mv ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.old || true;
-            mv ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.dll ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.dll.old || true;
-            mv ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.pdb ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.pdb.old || true;
-            mv ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.deps.json ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.deps.json.old || true;
-            mv ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.staticwebassets.endpoints.json ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.staticwebassets.endpoints.json.old || true;
+            cd ${{ secrets.FTP_API_PATH }};
+            -mv ABrechozeiraApp ABrechozeiraApp.old;
+            -mv ABrechozeiraApp.dll ABrechozeiraApp.dll.old;
+            -mv ABrechozeiraApp.pdb ABrechozeiraApp.pdb.old;
+            -mv ABrechozeiraApp.deps.json ABrechozeiraApp.deps.json.old;
+            -mv ABrechozeiraApp.staticwebassets.endpoints.json ABrechozeiraApp.staticwebassets.endpoints.json.old;
             quit
           "
 
@@ -230,11 +231,12 @@ jobs:
           lftp -c "
             set ftp:ssl-allow no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            rm ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.old || true;
-            rm ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.dll.old || true;
-            rm ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.pdb.old || true;
-            rm ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.deps.json.old || true;
-            rm ${{ secrets.FTP_API_PATH }}/ABrechozeiraApp.staticwebassets.endpoints.json.old || true;
+            cd ${{ secrets.FTP_API_PATH }};
+            -rm ABrechozeiraApp.old;
+            -rm ABrechozeiraApp.dll.old;
+            -rm ABrechozeiraApp.pdb.old;
+            -rm ABrechozeiraApp.deps.json.old;
+            -rm ABrechozeiraApp.staticwebassets.endpoints.json.old;
             quit
           "
 
