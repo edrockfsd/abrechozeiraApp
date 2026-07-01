@@ -1,0 +1,182 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {8544e229-b4c8-4521-9cbb-20cae8937027} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:16222
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":2945,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":2945,"order_nsu":"9490631ef6e244418ff4935b7754a0be","paid_amount":3075,"receipt_url":"https://recibo.infinitepay.io/ccba2803-e152-4999-86f9-07ddfd485d96","installments":1,"invoice_slug":"nkfBubhI8B","capture_method":"credit_card","transaction_nsu":"ccba2803-e152-4999-86f9-07ddfd485d96"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 9490631ef6e244418ff4935b7754a0be
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (62ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (Size = 255), @p0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `tb_enviolote_map` SET `StatusPagamento` = @p0
+      WHERE `TransacaoId` = @p1;
+      SELECT ROW_COUNT();
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":2945,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":2945,"order_nsu":"9490631ef6e244418ff4935b7754a0be","paid_amount":3075,"receipt_url":"https://recibo.infinitepay.io/ccba2803-e152-4999-86f9-07ddfd485d96","installments":1,"invoice_slug":"nkfBubhI8B","capture_method":"credit_card","transaction_nsu":"ccba2803-e152-4999-86f9-07ddfd485d96"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 9490631ef6e244418ff4935b7754a0be
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (28ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":2945,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":2945,"order_nsu":"9490631ef6e244418ff4935b7754a0be","paid_amount":3075,"receipt_url":"https://recibo.infinitepay.io/ccba2803-e152-4999-86f9-07ddfd485d96","installments":1,"invoice_slug":"nkfBubhI8B","capture_method":"credit_card","transaction_nsu":"ccba2803-e152-4999-86f9-07ddfd485d96"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 9490631ef6e244418ff4935b7754a0be
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (17ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":2945,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":2945,"order_nsu":"9490631ef6e244418ff4935b7754a0be","paid_amount":3075,"receipt_url":"https://recibo.infinitepay.io/ccba2803-e152-4999-86f9-07ddfd485d96","installments":1,"invoice_slug":"nkfBubhI8B","capture_method":"credit_card","transaction_nsu":"ccba2803-e152-4999-86f9-07ddfd485d96"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 9490631ef6e244418ff4935b7754a0be
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro interno ao processar webhook da InfinitePay
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.CheckoutAsync(String etiquetaId) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 490
+         at ABrechozeiraApp.Controllers.InfinitePayWebhookController.ReceiveWebhook(JsonElement body) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\InfinitePayWebhookController.cs:line 114
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro interno ao processar webhook da InfinitePay
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.CheckoutAsync(String etiquetaId) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 490
+         at ABrechozeiraApp.Controllers.InfinitePayWebhookController.ReceiveWebhook(JsonElement body) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\InfinitePayWebhookController.cs:line 114
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro interno ao processar webhook da InfinitePay
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.CheckoutAsync(String etiquetaId) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 490
+         at ABrechozeiraApp.Controllers.InfinitePayWebhookController.ReceiveWebhook(JsonElement body) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\InfinitePayWebhookController.cs:line 114
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":2945,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":2945,"order_nsu":"9490631ef6e244418ff4935b7754a0be","paid_amount":3075,"receipt_url":"https://recibo.infinitepay.io/ccba2803-e152-4999-86f9-07ddfd485d96","installments":1,"invoice_slug":"nkfBubhI8B","capture_method":"credit_card","transaction_nsu":"ccba2803-e152-4999-86f9-07ddfd485d96"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 9490631ef6e244418ff4935b7754a0be
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro interno ao processar webhook da InfinitePay
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.CheckoutAsync(String etiquetaId) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 490
+         at ABrechozeiraApp.Controllers.InfinitePayWebhookController.ReceiveWebhook(JsonElement body) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\InfinitePayWebhookController.cs:line 114
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro interno ao processar webhook da InfinitePay
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.CheckoutAsync(String etiquetaId) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 490
+         at ABrechozeiraApp.Controllers.InfinitePayWebhookController.ReceiveWebhook(JsonElement body) in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\InfinitePayWebhookController.cs:line 114
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

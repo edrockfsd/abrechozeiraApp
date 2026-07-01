@@ -1,0 +1,106 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {ab7b8f5a-9b91-41db-b49a-4281db6dd128} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:21189
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 2975.7664ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 2985.7889ms - 200
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (31ms) [Parameters=[@__ToLower_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`Nome` IS NOT NULL AND (LOWER(`p`.`Nome`) = @__ToLower_0)
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__pessoa_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__pessoa_Id_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/calculator
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/calculator
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 1513.9591ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 1514.3769ms - 200
+info: ABrechozeiraApp.Controllers.EnvioLoteController[0]
+      ?? Disparando Task em segundo plano para o e-mail: eduardo.cwbnet@gmail.com
+info: ABrechozeiraApp.Controllers.EnvioLoteController[0]
+      ? [Task] Escopo criado. Iniciando gera‡Æo do link PIX na InfinitePay...
+info: ABrechozeiraApp.Controllers.EnvioLoteController[0]
+      ? [Task] Link gerado com sucesso: https://checkout.infinitepay.io/abrechozeira?lenc=G9wAYCyPt6Hxw4io3LmTZeO5VCcoC1dZsw5V9v-_-S2CgNYCSXTf1x7WCSjg-msR_OOlzFSYx9jcpneV4Ug6hwhLTBfJzZl6esBe2FpbbWEQxiEU-e0gVz3UDTfDqE8OZnE7ZEqPZmsPGrzgapKCBKDEAXQki7KgytY5Uecd7dz3y9NWBW6QTxBW9gk71qXhGH5CnH_qaM4PQ2iADumOyY8By_6Qt82ltxPkeTxvnhzak6jrhUxOuLyoKzAbUjWbooVJKOwR.v1.fe506b24c4da5d44. Iniciando disparo do E-mail...
+info: ABrechozeiraApp.Services.EmailService[0]
+      ?? E-mail enviado com sucesso para eduardo.cwbnet@gmail.com | Assunto: ??? A Brechozeira - Cota‡Æo de Frete do seu Pedido
+info: ABrechozeiraApp.Controllers.EnvioLoteController[0]
+      ? [Task] E-mail de cota‡Æo ENVIADO com sucesso para eduardo.cwbnet@gmail.com!
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":1196,"quantity":1,"description":"Frete SEDEX","product_reference":null}],"amount":1196,"order_nsu":"2912c846f2e940e19f535275750391b8","paid_amount":1196,"receipt_url":"https://recibo.infinitepay.io/d87813ad-255f-4c8e-90fb-5c95f7681b45","installments":1,"invoice_slug":"bj5gIbDLkw","capture_method":"pix","transaction_nsu":"d87813ad-255f-4c8e-90fb-5c95f7681b45"}
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Webhook inv lido ou incompleto da InfinitePay.
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":1196,"quantity":1,"description":"Frete SEDEX","product_reference":null}],"amount":1196,"order_nsu":"2912c846f2e940e19f535275750391b8","paid_amount":1196,"receipt_url":"https://recibo.infinitepay.io/d87813ad-255f-4c8e-90fb-5c95f7681b45","installments":1,"invoice_slug":"bj5gIbDLkw","capture_method":"pix","transaction_nsu":"d87813ad-255f-4c8e-90fb-5c95f7681b45"}
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Webhook inv lido ou incompleto da InfinitePay.
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":1196,"quantity":1,"description":"Frete SEDEX","product_reference":null}],"amount":1196,"order_nsu":"2912c846f2e940e19f535275750391b8","paid_amount":1196,"receipt_url":"https://recibo.infinitepay.io/d87813ad-255f-4c8e-90fb-5c95f7681b45","installments":1,"invoice_slug":"bj5gIbDLkw","capture_method":"pix","transaction_nsu":"d87813ad-255f-4c8e-90fb-5c95f7681b45"}
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Webhook inv lido ou incompleto da InfinitePay.
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/cart
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/cart
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 1262.9556ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 1263.3937ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":1196,"quantity":1,"description":"Frete SEDEX","product_reference":null}],"amount":1196,"order_nsu":"2912c846f2e940e19f535275750391b8","paid_amount":1196,"receipt_url":"https://recibo.infinitepay.io/d87813ad-255f-4c8e-90fb-5c95f7681b45","installments":1,"invoice_slug":"bj5gIbDLkw","capture_method":"pix","transaction_nsu":"d87813ad-255f-4c8e-90fb-5c95f7681b45"}
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Webhook inv lido ou incompleto da InfinitePay.
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 758.9259ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 759.3428ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 2104.1571ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 2104.7613ms - 200
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":1196,"quantity":1,"description":"Frete SEDEX","product_reference":null}],"amount":1196,"order_nsu":"2912c846f2e940e19f535275750391b8","paid_amount":1196,"receipt_url":"https://recibo.infinitepay.io/d87813ad-255f-4c8e-90fb-5c95f7681b45","installments":1,"invoice_slug":"bj5gIbDLkw","capture_method":"pix","transaction_nsu":"d87813ad-255f-4c8e-90fb-5c95f7681b45"}
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Webhook inv lido ou incompleto da InfinitePay.
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 796.5181ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 796.9028ms - 200
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

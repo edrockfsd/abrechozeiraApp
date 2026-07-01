@@ -1,0 +1,147 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {76e61137-369c-4fb8-a242-7c9d3d014b11} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:41405
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (43ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `User` AS `u`
+      INNER JOIN `Pessoa` AS `p` ON `u`.`PessoaId` = `p`.`Id`
+      WHERE `u`.`id` = @__userId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__user_PessoaId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__user_PessoaId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `User` AS `u`
+      INNER JOIN `Pessoa` AS `p` ON `u`.`PessoaId` = `p`.`Id`
+      WHERE `u`.`id` = @__userId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__user_PessoaId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__user_PessoaId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `Endereco` SET `DataAlteracao` = @p0
+      WHERE `Id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `User` AS `u`
+      INNER JOIN `Pessoa` AS `p` ON `u`.`PessoaId` = `p`.`Id`
+      WHERE `u`.`id` = @__userId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__user_PessoaId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__user_PessoaId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `Endereco` SET `DataAlteracao` = @p0
+      WHERE `Id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `User` AS `u`
+      INNER JOIN `Pessoa` AS `p` ON `u`.`PessoaId` = `p`.`Id`
+      WHERE `u`.`id` = @__userId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__user_PessoaId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__user_PessoaId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `User` AS `u`
+      INNER JOIN `Pessoa` AS `p` ON `u`.`PessoaId` = `p`.`Id`
+      WHERE `u`.`id` = @__userId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__user_PessoaId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__user_PessoaId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `Endereco` SET `DataAlteracao` = @p0
+      WHERE `Id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

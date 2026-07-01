@@ -1,0 +1,149 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {158fca87-a89d-4b3a-bf04-20c5161548b9} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:30390
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (60ms) [Parameters=[@__pessoaID_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `t`.`Descricao` AS `tipoEndereco`, `e`.`CEP`, `e`.`Logradouro`, `e`.`Unidade`, `e`.`Complemento`, `e`.`Bairro`, `e`.`Localidade`, `e`.`Estado`
+      FROM `Endereco` AS `e`
+      INNER JOIN `TipoEndereco` AS `t` ON `e`.`TipoEnderecoId` = `t`.`Id`
+      WHERE `e`.`PessoaID` = @__pessoaID_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Descricao`
+      FROM `TipoEndereco` AS `t`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585583819,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585586714,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585587774,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585588940,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585590060,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585591377,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585593120,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585602723,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585637329,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585703523,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585738230,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD"}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585755095,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585782894,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585795905,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585834392,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585847989,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585871225,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585900157,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585926328,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585928698,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782585951681,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586020427,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586030311,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586077212,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586101708,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586162916,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586196422,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586270304,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586290277,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586361574,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+--- NOVO EVENTO RECEBIDO ---
+{"object":"instagram","entry":[{"time":1782586383105,"id":"17841472957302808","messaging":[{"sender":{"id":"1914250066091559"},"recipient":{"id":"17841472957302808"},"timestamp":1782585582564,"message":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MjkwMDAzMTA0NTM5NjQyMjUyNTkzODg5NDM3Mjg2NAZDZD","text":"Loucura","reply_to":{"mid":"aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDcyOTU3MzAyODA4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjA0NjA4NTMzMjUxODg4NzozMjg4MTY5ODM0OTI3OTEzMjA5Njg5NTg5MTM5OTUwNzk2OAZDZD","is_self_reply":false}}}]}]}
+Erro ao processar webhook: Object reference not set to an instance of an object.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

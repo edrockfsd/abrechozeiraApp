@@ -218,6 +218,7 @@ namespace ABrechozeiraApp.Controllers
         private readonly ILogger<EnvioLoteController> _logger;
         private readonly AbrechozeiraContext _context;
         private readonly IConfiguration _config;
+        private readonly WhatsAppService _whatsApp;
 
         public EnvioLoteController(
             EmailService emailService,
@@ -225,7 +226,8 @@ namespace ABrechozeiraApp.Controllers
             InfinitePayService infinitePay,
             ILogger<EnvioLoteController> logger,
             AbrechozeiraContext context,
-            IConfiguration config)
+            IConfiguration config,
+            WhatsAppService whatsApp)
         {
             _emailService = emailService;
             _superfrete = superfrete;
@@ -233,6 +235,7 @@ namespace ABrechozeiraApp.Controllers
             _logger = logger;
             _context = context;
             _config = config;
+            _whatsApp = whatsApp;
         }
 
         /// <summary>
@@ -1022,21 +1025,52 @@ namespace ABrechozeiraApp.Controllers
             var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
             if (map == null) return NotFound(new { message = "Cotação não encontrada." });
 
-            var mensagem = $"Olá {map.Nome}, o frete da sua compra ficou em R$ {map.PrecoRecomendado:F2} via {map.ServicoRecomendado}. Segue o link para pagamento: {map.LinkCheckout}";
-            
-            // Abordagem Híbrida: Tenta enviar via API se configurado
-            var apiUrl = _config["WhatsApp:ApiUrl"];
-            if (!string.IsNullOrWhiteSpace(apiUrl))
+            // Buscar o telefone do cliente na tabela Pessoa
+            string? telefone = null;
+            if (!string.IsNullOrWhiteSpace(map.Email))
             {
-                // TODO: Implementar HTTP Client para Evolution API / Z-API
-                // Por hora, se configurado, simulamos o envio.
-                map.WhatsAppCotacaoEnviado = true;
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Enviado via API", url = "", hibrido = false });
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Email == map.Email);
+                telefone = pessoa?.Telefone;
+            }
+            if (string.IsNullOrWhiteSpace(telefone))
+            {
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Nome == map.Nome);
+                telefone = pessoa?.Telefone;
+            }
+
+            if (string.IsNullOrWhiteSpace(telefone))
+            {
+                return BadRequest(new { message = "Telefone do cliente não encontrado no cadastro do sistema." });
+            }
+
+            var preco = map.PrecoRecomendado.GetValueOrDefault();
+            var servico = map.ServicoRecomendado ?? "Correios";
+            var mensagem = $"Olá {map.Nome}, o frete da sua compra ficou em R$ {preco:F2} via {servico}. Segue o link para pagamento: {map.LinkCheckout}";
+            
+            // Abordagem via Cloud API da Meta se configurado
+            var token = _config["WhatsApp:ApiToken"];
+            var phoneId = _config["WhatsApp:PhoneId"];
+            
+            if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
+            {
+                var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete";
+                var bodyParams = new List<string> { map.Nome, preco.ToString("F2"), servico };
+                
+                // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://checkout.infinitepay.io/abrechozeira/{{1}})
+                // E passamos o transacaoId como a variável do botão.
+                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, transacaoId);
+                
+                if (sucesso)
+                {
+                    map.WhatsAppCotacaoEnviado = true;
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = "Enviado via API da Meta", url = "", hibrido = false });
+                }
+                return StatusCode(500, new { message = "Falha ao enviar WhatsApp via API da Meta." });
             }
 
             // Fallback: Link manual
-            var linkManual = $"https://wa.me/?text={Uri.EscapeDataString(mensagem)}";
+            var linkManual = $"https://wa.me/{new string(telefone.Where(char.IsDigit).ToArray())}?text={Uri.EscapeDataString(mensagem)}";
             map.WhatsAppCotacaoEnviado = true;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
@@ -1048,21 +1082,53 @@ namespace ABrechozeiraApp.Controllers
             var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.EtiquetaId == etiquetaId);
             if (map == null) return NotFound(new { message = "Envio não encontrado." });
 
+            // Buscar o telefone do cliente na tabela Pessoa
+            string? telefone = null;
+            if (!string.IsNullOrWhiteSpace(map.Email))
+            {
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Email == map.Email);
+                telefone = pessoa?.Telefone;
+            }
+            if (string.IsNullOrWhiteSpace(telefone))
+            {
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Nome == map.Nome);
+                telefone = pessoa?.Telefone;
+            }
+
+            if (string.IsNullOrWhiteSpace(telefone))
+            {
+                return BadRequest(new { message = "Telefone do cliente não encontrado no cadastro do sistema." });
+            }
+
             var info = await _superfrete.ObterEtiquetaAsync(etiquetaId);
             if (info == null || string.IsNullOrWhiteSpace(info.Tracking))
                 return BadRequest(new { message = "Rastreio não disponível." });
 
             var mensagem = $"Olá {map.Nome}, sua encomenda foi postada via {info.ServiceName}! O código de rastreio é {info.Tracking}. Você pode acompanhar pelo site dos Correios.";
             
-            var apiUrl = _config["WhatsApp:ApiUrl"];
-            if (!string.IsNullOrWhiteSpace(apiUrl))
+            // Abordagem via Cloud API da Meta se configurado
+            var token = _config["WhatsApp:ApiToken"];
+            var phoneId = _config["WhatsApp:PhoneId"];
+            
+            if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
-                map.WhatsAppRastreioEnviado = true;
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Enviado via API", url = "", hibrido = false });
+                var template = _config["WhatsApp:TemplateRastreio"] ?? "rastreio_envio";
+                var bodyParams = new List<string> { map.Nome, info.Tracking };
+                
+                // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://rastreamento.correios.com.br/app/index.php?codigo={{1}})
+                // E passamos o código de rastreio como a variável do botão.
+                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, info.Tracking);
+                
+                if (sucesso)
+                {
+                    map.WhatsAppRastreioEnviado = true;
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = "Enviado via API da Meta", url = "", hibrido = false });
+                }
+                return StatusCode(500, new { message = "Falha ao enviar WhatsApp via API da Meta." });
             }
 
-            var linkManual = $"https://wa.me/?text={Uri.EscapeDataString(mensagem)}";
+            var linkManual = $"https://wa.me/{new string(telefone.Where(char.IsDigit).ToArray())}?text={Uri.EscapeDataString(mensagem)}";
             map.WhatsAppRastreioEnviado = true;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });

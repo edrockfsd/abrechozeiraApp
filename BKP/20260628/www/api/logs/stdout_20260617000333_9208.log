@@ -1,0 +1,74 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {1a548b38-bc31-4004-9db7-3b03fafa335b} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:10495
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":4084,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":4084,"order_nsu":"a9b16e0668bb46dca2c4b63c0a3588d3","paid_amount":4084,"receipt_url":"https://recibo.infinitepay.io/27052eb4-371d-419b-ae5a-23286ed54d87","installments":1,"invoice_slug":"EJP2w62SQE","capture_method":"pix","transaction_nsu":"27052eb4-371d-419b-ae5a-23286ed54d87"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): a9b16e0668bb46dca2c4b63c0a3588d3
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (42ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (Size = 255), @p0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `tb_enviolote_map` SET `StatusPagamento` = @p0
+      WHERE `TransacaoId` = @p1;
+      SELECT ROW_COUNT();
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 374.5774ms - 409
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 388.4051ms - 409
+fail: ABrechozeiraApp.Services.SuperfreteService[0]
+      Falha no Checkout do Superfrete para etiqueta byaozSnVCsdp4QC1QUqQ: Conflict - {"message":"Pedido j  comprado.","error":"Pedido j  comprado."}
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro ao processar checkout da etiqueta byaozSnVCsdp4QC1QUqQ no Superfrete ap¢s pagamento.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (Size = 255), @p0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `tb_enviolote_map` SET `StatusSuperfrete` = @p0
+      WHERE `TransacaoId` = @p1;
+      SELECT ROW_COUNT();
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":4084,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":4084,"order_nsu":"a9b16e0668bb46dca2c4b63c0a3588d3","paid_amount":4084,"receipt_url":"https://recibo.infinitepay.io/27052eb4-371d-419b-ae5a-23286ed54d87","installments":1,"invoice_slug":"EJP2w62SQE","capture_method":"pix","transaction_nsu":"27052eb4-371d-419b-ae5a-23286ed54d87"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): a9b16e0668bb46dca2c4b63c0a3588d3
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/checkout
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 320.1104ms - 409
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 320.4239ms - 409
+fail: ABrechozeiraApp.Services.SuperfreteService[0]
+      Falha no Checkout do Superfrete para etiqueta byaozSnVCsdp4QC1QUqQ: Conflict - {"message":"Pedido j  comprado.","error":"Pedido j  comprado."}
+fail: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Erro ao processar checkout da etiqueta byaozSnVCsdp4QC1QUqQ no Superfrete ap¢s pagamento.
+warn: Microsoft.AspNetCore.Server.Kestrel[22]
+      As of "06/17/2026 00:15:40 +00:00", the heartbeat has been running for "00:00:01.0410426" which is longer than "00:00:01". This could be caused by thread pool starvation.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

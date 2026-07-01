@@ -1,0 +1,28 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {92b4c483-4847-4447-83c0-d0e2121492dd} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:15464
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Recebido Webhook da InfinitePay: {"items":[{"price":3003,"quantity":1,"description":"Frete PAC","product_reference":null}],"amount":3003,"order_nsu":"2a725b5ff8f54bf5a20e214efbbe52b4","paid_amount":3003,"receipt_url":"https://recibo.infinitepay.io/7bdc227b-992a-4dc2-b33e-859342b529c2","installments":1,"invoice_slug":"yMSvDveYnP","capture_method":"pix","transaction_nsu":"7bdc227b-992a-4dc2-b33e-859342b529c2"}
+info: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Pagamento do frete confirmado! OrderNsu (TransacaoId): 2a725b5ff8f54bf5a20e214efbbe52b4
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (46ms) [Parameters=[@__transacaoId_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+      WHERE `t`.`TransacaoId` = @__transacaoId_0
+      LIMIT 1
+warn: ABrechozeiraApp.Controllers.InfinitePayWebhookController[0]
+      Transaá∆o 2a725b5ff8f54bf5a20e214efbbe52b4 paga, mas n∆o h† mapeamento para EtiquetaId do Superfrete.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

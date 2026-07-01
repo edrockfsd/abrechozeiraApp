@@ -1,0 +1,234 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {7c70c83e-4c04-453f-adcc-4416bd6356f3} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:31310
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (41ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE `u`.`id` = @__p_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (12ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__inicioSemana_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioSemana_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__inicioMes_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioMes_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seteDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`DataVenda`, `v`.`ValorLiquido`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__seteDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__trintaDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`Id`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (`v`.`DataVenda` >= @__trintaDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`ProdutoId` AS `produtoId`, `v`.`DescricaoItem` AS `descricao`, COALESCE(SUM(`v`.`Quantidade`), 0.0) AS `quantidade`, COALESCE(SUM(`v`.`Total`), 0.0) AS `totalVendido`
+      FROM `VendaPdvItem` AS `v`
+      WHERE FALSE
+      GROUP BY `v`.`ProdutoId`, `v`.`DescricaoItem`
+      ORDER BY COALESCE(SUM(`v`.`Quantidade`), 0.0) DESC
+      LIMIT @__p_1
+warn: Microsoft.EntityFrameworkCore.Query[10102]
+      The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id` AS `id`, `e`.`ProdutoId` AS `produtoId`, `p`.`Descricao` AS `descricao`, `e`.`Quantidade` AS `quantidade`, `e`.`CodigoEstoque` AS `codigoEstoque`
+      FROM `Estoque` AS `e`
+      INNER JOIN `Produto` AS `p` ON `e`.`ProdutoId` = `p`.`Id`
+      WHERE (`e`.`Quantidade` <= 3) AND (`e`.`Quantidade` > 0)
+      LIMIT @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `l`.`Titulo` AS `titulo`, `l`.`DataLive` AS `data`
+      FROM `Live` AS `l`
+      WHERE `l`.`DataLive` >= UTC_TIMESTAMP()
+      ORDER BY `l`.`DataLive`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Produto` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`PessoaCategoriaId` = 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE `u`.`id` = @__p_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__inicioSemana_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioSemana_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__inicioMes_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioMes_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seteDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`DataVenda`, `v`.`ValorLiquido`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__seteDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__trintaDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`Id`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (`v`.`DataVenda` >= @__trintaDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`ProdutoId` AS `produtoId`, `v`.`DescricaoItem` AS `descricao`, COALESCE(SUM(`v`.`Quantidade`), 0.0) AS `quantidade`, COALESCE(SUM(`v`.`Total`), 0.0) AS `totalVendido`
+      FROM `VendaPdvItem` AS `v`
+      WHERE FALSE
+      GROUP BY `v`.`ProdutoId`, `v`.`DescricaoItem`
+      ORDER BY COALESCE(SUM(`v`.`Quantidade`), 0.0) DESC
+      LIMIT @__p_1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id` AS `id`, `e`.`ProdutoId` AS `produtoId`, `p`.`Descricao` AS `descricao`, `e`.`Quantidade` AS `quantidade`, `e`.`CodigoEstoque` AS `codigoEstoque`
+      FROM `Estoque` AS `e`
+      INNER JOIN `Produto` AS `p` ON `e`.`ProdutoId` = `p`.`Id`
+      WHERE (`e`.`Quantidade` <= 3) AND (`e`.`Quantidade` > 0)
+      LIMIT @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `l`.`Titulo` AS `titulo`, `l`.`DataLive` AS `data`
+      FROM `Live` AS `l`
+      WHERE `l`.`DataLive` >= UTC_TIMESTAMP()
+      ORDER BY `l`.`DataLive`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Produto` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`PessoaCategoriaId` = 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (67ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Nome`, `p`.`CPF`, `p`.`DataNascimento`, `p`.`Email`, `p`.`Telefone`, `p`.`NickName`, `p0`.`Id` AS `GeneroId`, `p0`.`Descricao` AS `GeneroDescricao`, `p1`.`Id` AS `CategoriaId`, `p1`.`Descricao` AS `CategoriaDescricao`, `p2`.`Id` AS `StatusId`, `p2`.`Descricao` AS `StatusDescricao`
+      FROM `Pessoa` AS `p`
+      INNER JOIN `PessoaGenero` AS `p0` ON `p`.`PessoaGeneroId` = `p0`.`Id`
+      INNER JOIN `PessoaCategoria` AS `p1` ON `p`.`PessoaCategoriaId` = `p1`.`Id`
+      INNER JOIN `PessoaStatus` AS `p2` ON `p`.`StatusId` = `p2`.`Id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (25ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Descricao`
+      FROM `PessoaTipo` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Descricao`, `p`.`Sigla`
+      FROM `PessoaGenero` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Descricao`
+      FROM `PessoaCategoria` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Descricao`
+      FROM `PessoaStatus` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`Id` = @__p_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`Nome`, `p`.`CPF`, `p`.`DataNascimento`, `p`.`Email`, `p`.`Telefone`, `p`.`NickName`, `p0`.`Id` AS `GeneroId`, `p0`.`Descricao` AS `GeneroDescricao`, `p1`.`Id` AS `CategoriaId`, `p1`.`Descricao` AS `CategoriaDescricao`, `p2`.`Id` AS `StatusId`, `p2`.`Descricao` AS `StatusDescricao`
+      FROM `Pessoa` AS `p`
+      INNER JOIN `PessoaGenero` AS `p0` ON `p`.`PessoaGeneroId` = `p0`.`Id`
+      INNER JOIN `PessoaCategoria` AS `p1` ON `p`.`PessoaCategoriaId` = `p1`.`Id`
+      INNER JOIN `PessoaStatus` AS `p2` ON `p`.`StatusId` = `p2`.`Id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Descricao`
+      FROM `TipoEndereco` AS `t`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__pessoaID_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `t`.`Descricao` AS `tipoEndereco`, `e`.`CEP`, `e`.`Logradouro`, `e`.`Unidade`, `e`.`Complemento`, `e`.`Bairro`, `e`.`Localidade`, `e`.`Estado`
+      FROM `Endereco` AS `e`
+      INNER JOIN `TipoEndereco` AS `t` ON `e`.`TipoEnderecoId` = `t`.`Id`
+      WHERE `e`.`PessoaID` = @__pessoaID_0
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

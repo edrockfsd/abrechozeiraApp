@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Abrechozeira</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .input-group label {
+                display: block;
+                margin-bottom: 5px;
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .input-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-sizing: border-box;
+                font-size: 1rem;
+            }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+            button:active {
+                transform: scale(0.98);
+            }
+
+        .erro {
+            color: #dc3545;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1>🔐 Acesso</h1>
+
+        <div id="msgErro" class="erro"></div>
+
+        <div class="input-group">
+            <label>E-mail</label>
+            <input type="email" id="email" placeholder="admin@abrechozeira.com" value="admin@abrechozeira.com">
+        </div>
+
+        <div class="input-group">
+            <label>Senha</label>
+            <input type="password" id="senha" placeholder="Sua senha">
+        </div>
+
+        <button onclick="fazerLogin()">Entrar</button>
+    </div>
+
+    <script>
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const msgErro = document.getElementById('msgErro');
+
+            if (!email || !senha) {
+                mostrarErro("Preencha todos os campos.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: senha })
+                });
+
+                if (response.ok) {
+                    const dados = await response.json();
+                    // Salva que o usuário está logado
+                    localStorage.setItem('usuario_logado', JSON.stringify(dados.usuario));
+                    // Redireciona para a tela principal
+                    window.location.href = '/index.html'; // ou '/' se index for o padrão
+                } else {
+                    mostrarErro("E-mail ou senha incorretos.");
+                }
+            } catch (error) {
+                mostrarErro("Erro ao conectar no servidor.");
+            }
+        }
+
+        function mostrarErro(texto) {
+            const el = document.getElementById('msgErro');
+            el.innerText = texto;
+            el.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

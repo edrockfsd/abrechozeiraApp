@@ -1,0 +1,38 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {1159fa9b-6621-445c-92e2-97681fe9c79c} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:23993
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (50ms) [Parameters=[@__pessoaID_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `t`.`Descricao` AS `tipoEndereco`, `e`.`CEP`, `e`.`Logradouro`, `e`.`Unidade`, `e`.`Complemento`, `e`.`Bairro`, `e`.`Localidade`, `e`.`Estado`
+      FROM `Endereco` AS `e`
+      INNER JOIN `TipoEndereco` AS `t` ON `e`.`TipoEnderecoId` = `t`.`Id`
+      WHERE `e`.`PessoaID` = @__pessoaID_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (24ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Descricao`
+      FROM `TipoEndereco` AS `t`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Descricao`
+      FROM `TipoEndereco` AS `t`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__pessoaID_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `t`.`Descricao` AS `tipoEndereco`, `e`.`CEP`, `e`.`Logradouro`, `e`.`Unidade`, `e`.`Complemento`, `e`.`Bairro`, `e`.`Localidade`, `e`.`Estado`
+      FROM `Endereco` AS `e`
+      INNER JOIN `TipoEndereco` AS `t` ON `e`.`TipoEnderecoId` = `t`.`Id`
+      WHERE `e`.`PessoaID` = @__pessoaID_0
+warn: Microsoft.AspNetCore.Server.Kestrel[22]
+      As of "06/25/2026 01:23:17 +00:00", the heartbeat has been running for "00:00:01.4286977" which is longer than "00:00:01". This could be caused by thread pool starvation.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

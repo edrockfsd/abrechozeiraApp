@@ -1,0 +1,44 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {2dc8dd7a-0d1b-4920-b58c-5d731fc25934} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:13848
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 861.6091ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 873.3348ms - 200
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (30ms) [Parameters=[@__ToLower_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`CPF`, `p`.`DataInclusao`, `p`.`DataNascimento`, `p`.`Email`, `p`.`NickName`, `p`.`Nome`, `p`.`Observacoes`, `p`.`PessoaCategoriaId`, `p`.`PessoaGeneroId`, `p`.`PessoaTipoId`, `p`.`RG`, `p`.`StatusId`, `p`.`Telefone`
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`Nome` IS NOT NULL AND (LOWER(`p`.`Nome`) = @__ToLower_0)
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@__pessoa_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id`, `e`.`Bairro`, `e`.`CEP`, `e`.`CodigoLocalidadeIBGE`, `e`.`Complemento`, `e`.`DataAlteracao`, `e`.`Estado`, `e`.`Localidade`, `e`.`Logradouro`, `e`.`Observacoes`, `e`.`PessoaID`, `e`.`TipoEnderecoId`, `e`.`Unidade`
+      FROM `Endereco` AS `e`
+      WHERE `e`.`PessoaID` = @__pessoa_Id_0
+      LIMIT 1
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request POST https://api.superfrete.com/api/v0/calculator
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request POST https://api.superfrete.com/api/v0/calculator
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[101]
+      Received HTTP response headers after 1256.858ms - 200
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[101]
+      End processing HTTP request after 1257.349ms - 200
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

@@ -1,0 +1,232 @@
+warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+      Using an in-memory repository. Keys will not be persisted to storage.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+      Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {d2f0dfde-c6f2-4e57-8998-d49b56980255} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:44674
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: d:\web\localuser\abrechozeira\www\api
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (64ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`DataAlteracao`, `p`.`DataCompra`, `p`.`GeneroID`, `p`.`GrupoID`, `p`.`PerfilID`, `p1`.`Descricao` AS `Perfil`, `p`.`MarcaId`, `p2`.`Descricao` AS `Marca`, `e`.`CodigoEstoque`, `p`.`Descricao`, `p`.`Tamanho`, `p`.`Origem`, `p`.`PrecoCusto`, `p`.`PrecoVenda`, `p`.`StatusId`
+      FROM `Produto` AS `p`
+      INNER JOIN `ProdutoStatus` AS `p0` ON `p`.`StatusId` = `p0`.`Id`
+      LEFT JOIN `Estoque` AS `e` ON `p`.`Id` = `e`.`ProdutoId`
+      LEFT JOIN `ProdutoPerfil` AS `p1` ON `p`.`PerfilID` = `p1`.`Id`
+      LEFT JOIN `ProdutoMarca` AS `p2` ON `p`.`MarcaId` = `p2`.`Id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `l`.`Id`, `l`.`Titulo`
+      FROM `Live` AS `l`
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`, `t0`.`id`, `t0`.`created_at`, `t0`.`role_id`, `t0`.`user_id`, `t0`.`id0`, `t0`.`created_at0`, `t0`.`description`, `t0`.`is_active`, `t0`.`name`, `t0`.`updated_at`, `t0`.`id1`, `t0`.`created_at1`, `t0`.`permission_id`, `t0`.`role_id0`, `t0`.`id00`, `t0`.`action`, `t0`.`created_at00`, `t0`.`description0`, `t0`.`is_active0`, `t0`.`name0`, `t0`.`resource`, `t0`.`updated_at0`
+      FROM `User` AS `u`
+      LEFT JOIN (
+          SELECT `u0`.`id`, `u0`.`created_at`, `u0`.`role_id`, `u0`.`user_id`, `r`.`id` AS `id0`, `r`.`created_at` AS `created_at0`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id` AS `id1`, `t`.`created_at` AS `created_at1`, `t`.`permission_id`, `t`.`role_id` AS `role_id0`, `t`.`id0` AS `id00`, `t`.`action`, `t`.`created_at0` AS `created_at00`, `t`.`description` AS `description0`, `t`.`is_active` AS `is_active0`, `t`.`name` AS `name0`, `t`.`resource`, `t`.`updated_at` AS `updated_at0`
+          FROM `UserRole` AS `u0`
+          INNER JOIN `Role` AS `r` ON `u0`.`role_id` = `r`.`id`
+          LEFT JOIN (
+              SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+              FROM `RolePermission` AS `r0`
+              INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+          ) AS `t` ON `r`.`id` = `t`.`role_id`
+      ) AS `t0` ON `u`.`id` = `t0`.`user_id`
+      WHERE `u`.`is_active`
+      ORDER BY `u`.`id`, `t0`.`id`, `t0`.`id0`, `t0`.`id1`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`Email`, `u`.`is_active`, `u`.`Name`, `u`.`Password`, `u`.`PessoaId`, `u`.`updated_at`
+      FROM `User` AS `u`
+      WHERE (`u`.`Email` = @__request_Email_0) AND `u`.`is_active`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__user_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `u`.`id`, `u`.`created_at`, `u`.`role_id`, `u`.`user_id`, `r`.`id`, `r`.`created_at`, `r`.`description`, `r`.`is_active`, `r`.`name`, `r`.`updated_at`, `t`.`id`, `t`.`created_at`, `t`.`permission_id`, `t`.`role_id`, `t`.`id0`, `t`.`action`, `t`.`created_at0`, `t`.`description`, `t`.`is_active`, `t`.`name`, `t`.`resource`, `t`.`updated_at`
+      FROM `UserRole` AS `u`
+      INNER JOIN `Role` AS `r` ON `u`.`role_id` = `r`.`id`
+      LEFT JOIN (
+          SELECT `r0`.`id`, `r0`.`created_at`, `r0`.`permission_id`, `r0`.`role_id`, `p`.`id` AS `id0`, `p`.`action`, `p`.`created_at` AS `created_at0`, `p`.`description`, `p`.`is_active`, `p`.`name`, `p`.`resource`, `p`.`updated_at`
+          FROM `RolePermission` AS `r0`
+          INNER JOIN `Permission` AS `p` ON `r0`.`permission_id` = `p`.`id`
+      ) AS `t` ON `r`.`id` = `t`.`role_id`
+      WHERE `u`.`user_id` = @__user_Id_0
+      ORDER BY `u`.`id`, `r`.`id`, `t`.`id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      UPDATE `User` SET `updated_at` = @p0
+      WHERE `id` = @p1;
+      SELECT ROW_COUNT();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`DataAlteracao`, `p`.`DataCompra`, `p`.`GeneroID`, `p`.`GrupoID`, `p`.`PerfilID`, `p1`.`Descricao` AS `Perfil`, `p`.`MarcaId`, `p2`.`Descricao` AS `Marca`, `e`.`CodigoEstoque`, `p`.`Descricao`, `p`.`Tamanho`, `p`.`Origem`, `p`.`PrecoCusto`, `p`.`PrecoVenda`, `p`.`StatusId`
+      FROM `Produto` AS `p`
+      INNER JOIN `ProdutoStatus` AS `p0` ON `p`.`StatusId` = `p0`.`Id`
+      LEFT JOIN `Estoque` AS `e` ON `p`.`Id` = `e`.`ProdutoId`
+      LEFT JOIN `ProdutoPerfil` AS `p1` ON `p`.`PerfilID` = `p1`.`Id`
+      LEFT JOIN `ProdutoMarca` AS `p2` ON `p`.`MarcaId` = `p2`.`Id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__inicioSemana_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioSemana_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[@__inicioMes_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COALESCE(SUM(`v`.`ValorLiquido`), 0.0)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__inicioMes_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__seteDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`DataVenda`, `v`.`ValorLiquido`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) >= @__seteDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__trintaDiasAtras_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`Id`
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (`v`.`DataVenda` >= @__trintaDiasAtras_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`ProdutoId` AS `produtoId`, `v`.`DescricaoItem` AS `descricao`, COALESCE(SUM(`v`.`Quantidade`), 0.0) AS `quantidade`, COALESCE(SUM(`v`.`Total`), 0.0) AS `totalVendido`
+      FROM `VendaPdvItem` AS `v`
+      WHERE FALSE
+      GROUP BY `v`.`ProdutoId`, `v`.`DescricaoItem`
+      ORDER BY COALESCE(SUM(`v`.`Quantidade`), 0.0) DESC
+      LIMIT @__p_1
+warn: Microsoft.EntityFrameworkCore.Query[10102]
+      The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `e`.`Id` AS `id`, `e`.`ProdutoId` AS `produtoId`, `p`.`Descricao` AS `descricao`, `e`.`Quantidade` AS `quantidade`, `e`.`CodigoEstoque` AS `codigoEstoque`
+      FROM `Estoque` AS `e`
+      INNER JOIN `Produto` AS `p` ON `e`.`ProdutoId` = `p`.`Id`
+      WHERE (`e`.`Quantidade` <= 3) AND (`e`.`Quantidade` > 0)
+      LIMIT @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `l`.`Titulo` AS `titulo`, `l`.`DataLive` AS `data`
+      FROM `Live` AS `l`
+      WHERE `l`.`DataLive` >= UTC_TIMESTAMP()
+      ORDER BY `l`.`DataLive`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Produto` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `Pessoa` AS `p`
+      WHERE `p`.`PessoaCategoriaId` = 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__hoje_0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*)
+      FROM `VendaPdv` AS `v`
+      WHERE (`v`.`Status` = 'Finalizada') AND (CONVERT(`v`.`DataVenda`, date) = @__hoje_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@__userId_Value_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `c`.`Id`, `c`.`DataAbertura`, `c`.`DataFechamento`, `c`.`Observacao`, `c`.`SaldoFechamento`, `c`.`SaldoInicial`, `c`.`UsuarioId`
+      FROM `Caixa` AS `c`
+      WHERE (`c`.`UsuarioId` = @__userId_Value_0) AND `c`.`DataFechamento` IS NULL
+      ORDER BY `c`.`DataAbertura` DESC
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT `v`.`Id`, `v`.`Codigo`, `v`.`Status`, `v`.`DataVenda`, `v`.`ValorBruto`, `v`.`Desconto`, `v`.`ValorLiquido`
+      FROM `VendaPdv` AS `v`
+      ORDER BY `v`.`DataVenda` DESC
+      LIMIT @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`DataAlteracao`, `p`.`DataCompra`, `p`.`GeneroID`, `p`.`GrupoID`, `p`.`PerfilID`, `p1`.`Descricao` AS `Perfil`, `p`.`MarcaId`, `p2`.`Descricao` AS `Marca`, `e`.`CodigoEstoque`, `p`.`Descricao`, `p`.`Tamanho`, `p`.`Origem`, `p`.`PrecoCusto`, `p`.`PrecoVenda`, `p`.`StatusId`
+      FROM `Produto` AS `p`
+      INNER JOIN `ProdutoStatus` AS `p0` ON `p`.`StatusId` = `p0`.`Id`
+      LEFT JOIN `Estoque` AS `e` ON `p`.`Id` = `e`.`ProdutoId`
+      LEFT JOIN `ProdutoPerfil` AS `p1` ON `p`.`PerfilID` = `p1`.`Id`
+      LEFT JOIN `ProdutoMarca` AS `p2` ON `p`.`MarcaId` = `p2`.`Id`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`Id`, `p`.`PedidoCodigo`, `p1`.`Nome` AS `ClienteNome`, `p1`.`NickName` AS `ClienteNick`, `p`.`DataLancamento` AS `DataPedido`, COALESCE(`p`.`ValorTotal`, 0.0) AS `ValorTotal`, COALESCE(`p`.`ValorFrete`, 0.0) AS `ValorFrete`, `p0`.`Descricao` AS `Status`, `e`.`CEP`, CASE
+          WHEN `e`.`Id` IS NULL THEN ''
+          ELSE CONCAT(CONCAT(COALESCE(`e`.`Logradouro`, ''), CASE
+              WHEN `e`.`Bairro` IS NOT NULL AND (`e`.`Bairro` <> '') THEN CONCAT(', ', COALESCE(`e`.`Bairro`, ''))
+              ELSE ''
+          END), CASE
+              WHEN (`e`.`Localidade` IS NOT NULL AND (`e`.`Localidade` <> '')) OR (`e`.`Estado` IS NOT NULL AND (`e`.`Estado` <> '')) THEN CONCAT(CONCAT(' - ', COALESCE(`e`.`Localidade`, '')), CASE
+                  WHEN `e`.`Estado` IS NOT NULL AND (`e`.`Estado` <> '') THEN CONCAT('/', COALESCE(`e`.`Estado`, ''))
+                  ELSE ''
+              END)
+              ELSE ''
+          END)
+      END AS `Endereco`
+      FROM `Pedido` AS `p`
+      INNER JOIN `PedidoStatus` AS `p0` ON `p`.`PedidoStatusID` = `p0`.`Id`
+      INNER JOIN `Pessoa` AS `p1` ON `p`.`ClienteID` = `p1`.`Id`
+      LEFT JOIN `Endereco` AS `e` ON `p`.`EnderecoEntregaID` = `e`.`Id`
+      ORDER BY `p`.`Id` DESC
+info: System.Net.Http.HttpClient.Superfrete.LogicalHandler[100]
+      Start processing HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: System.Net.Http.HttpClient.Superfrete.ClientHandler[100]
+      Sending HTTP request GET https://api.superfrete.com/api/v0/me/orders?limit=100&per_page=100
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`TransacaoId`, `t`.`CreatedAt`, `t`.`Email`, `t`.`EtiquetaId`, `t`.`Nome`, `t`.`StatusPagamento`, `t`.`StatusSuperfrete`
+      FROM `tb_enviolote_map` AS `t`
+fail: ABrechozeiraApp.Controllers.SuperfreteController[0]
+      Erro ao listar etiquetas
+      System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+       ---> System.TimeoutException: A task was canceled.
+       ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+         at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+         at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+         at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         --- End of inner exception stack trace ---
+         --- End of inner exception stack trace ---
+         at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+         at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+         at ABrechozeiraApp.Services.SuperfreteService.ListarEtiquetasAsync() in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Services\SuperfreteService.cs:line 362
+         at ABrechozeiraApp.Controllers.SuperfreteController.ListarEtiquetas() in C:\Users\eduar\GIT_REPOS\abrechozeiraApp\API\Controllers\SuperfreteController.cs:line 174
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
