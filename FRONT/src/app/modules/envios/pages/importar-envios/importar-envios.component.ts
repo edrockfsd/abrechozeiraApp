@@ -412,6 +412,7 @@ export class ImportarEnviosComponent {
       cepDestino: (e.cepDestinoEdit || e.cepDestino || '').replace(/\D/g, ''),
       destinatarioEndereco: e.destinatarioEndereco || '',
       destinatarioNumero: e.destinatarioNumero || '',
+      destinatarioComplemento: e.destinatarioComplemento,
       destinatarioBairro: e.destinatarioBairro || '',
       destinatarioCidade: e.destinatarioCidade || '',
       destinatarioEstado: e.destinatarioEstado || '',

@@ -25,6 +25,7 @@ export interface EnvioParseado {
   cepDestinoEdit?: string;
   destinatarioEndereco?: string;
   destinatarioNumero?: string;
+  destinatarioComplemento?: string;
   destinatarioBairro?: string;
   destinatarioCidade?: string;
   destinatarioEstado?: string;
@@ -77,6 +78,7 @@ export interface EnvioParaCotar {
   cepDestino: string;
   destinatarioEndereco: string;
   destinatarioNumero: string;
+  destinatarioComplemento?: string;
   destinatarioBairro: string;
   destinatarioCidade: string;
   destinatarioEstado: string;

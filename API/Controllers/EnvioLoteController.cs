@@ -38,6 +38,7 @@ namespace ABrechozeiraApp.Controllers
         public string? DestinatarioEstado { get; set; }
         public string? DestinatarioCpf { get; set; }
         public string? DestinatarioEmail { get; set; }
+        public string? DestinatarioComplemento { get; set; }
         // Validação
         public bool Valido { get; set; } = true;
         public List<string> Erros { get; set; } = new();
@@ -75,6 +76,7 @@ namespace ABrechozeiraApp.Controllers
         public string DestinatarioBairro { get; set; } = "";
         public string DestinatarioCidade { get; set; } = "";
         public string DestinatarioEstado { get; set; } = "";
+        public string? DestinatarioComplemento { get; set; }
         public string? DestinatarioEmail { get; set; }
         public string? DestinatarioCpf { get; set; }
         public string PreferenciaServico { get; set; } = "AUTO"; // AUTO, PAC, SEDEX
@@ -433,6 +435,7 @@ namespace ABrechozeiraApp.Controllers
                             Name = envio.Nome,
                             Address = envio.DestinatarioEndereco,
                             Number = envio.DestinatarioNumero,
+                            Complement = envio.DestinatarioComplemento,
                             District = envio.DestinatarioBairro,
                             City = envio.DestinatarioCidade,
                             StateAbbr = envio.DestinatarioEstado,
@@ -741,6 +744,7 @@ namespace ABrechozeiraApp.Controllers
                             Name = envio.Nome,
                             Address = envio.DestinatarioEndereco,
                             Number = envio.DestinatarioNumero,
+                            Complement = envio.DestinatarioComplemento,
                             District = envio.DestinatarioBairro,
                             City = envio.DestinatarioCidade,
                             StateAbbr = envio.DestinatarioEstado,
@@ -1365,6 +1369,7 @@ namespace ABrechozeiraApp.Controllers
                         
                         envio.DestinatarioEndereco = endereco.Logradouro;
                         envio.DestinatarioNumero = endereco.Unidade ?? "S/N";
+                        envio.DestinatarioComplemento = endereco.Complemento;
                         envio.DestinatarioBairro = endereco.Bairro;
                         envio.DestinatarioCidade = endereco.Localidade;
                         envio.DestinatarioEstado = endereco.Estado;
