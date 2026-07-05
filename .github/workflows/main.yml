@@ -250,6 +250,6 @@ jobs:
             set net:max-retries 5;
             set net:reconnect-interval-base 5;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            mirror --reverse --parallel=5 --delete --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
+            mirror --reverse --parallel=5 --delete -x ^api/ -x ^banco/ -x ^awstats_data/ -x ^\. --verbose --no-perms ./publish-frontend/ ${{ secrets.FTP_FRONT_PATH }};
             quit
           "
