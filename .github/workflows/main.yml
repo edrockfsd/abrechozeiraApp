@@ -204,13 +204,14 @@ jobs:
         run: |
           lftp -c "
             set ftp:ssl-allow no;
+            set cmd:fail-on-error no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
             cd ${{ secrets.FTP_API_PATH }};
-            -mv ABrechozeiraApp ABrechozeiraApp.old;
-            -mv ABrechozeiraApp.dll ABrechozeiraApp.dll.old;
-            -mv ABrechozeiraApp.pdb ABrechozeiraApp.pdb.old;
-            -mv ABrechozeiraApp.deps.json ABrechozeiraApp.deps.json.old;
-            -mv ABrechozeiraApp.staticwebassets.endpoints.json ABrechozeiraApp.staticwebassets.endpoints.json.old;
+            mv ABrechozeiraApp ABrechozeiraApp.old;
+            mv ABrechozeiraApp.dll ABrechozeiraApp.dll.old;
+            mv ABrechozeiraApp.pdb ABrechozeiraApp.pdb.old;
+            mv ABrechozeiraApp.deps.json ABrechozeiraApp.deps.json.old;
+            mv ABrechozeiraApp.staticwebassets.endpoints.json ABrechozeiraApp.staticwebassets.endpoints.json.old;
             quit
           "
 
@@ -230,13 +231,14 @@ jobs:
         run: |
           lftp -c "
             set ftp:ssl-allow no;
+            set cmd:fail-on-error no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
             cd ${{ secrets.FTP_API_PATH }};
-            -rm ABrechozeiraApp.old;
-            -rm ABrechozeiraApp.dll.old;
-            -rm ABrechozeiraApp.pdb.old;
-            -rm ABrechozeiraApp.deps.json.old;
-            -rm ABrechozeiraApp.staticwebassets.endpoints.json.old;
+            rm ABrechozeiraApp.old;
+            rm ABrechozeiraApp.dll.old;
+            rm ABrechozeiraApp.pdb.old;
+            rm ABrechozeiraApp.deps.json.old;
+            rm ABrechozeiraApp.staticwebassets.endpoints.json.old;
             quit
           "
 
