@@ -201,10 +201,10 @@ jobs:
         run: sudo apt-get install -y lftp
 
       - name: Renomear arquivos travados para liberar upload
+        continue-on-error: true
         run: |
           lftp -c "
             set ftp:ssl-allow no;
-            set cmd:fail-on-error no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
             cd ${{ secrets.FTP_API_PATH }};
             mv ABrechozeiraApp ABrechozeiraApp.old;
@@ -228,10 +228,10 @@ jobs:
           "
 
       - name: Tentar limpar arquivos temporários (.old)
+        continue-on-error: true
         run: |
           lftp -c "
             set ftp:ssl-allow no;
-            set cmd:fail-on-error no;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
             cd ${{ secrets.FTP_API_PATH }};
             rm ABrechozeiraApp.old;
