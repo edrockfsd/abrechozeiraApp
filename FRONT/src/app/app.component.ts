@@ -50,7 +50,11 @@ export class AppComponent {
 
   get isAuthRoute(): boolean {
     const url = this.router.url || '';
-    return url.startsWith('/auth') || url.startsWith('/cadastro-cliente') || url.startsWith('/meus-arremates');
+    return url.startsWith('/auth') || 
+           url.startsWith('/cadastro-cliente') || 
+           url.startsWith('/meus-arremates') ||
+           url.startsWith('/politica-privacidade') ||
+           url.startsWith('/politica-de-privacidade');
   }
 
   pageTitle = 'Painel';
