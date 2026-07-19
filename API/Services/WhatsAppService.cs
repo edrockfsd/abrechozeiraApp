@@ -27,17 +27,22 @@ namespace ABrechozeiraApp.Services
 
         private HttpClient CriarCliente()
         {
-            var client = _httpClientFactory.CreateClient("WhatsAppCloud");
             var token = _config["WhatsApp:ApiToken"] ?? "";
-            var baseUrl = _config["WhatsApp:BaseUrl"] ?? "https://graph.facebook.com/v19.0";
-            
-            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+            var baseUrl = (_config["WhatsApp:BaseUrl"] ?? "https://graph.facebook.com/v22.0").TrimEnd('/') + "/";
+
+            _logger.LogInformation("[WhatsApp DEBUG] Token primeiros 30 chars: {T} | BaseUrl: {U}", 
+                token.Length > 30 ? token.Substring(0, 30) : token, baseUrl);
+
+            var client = new HttpClient();
+            client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return client;
         }
 
-        public async Task<bool> SendTemplateMessageAsync(string toPhoneNumber, string templateName, List<string> bodyParameters, string buttonUrlParameter)
+
+
+        public async Task<bool> SendTemplateMessageAsync(string toPhoneNumber, string templateName, List<string> bodyParameters, string buttonUrlParameter, string languageCode = "pt_BR")
         {
             try
             {
@@ -103,7 +108,7 @@ namespace ABrechozeiraApp.Services
                     template = new
                     {
                         name = templateName,
-                        language = new { code = "pt_BR" },
+                        language = new { code = languageCode },
                         components = componentsList
                     }
                 };

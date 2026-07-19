@@ -993,6 +993,39 @@ namespace ABrechozeiraApp.Controllers
 
         // ─── Novos Endpoints de Reenvio e WhatsApp ────────────────────────────────────────
 
+        /// <summary>
+        /// Endpoint de TESTE: envia o template hello_world para um número informado.
+        /// Usado para validar a integração com a Meta Cloud API sem depender de dados reais.
+        /// Exemplo: POST /api/EnvioLote/TestarWhatsApp?telefone=5541999999999
+        /// </summary>
+        [HttpPost("TestarWhatsApp")]
+        public async Task<IActionResult> TestarWhatsApp([FromQuery] string telefone, [FromQuery] string? template = null, [FromQuery] string? idioma = null)
+        {
+            if (string.IsNullOrWhiteSpace(telefone))
+                return BadRequest(new { message = "Informe o parâmetro 'telefone' (ex: 5541999999999)." });
+
+            var templateName = !string.IsNullOrWhiteSpace(template) 
+                ? template 
+                : (_config["WhatsApp:TemplateCotacao"] ?? "acotacao_frete");
+
+            var lang = !string.IsNullOrWhiteSpace(idioma) 
+                ? idioma 
+                : (_config["WhatsApp:TemplateCotacaoLanguage"] ?? "en");
+
+            var sucesso = await _whatsApp.SendTemplateMessageAsync(
+                toPhoneNumber: telefone,
+                templateName: templateName,
+                bodyParameters: new List<string>(),
+                buttonUrlParameter: "",
+                languageCode: lang);
+
+            if (sucesso)
+                return Ok(new { message = $"✅ Template '{templateName}' ({lang}) enviado com sucesso para {telefone}." });
+
+            return StatusCode(500, new { message = $"❌ Falha ao enviar template '{templateName}' ({lang}) para {telefone}. Verifique os logs da API." });
+        }
+
+
         [HttpPost("ReenviarCotacao/{transacaoId}")]
         public async Task<IActionResult> ReenviarCotacao(string transacaoId)
         {
@@ -1057,12 +1090,13 @@ namespace ABrechozeiraApp.Controllers
             
             if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
-                var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete";
+                var template = _config["WhatsApp:TemplateCotacao"] ?? "acotacao_frete";
+                var language = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "en";
                 var bodyParams = new List<string> { map.Nome, preco.ToString("F2"), servico };
                 
                 // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://checkout.infinitepay.io/abrechozeira/{{1}})
                 // E passamos o transacaoId como a variável do botão.
-                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, transacaoId);
+                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, transacaoId, language);
                 
                 if (sucesso)
                 {
@@ -1117,11 +1151,12 @@ namespace ABrechozeiraApp.Controllers
             if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
                 var template = _config["WhatsApp:TemplateRastreio"] ?? "rastreio_envio";
+                var language = _config["WhatsApp:TemplateRastreioLanguage"] ?? "en";
                 var bodyParams = new List<string> { map.Nome, info.Tracking };
                 
                 // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://rastreamento.correios.com.br/app/index.php?codigo={{1}})
                 // E passamos o código de rastreio como a variável do botão.
-                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, info.Tracking);
+                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, info.Tracking, language);
                 
                 if (sucesso)
                 {

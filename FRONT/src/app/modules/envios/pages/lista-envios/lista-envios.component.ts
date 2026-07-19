@@ -333,7 +333,8 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar WhatsApp.', cssClass: 'e-toast-danger' });
+          const errMsg = err.error?.message || 'Falha ao enviar WhatsApp.';
+          if (this.toast) this.toast.show({ title: 'Erro', content: errMsg, cssClass: 'e-toast-danger' });
         }
       });
     } else {
@@ -349,7 +350,8 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar WhatsApp.', cssClass: 'e-toast-danger' });
+          const errMsg = err.error?.message || 'Falha ao enviar WhatsApp.';
+          if (this.toast) this.toast.show({ title: 'Erro', content: errMsg, cssClass: 'e-toast-danger' });
         }
       });
     }

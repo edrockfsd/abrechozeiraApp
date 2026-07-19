@@ -73,3 +73,4 @@ appsettings.Development.json
 # Arquivos sensíveis e logs gerados localmente
 API/*.txt
 API/InfinitePayTags.json
+scratch_db/

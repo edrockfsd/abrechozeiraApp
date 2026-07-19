@@ -61,6 +61,14 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/public/pages/consulta-arremates/consulta-arremates.component').then(m => m.ConsultaArrematesComponent)
   },
   {
+    path: 'politica-privacidade',
+    loadComponent: () => import('./modules/public/pages/politica-privacidade/politica-privacidade.component').then(m => m.PoliticaPrivacidadeComponent)
+  },
+  {
+    path: 'politica-de-privacidade',
+    loadComponent: () => import('./modules/public/pages/politica-privacidade/politica-privacidade.component').then(m => m.PoliticaPrivacidadeComponent)
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
   },
