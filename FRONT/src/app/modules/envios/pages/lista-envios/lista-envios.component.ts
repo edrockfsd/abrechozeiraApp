@@ -108,7 +108,7 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
                 tracking: e.tracking || 'Aguardando postagem',
                 statusPagamento: mapInfo ? (mapInfo.statusPagamento || mapInfo.StatusPagamento) : 'N/A',
                 statusSuperfrete: mapInfo ? (mapInfo.statusSuperfrete || mapInfo.StatusSuperfrete) : e.statusLabel,
-                email: mapInfo ? (mapInfo.email || mapInfo.Email) : '',
+                email: (mapInfo ? (mapInfo.email || mapInfo.Email) : null) || e.email || e.Email || '',
                 transacaoId: transacaoId,
                 emailCotacaoEnviado: mapInfo ? (mapInfo.emailCotacaoEnviado || mapInfo.EmailCotacaoEnviado) : false,
                 emailRastreioEnviado: mapInfo ? (mapInfo.emailRastreioEnviado || mapInfo.EmailRastreioEnviado) : false,
@@ -231,43 +231,47 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
 
   onEnviarRastreiosSelecionados(): void {
     const selecionados = this.grid.getSelectedRecords() as any[];
-    const enviosParaRastreio = selecionados.filter(e => e.id && e.email);
+    
+    // Filtra apenas encomendas com etiqueta que NÃO foram entregues nem canceladas
+    const enviosParaProcessar = selecionados.filter(e => e.id && e.status !== 'delivered' && e.status !== 'cancelled');
 
-    if (enviosParaRastreio.length === 0) {
-      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Nenhum selecionado possui etiqueta e e-mail.', cssClass: 'e-toast-warning' });
+    if (selecionados.length > 0 && enviosParaProcessar.length === 0) {
+      if (this.toast) this.toast.show({ title: 'Atenção', content: 'As encomendas selecionadas já foram entregues ou canceladas.', cssClass: 'e-toast-warning' });
       return;
     }
 
-    this.enviandoRastreiosLote = true;
+    if (enviosParaProcessar.length === 0) {
+      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Selecione ao menos um envio pendente/postado para enviar o rastreio.', cssClass: 'e-toast-warning' });
+      return;
+    }
 
-    const payload = {
-      envios: enviosParaRastreio.map(e => ({
-        etiquetaId: e.id,
-        email: e.email,
-        nome: e.destinatario
-      }))
-    };
-
-    this.envioLoteService.enviarRastreioLote(payload).subscribe({
-      next: (res) => {
-        this.enviandoRastreiosLote = false;
-        if (res.totalErro > 0) {
-          const nomesErros = res.erros.map((err: any) => `${err.nome} (${err.erro})`).join(', ');
-          if (this.toast) this.toast.show({
-            title: 'Atenção',
-            content: `${res.totalSucesso} e-mail(s) enviado(s). Erro(s) em ${res.totalErro}: ${nomesErros}`,
-            cssClass: 'e-toast-warning'
-          });
-        } else {
-          if (this.toast) this.toast.show({ title: 'Sucesso', content: `${res.totalSucesso} e-mail(s) enviado(s)!`, cssClass: 'e-toast-success' });
-        }
-      },
-      error: (err) => {
-        console.error('Erro ao enviar rastreios:', err);
-        this.enviandoRastreiosLote = false;
-        if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao enviar rastreios.', cssClass: 'e-toast-danger' });
-      }
+    // Dispara a notificação de WhatsApp de rastreio para cada envio válido selecionado
+    enviosParaProcessar.forEach(row => {
+      this.onEnviarWhatsApp(row, 'rastreio');
     });
+
+    // Se houver e-mails válidos, envia também a notificação por e-mail em lote
+    const enviosComEmail = enviosParaProcessar.filter(e => !!e.email);
+    if (enviosComEmail.length > 0) {
+      this.enviandoRastreiosLote = true;
+      const payload = {
+        envios: enviosComEmail.map(e => ({
+          etiquetaId: e.id,
+          email: e.email,
+          nome: e.destinatario
+        }))
+      };
+
+      this.envioLoteService.enviarRastreioLote(payload).subscribe({
+        next: (res) => {
+          this.enviandoRastreiosLote = false;
+          if (this.toast) this.toast.show({ title: 'Sucesso', content: `${res.totalSucesso} e-mail(s) de rastreio enviado(s)!`, cssClass: 'e-toast-success' });
+        },
+        error: () => {
+          this.enviandoRastreiosLote = false;
+        }
+      });
+    }
   }
 
   onNovoPedido(): void {
@@ -339,7 +343,15 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
       });
     } else {
       if (!row.id) return;
-      this.envioLoteService.enviarWhatsAppRastreio(row.id).subscribe({
+      if (row.status === 'delivered') {
+        if (this.toast) this.toast.show({ title: 'Atenção', content: 'Esta encomenda já foi entregue ao destinatário.', cssClass: 'e-toast-warning' });
+        return;
+      }
+      if (row.status === 'cancelled') {
+        if (this.toast) this.toast.show({ title: 'Atenção', content: 'Esta encomenda foi cancelada.', cssClass: 'e-toast-warning' });
+        return;
+      }
+      this.envioLoteService.enviarWhatsAppRastreio(row.id, row.destinatario, row.email).subscribe({
         next: (res) => {
           row.whatsAppRastreioEnviado = true;
           this.grid.refresh();

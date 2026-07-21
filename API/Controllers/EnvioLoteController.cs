@@ -1006,11 +1006,11 @@ namespace ABrechozeiraApp.Controllers
 
             var templateName = !string.IsNullOrWhiteSpace(template) 
                 ? template 
-                : (_config["WhatsApp:TemplateCotacao"] ?? "acotacao_frete");
+                : (_config["WhatsApp:TemplateHelloWorld"] ?? "hello_world");
 
             var lang = !string.IsNullOrWhiteSpace(idioma) 
                 ? idioma 
-                : (_config["WhatsApp:TemplateCotacaoLanguage"] ?? "en");
+                : "en_US";
 
             var sucesso = await _whatsApp.SendTemplateMessageAsync(
                 toPhoneNumber: telefone,
@@ -1023,6 +1023,32 @@ namespace ABrechozeiraApp.Controllers
                 return Ok(new { message = $"✅ Template '{templateName}' ({lang}) enviado com sucesso para {telefone}." });
 
             return StatusCode(500, new { message = $"❌ Falha ao enviar template '{templateName}' ({lang}) para {telefone}. Verifique os logs da API." });
+        }
+
+        /// <summary>
+        /// Endpoint de TESTE de Rastreio: envia o template rastreio_envio_v2 com dados de exemplo.
+        /// Exemplo: POST /api/EnvioLote/TestarWhatsAppRastreio?telefone=5541999999999
+        /// </summary>
+        [HttpPost("TestarWhatsAppRastreio")]
+        public async Task<IActionResult> TestarWhatsAppRastreio(
+            [FromQuery] string telefone, 
+            [FromQuery] string? nome = "Ana Souza", 
+            [FromQuery] string? transportadora = "PAC Correios", 
+            [FromQuery] string? codigoRastreio = "NL123456789BR")
+        {
+            if (string.IsNullOrWhiteSpace(telefone))
+                return BadRequest(new { message = "Informe o parâmetro 'telefone' (ex: 5541999999999)." });
+
+            var sucesso = await _whatsApp.EnviarRastreioEnvioAsync(
+                destino: telefone,
+                nomeCliente: nome ?? "Ana Souza",
+                transportadora: transportadora ?? "PAC Correios",
+                codigoRastreio: codigoRastreio ?? "NL123456789BR");
+
+            if (sucesso)
+                return Ok(new { message = $"✅ Template de rastreio enviado com sucesso para {telefone}." });
+
+            return StatusCode(500, new { message = $"❌ Falha ao enviar template de rastreio para {telefone}. Verifique os logs da API." });
         }
 
 
@@ -1090,13 +1116,12 @@ namespace ABrechozeiraApp.Controllers
             
             if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
-                var template = _config["WhatsApp:TemplateCotacao"] ?? "acotacao_frete";
-                var language = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "en";
-                var bodyParams = new List<string> { map.Nome, preco.ToString("F2"), servico };
-                
-                // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://checkout.infinitepay.io/abrechozeira/{{1}})
-                // E passamos o transacaoId como a variável do botão.
-                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, transacaoId, language);
+                var sucesso = await _whatsApp.EnviarCotacaoFreteAsync(
+                    destino: telefone,
+                    nomeCliente: map.Nome,
+                    valorFrete: preco,
+                    modalidade: servico,
+                    checkoutSlug: transacaoId);
                 
                 if (sucesso)
                 {
@@ -1108,41 +1133,63 @@ namespace ABrechozeiraApp.Controllers
             }
 
             // Fallback: Link manual
-            var linkManual = $"https://wa.me/{new string(telefone.Where(char.IsDigit).ToArray())}?text={Uri.EscapeDataString(mensagem)}";
+            var linkManual = $"https://wa.me/{WhatsAppService.NormalizarNumeroBrasil(telefone)}?text={Uri.EscapeDataString(mensagem)}";
             map.WhatsAppCotacaoEnviado = true;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
         }
 
         [HttpPost("EnviarWhatsAppRastreio/{etiquetaId}")]
-        public async Task<IActionResult> EnviarWhatsAppRastreio(string etiquetaId)
+        public async Task<IActionResult> EnviarWhatsAppRastreio(string etiquetaId, [FromQuery] string? nome = null, [FromQuery] string? email = null)
         {
             var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.EtiquetaId == etiquetaId);
-            if (map == null) return NotFound(new { message = "Envio não encontrado." });
-
-            // Buscar o telefone do cliente na tabela Pessoa
-            string? telefone = null;
-            if (!string.IsNullOrWhiteSpace(map.Email))
-            {
-                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Email == map.Email);
-                telefone = pessoa?.Telefone;
-            }
-            if (string.IsNullOrWhiteSpace(telefone))
-            {
-                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Nome == map.Nome);
-                telefone = pessoa?.Telefone;
-            }
-
-            if (string.IsNullOrWhiteSpace(telefone))
-            {
-                return BadRequest(new { message = "Telefone do cliente não encontrado no cadastro do sistema." });
-            }
-
             var info = await _superfrete.ObterEtiquetaAsync(etiquetaId);
-            if (info == null || string.IsNullOrWhiteSpace(info.Tracking))
-                return BadRequest(new { message = "Rastreio não disponível." });
 
-            var mensagem = $"Olá {map.Nome}, sua encomenda foi postada via {info.ServiceName}! O código de rastreio é {info.Tracking}. Você pode acompanhar pelo site dos Correios.";
+            string nomeCliente = map?.Nome ?? (!string.IsNullOrWhiteSpace(nome) ? nome : info?.Destinatario ?? "Cliente");
+            string? emailCliente = map?.Email ?? (!string.IsNullOrWhiteSpace(email) ? email : info?.Email);
+            if (info != null && (info.Status == "delivered" || info.Status == "cancelled"))
+            {
+                var statusMsg = info.Status == "delivered" ? "já foi entregue ao destinatário" : "foi cancelada";
+                return BadRequest(new { message = $"Esta encomenda {statusMsg}." });
+            }
+
+            string? telefone = null;
+
+            // 1. Tenta buscar na tabela Pessoa pelo E-mail
+            if (!string.IsNullOrWhiteSpace(emailCliente))
+            {
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Email == emailCliente);
+                telefone = pessoa?.Telefone;
+            }
+
+            // 2. Tenta buscar na tabela Pessoa pelo Nome Completo ou pelo Primeiro Nome
+            if (string.IsNullOrWhiteSpace(telefone) && !string.IsNullOrWhiteSpace(nomeCliente))
+            {
+                var primeiroNome = nomeCliente.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+                var pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => 
+                    p.Nome != null && (
+                        p.Nome == nomeCliente || 
+                        p.Nome == primeiroNome || 
+                        p.Nome.StartsWith(primeiroNome) ||
+                        nomeCliente.StartsWith(p.Nome)
+                    )
+                );
+                telefone = pessoa?.Telefone;
+            }
+
+            // 3. Fallback: telefone presente na própria etiqueta da Superfrete
+            if (string.IsNullOrWhiteSpace(telefone) && info != null)
+            {
+                telefone = info.Phone;
+            }
+
+            if (string.IsNullOrWhiteSpace(telefone))
+            {
+                return BadRequest(new { message = "Telefone do cliente não encontrado no cadastro do sistema nem na etiqueta." });
+            }
+
+            var transportadora = !string.IsNullOrWhiteSpace(info.ServiceName) ? info.ServiceName : "PAC Correios";
+            var mensagem = $"Olá {nomeCliente}, sua encomenda foi postada via {transportadora}! O código de rastreio é {info.Tracking}. Você pode acompanhar pelo site dos Correios.";
             
             // Abordagem via Cloud API da Meta se configurado
             var token = _config["WhatsApp:ApiToken"];
@@ -1150,26 +1197,30 @@ namespace ABrechozeiraApp.Controllers
             
             if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
-                var template = _config["WhatsApp:TemplateRastreio"] ?? "rastreio_envio";
-                var language = _config["WhatsApp:TemplateRastreioLanguage"] ?? "en";
-                var bodyParams = new List<string> { map.Nome, info.Tracking };
-                
-                // O botão de URL dinâmica na Meta deve ser configurado como base (ex: https://rastreamento.correios.com.br/app/index.php?codigo={{1}})
-                // E passamos o código de rastreio como a variável do botão.
-                var sucesso = await _whatsApp.SendTemplateMessageAsync(telefone, template, bodyParams, info.Tracking, language);
+                var sucesso = await _whatsApp.EnviarRastreioEnvioAsync(
+                    destino: telefone,
+                    nomeCliente: nomeCliente,
+                    transportadora: transportadora,
+                    codigoRastreio: info.Tracking);
                 
                 if (sucesso)
                 {
-                    map.WhatsAppRastreioEnviado = true;
-                    await _context.SaveChangesAsync();
+                    if (map != null)
+                    {
+                        map.WhatsAppRastreioEnviado = true;
+                        await _context.SaveChangesAsync();
+                    }
                     return Ok(new { message = "Enviado via API da Meta", url = "", hibrido = false });
                 }
                 return StatusCode(500, new { message = "Falha ao enviar WhatsApp via API da Meta." });
             }
 
-            var linkManual = $"https://wa.me/{new string(telefone.Where(char.IsDigit).ToArray())}?text={Uri.EscapeDataString(mensagem)}";
-            map.WhatsAppRastreioEnviado = true;
-            await _context.SaveChangesAsync();
+            var linkManual = $"https://wa.me/{WhatsAppService.NormalizarNumeroBrasil(telefone)}?text={Uri.EscapeDataString(mensagem)}";
+            if (map != null)
+            {
+                map.WhatsAppRastreioEnviado = true;
+                await _context.SaveChangesAsync();
+            }
             return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
         }
 

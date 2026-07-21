@@ -74,7 +74,10 @@ export class EnvioLoteService {
   }
 
   /** Notifica o rastreio via WhatsApp. */
-  enviarWhatsAppRastreio(etiquetaId: string): Observable<{ message: string, url: string, hibrido: boolean }> {
-    return this.http.post<{ message: string, url: string, hibrido: boolean }>(`${this.apiUrl}/EnviarWhatsAppRastreio/${etiquetaId}`, null);
+  enviarWhatsAppRastreio(etiquetaId: string, nome?: string, email?: string): Observable<{ message: string, url: string, hibrido: boolean }> {
+    const params: any = {};
+    if (nome) params.nome = nome;
+    if (email) params.email = email;
+    return this.http.post<{ message: string, url: string, hibrido: boolean }>(`${this.apiUrl}/EnviarWhatsAppRastreio/${etiquetaId}`, null, { params });
   }
 }

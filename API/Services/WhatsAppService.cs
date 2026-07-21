@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -28,7 +28,7 @@ namespace ABrechozeiraApp.Services
         private HttpClient CriarCliente()
         {
             var token = _config["WhatsApp:ApiToken"] ?? "";
-            var baseUrl = (_config["WhatsApp:BaseUrl"] ?? "https://graph.facebook.com/v22.0").TrimEnd('/') + "/";
+            var baseUrl = (_config["WhatsApp:BaseUrl"] ?? "https://graph.facebook.com/v23.0").TrimEnd('/') + "/";
 
             _logger.LogInformation("[WhatsApp DEBUG] Token primeiros 30 chars: {T} | BaseUrl: {U}", 
                 token.Length > 30 ? token.Substring(0, 30) : token, baseUrl);
@@ -40,25 +40,49 @@ namespace ABrechozeiraApp.Services
             return client;
         }
 
+        /// <summary>
+        /// Normaliza o número de telefone brasileiro para o padrão exigido pela WhatsApp Cloud API.
+        /// O WhatsApp ID de celulares brasileiros fora dos DDDs 11-19, 21, 22, 24, 27-28 NÃO tem o nono dígito.
+        /// Esta função remove o 9 apenas nos DDDs afetados (ex: 5541985130777 -> 554185130777).
+        /// </summary>
+        public static string NormalizarNumeroBrasil(string numero)
+        {
+            if (string.IsNullOrWhiteSpace(numero)) return "";
 
+            var d = new string(numero.Where(char.IsDigit).ToArray());
 
-        public async Task<bool> SendTemplateMessageAsync(string toPhoneNumber, string templateName, List<string> bodyParameters, string buttonUrlParameter, string languageCode = "pt_BR")
+            if (d.StartsWith("0")) d = d.Substring(1);
+            if (!d.StartsWith("55")) d = "55" + d;
+
+            if (d.Length != 13) return d; // Já em 12 dígitos ou formato não-padrão
+
+            if (int.TryParse(d.Substring(2, 2), out int ddd))
+            {
+                bool mantemNove = (ddd >= 11 && ddd <= 19) || ddd == 21 || ddd == 22
+                               || ddd == 24 || ddd == 27 || ddd == 28;
+
+                if (!mantemNove && d[4] == '9')
+                {
+                    return d.Remove(4, 1);
+                }
+            }
+
+            return d;
+        }
+
+        /// <summary>
+        /// Envia uma mensagem baseada em template cadastrado na Meta Cloud API.
+        /// </summary>
+        public async Task<bool> SendTemplateMessageAsync(
+            string toPhoneNumber, 
+            string templateName, 
+            List<string> bodyParameters, 
+            string buttonUrlParameter, 
+            string languageCode = "pt_BR")
         {
             try
             {
-                // Limpa o número de telefone (apenas dígitos)
-                var cleanPhone = new string(toPhoneNumber.Where(char.IsDigit).ToArray());
-                
-                // Garante que tem DDI (55 para Brasil). Se começar com 0, remove.
-                if (cleanPhone.StartsWith("0"))
-                {
-                    cleanPhone = cleanPhone.Substring(1);
-                }
-                if (!cleanPhone.StartsWith("55") && cleanPhone.Length <= 11)
-                {
-                    cleanPhone = "55" + cleanPhone;
-                }
-
+                var cleanPhone = NormalizarNumeroBrasil(toPhoneNumber);
                 var client = CriarCliente();
                 var phoneId = _config["WhatsApp:PhoneId"] ?? "";
 
@@ -73,11 +97,7 @@ namespace ABrechozeiraApp.Services
                 // Componente do corpo (variáveis {{1}}, {{2}}, etc.)
                 if (bodyParameters != null && bodyParameters.Count > 0)
                 {
-                    var bodyParams = new List<object>();
-                    foreach (var param in bodyParameters)
-                    {
-                        bodyParams.Add(new { type = "text", text = param });
-                    }
+                    var bodyParams = bodyParameters.Select(param => new { type = "text", text = param }).ToList<object>();
                     componentsList.Add(new
                     {
                         type = "body",
@@ -109,11 +129,15 @@ namespace ABrechozeiraApp.Services
                     {
                         name = templateName,
                         language = new { code = languageCode },
-                        components = componentsList
+                        components = componentsList.Count > 0 ? componentsList : null
                     }
                 };
 
-                var jsonPayload = JsonSerializer.Serialize(payload);
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
+                var jsonPayload = JsonSerializer.Serialize(payload, jsonOptions);
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync($"{phoneId}/messages", content);
@@ -133,6 +157,85 @@ namespace ABrechozeiraApp.Services
                 _logger.LogError(ex, "Erro de exceção ao enviar mensagem de template do WhatsApp.");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// cotacao_frete_v2 — cotação de frete com link de pagamento.
+        /// </summary>
+        public Task<bool> EnviarCotacaoFreteAsync(
+            string destino,
+            string nomeCliente,
+            decimal valorFrete,
+            string modalidade,
+            string checkoutSlug)
+        {
+            var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v2";
+            var lang = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "pt_BR";
+
+            var bodyParams = new List<string>
+            {
+                nomeCliente,
+                valorFrete.ToString("0.00", CultureInfo.InvariantCulture),
+                modalidade
+            };
+
+            return SendTemplateMessageAsync(destino, template, bodyParams, checkoutSlug, lang);
+        }
+
+        /// <summary>
+        /// rastreio_envio_v2 — aviso de postagem com rastreio dos Correios.
+        /// </summary>
+        public Task<bool> EnviarRastreioEnvioAsync(
+            string destino,
+            string nomeCliente,
+            string transportadora,
+            string codigoRastreio)
+        {
+            var template = _config["WhatsApp:TemplateRastreio"] ?? "rastreio_envio_v2";
+            var lang = _config["WhatsApp:TemplateRastreioLanguage"] ?? "pt_BR";
+
+            var bodyParams = new List<string>
+            {
+                nomeCliente,
+                transportadora,
+                codigoRastreio
+            };
+
+            return SendTemplateMessageAsync(destino, template, bodyParams, codigoRastreio, lang);
+        }
+
+        /// <summary>
+        /// resumo_compra_v1 — resumo do pedido com link de pagamento.
+        /// </summary>
+        public Task<bool> EnviarResumoCompraAsync(
+            string destino,
+            string nomeCliente,
+            string numeroPedido,
+            string itens,
+            decimal valorTotal,
+            string checkoutSlug)
+        {
+            var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v1";
+            var lang = _config["WhatsApp:TemplateResumoCompraLanguage"] ?? "pt_BR";
+
+            var bodyParams = new List<string>
+            {
+                nomeCliente,
+                numeroPedido,
+                itens,
+                valorTotal.ToString("0.00", CultureInfo.InvariantCulture)
+            };
+
+            return SendTemplateMessageAsync(destino, template, bodyParams, checkoutSlug, lang);
+        }
+
+        /// <summary>
+        /// hello_world — template de teste da Meta.
+        /// </summary>
+        public Task<bool> EnviarHelloWorldAsync(string destino)
+        {
+            var template = _config["WhatsApp:TemplateHelloWorld"] ?? "hello_world";
+            return SendTemplateMessageAsync(destino, template, new List<string>(), "", "en_US");
         }
     }
 }

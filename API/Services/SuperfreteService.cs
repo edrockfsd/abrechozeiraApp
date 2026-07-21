@@ -270,6 +270,12 @@ namespace ABrechozeiraApp.Services
 
         [JsonPropertyName("destinatario")]
         public string? Destinatario { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("phone")]
+        public string? Phone { get; set; }
     }
 
     // ─── Service ──────────────────────────────────────────────────────────────────
@@ -421,12 +427,20 @@ namespace ABrechozeiraApp.Services
                         if (item.TryGetProperty("created_at", out var createdEl))
                             etiqueta.CreatedAt = createdEl.GetString();
 
-                        // Destinatario (from to.name)
+                        // Destinatario (from to.name, to.email, to.phone)
                         if (item.TryGetProperty("to", out var toEl) && toEl.ValueKind == JsonValueKind.Object)
                         {
                             if (toEl.TryGetProperty("name", out var toNameEl))
                             {
                                 etiqueta.Destinatario = toNameEl.GetString() ?? "";
+                            }
+                            if (toEl.TryGetProperty("email", out var toEmailEl))
+                            {
+                                etiqueta.Email = toEmailEl.GetString() ?? "";
+                            }
+                            if (toEl.TryGetProperty("phone", out var toPhoneEl))
+                            {
+                                etiqueta.Phone = toPhoneEl.GetString() ?? "";
                             }
                         }
 
