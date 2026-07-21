@@ -69,6 +69,19 @@ jobs:
               'FromEmail': '${{ secrets.PROD_EMAIL_USER }}',
               'FromName': 'A Brechozeira',
               'EnableSsl': 'true'
+            },
+            'WhatsApp': {
+              'ApiToken': '${{ secrets.PROD_WHATSAPP_API_TOKEN }}' or 'EAAblKLwZCAZAUBSDEFZBZBJy3kfZCcf2KgZBNNhij4b72shLfaJKJXgSWQpw8V5oeXo6m4FuVQgrfyMFmzZC9g8mZC55cmyQWZBxsKIw6ZBR5ERDzKj9W4CFQMraN35LmarvFhJwicPbntGw1KJXO7TLdZAq0QThllClUWknrp9tyZATnKHXkDGoApSGhxgbfLLvQPZACcQZDZD',
+              'PhoneId': '${{ secrets.PROD_WHATSAPP_PHONE_ID }}' or '1253160761208868',
+              'BusinessAccountId': '1004235942391029',
+              'TemplateCotacao': 'cotacao_frete_v2',
+              'TemplateCotacaoLanguage': 'pt_BR',
+              'TemplateRastreio': 'rastreio_envio_v2',
+              'TemplateRastreioLanguage': 'pt_BR',
+              'TemplateResumoCompra': 'resumo_compra_v1',
+              'TemplateResumoCompraLanguage': 'pt_BR',
+              'TemplateHelloWorld': 'hello_world',
+              'BaseUrl': 'https://graph.facebook.com/v23.0'
             }
           }
           with open('API/appsettings.json', 'w') as f:
