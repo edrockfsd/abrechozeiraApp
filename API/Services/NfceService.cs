@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Security;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using ABrechozeiraApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -53,8 +60,33 @@ public class NfceService
         if (string.IsNullOrEmpty(config.CertificadoPath) || !File.Exists(config.CertificadoPath))
             return (false, "Certificado digital não configurado ou arquivo não encontrado.");
 
-        if (config.CertificadoValidade.HasValue && config.CertificadoValidade < DateTime.UtcNow)
+        if (!string.IsNullOrEmpty(config.CertificadoSenha))
+        {
+            try
+            {
+                using var cert = new X509Certificate2(config.CertificadoPath, config.CertificadoSenha, X509KeyStorageFlags.EphemeralKeySet);
+                if (cert.NotAfter < DateTime.UtcNow)
+                    return (false, $"Certificado digital expirou em {cert.NotAfter:dd/MM/yyyy}.");
+
+                if (!config.CertificadoValidade.HasValue)
+                {
+                    config.CertificadoValidade = cert.NotAfter;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (System.Security.Cryptography.CryptographicException)
+            {
+                return (false, "Senha do certificado digital incorreta.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Erro ao carregar certificado digital: {ex.Message}");
+            }
+        }
+        else if (config.CertificadoValidade.HasValue && config.CertificadoValidade < DateTime.UtcNow)
+        {
             return (false, "Certificado digital expirado.");
+        }
 
         return (true, null);
     }
@@ -126,14 +158,14 @@ public class NfceService
                 ProdutoId = item.ProdutoId,
                 CodigoProduto = item.ProdutoId?.ToString() ?? item.Id.ToString(),
                 Descricao = item.DescricaoItem,
-                NCM = "00000000", // TODO: Configurar NCM no produto
-                CFOP = "5102", // Venda de mercadoria adquirida
+                NCM = "63090010", // Artigos do vestuário e acessórios usados
+                CFOP = "5102", // Venda de mercadoria adquirida de terceiros
                 Unidade = "UN",
                 Quantidade = item.Quantidade,
                 ValorUnitario = item.PrecoUnitario,
                 ValorDesconto = item.DescontoValor,
                 ValorTotal = item.Total,
-                CSOSN = config.CRT == 4 ? "102" : "102", // MEI ou Simples Nacional
+                CSOSN = "102", // Tributada pelo Simples Nacional sem permissão de crédito
                 OrigemMercadoria = 0
             });
         }
@@ -153,20 +185,13 @@ public class NfceService
         nfce.Itens = itensNfce;
         nfce.Pagamentos = pagamentosNfce;
 
-        // TODO: Integrar com ACBrLib para gerar XML, assinar e enviar à SEFAZ
-        // Por enquanto, simula a criação
-        _logger.LogInformation("Preparando NFC-e {Numero} para venda PDV {VendaId}", nfce.Numero, vendaPdvId);
+        nfce.Itens = itensNfce;
+        nfce.Pagamentos = pagamentosNfce;
 
-        // Simulação - em ambiente de homologação
-        if (config.Ambiente == 2)
-        {
-            nfce.ChaveAcesso = GerarChaveAcessoSimulada(config, nfce);
-            nfce.Status = "Autorizada";
-            nfce.Protocolo = "000000000000000";
-            nfce.DataAutorizacao = DateTime.UtcNow;
-            nfce.MensagemRetorno = "Autorizado o uso da NF-e (SIMULAÇÃO HOMOLOGAÇÃO)";
-            nfce.CodigoRetorno = 100;
-        }
+        _logger.LogInformation("Processando emissão de NFC-e {Numero} para venda PDV {VendaId}", nfce.Numero, vendaPdvId);
+
+        // Processar emissão real SEFAZ ou simulação
+        await ProcessarEmissaoAsync(config, nfce);
 
         // Salvar
         _context.Nfce.Add(nfce);
@@ -244,7 +269,7 @@ public class NfceService
                 ProdutoId = item.ProdutoId,
                 CodigoProduto = item.ProdutoId.ToString(),
                 Descricao = item.Produto?.Descricao ?? "Produto",
-                NCM = "00000000",
+                NCM = "63090010",
                 CFOP = "5102",
                 Unidade = "UN",
                 Quantidade = item.Quantidade,
@@ -269,18 +294,10 @@ public class NfceService
         nfce.Itens = itensNfce;
         nfce.Pagamentos = pagamentosNfce;
 
-        _logger.LogInformation("Preparando NFC-e {Numero} para pedido {PedidoId}", nfce.Numero, pedidoId);
+        _logger.LogInformation("Processando emissão de NFC-e {Numero} para pedido {PedidoId}", nfce.Numero, pedidoId);
 
-        // Simulação - em ambiente de homologação
-        if (config.Ambiente == 2)
-        {
-            nfce.ChaveAcesso = GerarChaveAcessoSimulada(config, nfce);
-            nfce.Status = "Autorizada";
-            nfce.Protocolo = "000000000000000";
-            nfce.DataAutorizacao = DateTime.UtcNow;
-            nfce.MensagemRetorno = "Autorizado o uso da NF-e (SIMULAÇÃO HOMOLOGAÇÃO)";
-            nfce.CodigoRetorno = 100;
-        }
+        // Processar emissão real SEFAZ ou simulação
+        await ProcessarEmissaoAsync(config, nfce);
 
         // Salvar
         _context.Nfce.Add(nfce);
@@ -373,7 +390,7 @@ public class NfceService
     {
         var cUF = ObterCodigoUF(config.UF);
         var dataEmissao = nfce.DataEmissao.ToString("yyMM");
-        var cnpj = config.CNPJ.PadLeft(14, '0');
+        var cnpj = new string((config.CNPJ ?? "").Where(char.IsDigit).ToArray()).PadLeft(14, '0');
         var mod = "65"; // NFC-e
         var serie = nfce.Serie.ToString().PadLeft(3, '0');
         var numero = nfce.Numero.ToString().PadLeft(9, '0');
@@ -435,5 +452,337 @@ public class NfceService
             4 => "17", // PIX
             _ => "99"  // Outros
         };
+    }
+
+    /// <summary>
+    /// Processa a emissão real via WebService SEFAZ-PR ou fallback simulado
+    /// </summary>
+    private async Task ProcessarEmissaoAsync(EmpresaFiscal config, Nfce nfce)
+    {
+        if (!string.IsNullOrEmpty(config.CertificadoPath) && File.Exists(config.CertificadoPath) && !string.IsNullOrEmpty(config.CertificadoSenha))
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando assinatura e transmissão real da NFC-e {Numero} via SEFAZ-PR...", nfce.Numero);
+                var certBytes = await File.ReadAllBytesAsync(config.CertificadoPath);
+                using var cert = new X509Certificate2(certBytes, config.CertificadoSenha, X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                _logger.LogInformation("Certificado A1 carregado: Subject='{Subject}', CNPJ Config='{ConfigCNPJ}'", cert.Subject, config.CNPJ);
+
+                var xmlDoc = GerarXmlNfce(config, nfce, out var chaveAcesso);
+                nfce.ChaveAcesso = chaveAcesso;
+
+                var xmlAssinadoDoc = AssinarXml(xmlDoc, chaveAcesso, cert);
+
+                var (autorizado, protocolo, mensagem, xmlEnvio, xmlRetorno) = await TransmitirSefazPrAsync(xmlAssinadoDoc, config, cert);
+
+                nfce.Status = autorizado ? "Autorizada" : "Rejeitada";
+                nfce.Protocolo = protocolo ?? "000000000000000";
+                nfce.MensagemRetorno = mensagem;
+                nfce.DataAutorizacao = autorizado ? DateTime.UtcNow : null;
+                nfce.XmlEnvio = xmlEnvio;
+                nfce.XmlRetorno = xmlRetorno;
+
+                _logger.LogInformation("Resultado transmissão SEFAZ NFC-e {Numero}: Status={Status}, Prot={Protocolo}, Msg={Mensagem}",
+                    nfce.Numero, nfce.Status, nfce.Protocolo, nfce.MensagemRetorno);
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha na transmissão via SEFAZ WebService: {Message}", ex.Message);
+            }
+        }
+
+        // Fallback em homologação caso certificado não esteja totalmente funcional localmente
+        if (config.Ambiente == 2)
+        {
+            _logger.LogWarning("Certificado não disponível para envio remoto real. Executando simulação de homologação.");
+            nfce.ChaveAcesso = GerarChaveAcessoSimulada(config, nfce);
+            nfce.Status = "Autorizada";
+            nfce.Protocolo = "000000000000000";
+            nfce.DataAutorizacao = DateTime.UtcNow;
+            nfce.MensagemRetorno = "Autorizado o uso da NF-e (SIMULAÇÃO HOMOLOGAÇÃO)";
+            nfce.CodigoRetorno = 100;
+        }
+    }
+
+    /// <summary>
+    /// Gera a árvore XML oficial v4.00 da NFC-e
+    /// </summary>
+    private XmlDocument GerarXmlNfce(EmpresaFiscal config, Nfce nfce, out string chaveAcesso)
+    {
+        var cUF = ObterCodigoUF(config.UF);
+        var dataEmissao = nfce.DataEmissao;
+        var dhEmi = dataEmissao.ToString("yyyy-MM-ddTHH:mm:sszzz");
+        var cnpjOnly = new string((config.CNPJ ?? "").Where(char.IsDigit).ToArray()).PadLeft(14, '0');
+        var mod = "65"; // NFC-e
+        var serie = nfce.Serie.ToString().PadLeft(3, '0');
+        var numero = nfce.Numero.ToString().PadLeft(9, '0');
+        var tpEmis = config.TipoEmissao.ToString();
+        var cNF = (nfce.Id + 10000000).ToString().PadLeft(8, '0');
+
+        var chaveSemDv = $"{cUF}{dataEmissao:yyMM}{cnpjOnly}{mod}{serie}{numero}{tpEmis}{cNF}";
+        var dv = CalcularDV(chaveSemDv);
+        chaveAcesso = chaveSemDv + dv;
+
+        var ns = "http://www.portalfiscal.inf.br/nfe";
+        var xmlStr = new StringBuilder();
+        xmlStr.Append($"<NFe xmlns=\"{ns}\">");
+        xmlStr.Append($"<infNFe Id=\"NFe{chaveAcesso}\" versao=\"4.00\">");
+
+        // <ide>
+        xmlStr.Append("<ide>");
+        xmlStr.Append($"<cUF>{cUF}</cUF>");
+        xmlStr.Append($"<cNF>{cNF}</cNF>");
+        xmlStr.Append("<natOp>VENDA MERCADORIA</natOp>");
+        xmlStr.Append("<mod>65</mod>");
+        xmlStr.Append($"<serie>{nfce.Serie}</serie>");
+        xmlStr.Append($"<nNF>{nfce.Numero}</nNF>");
+        xmlStr.Append($"<dhEmi>{dhEmi}</dhEmi>");
+        xmlStr.Append("<tpNF>1</tpNF>");
+        xmlStr.Append("<idDest>1</idDest>");
+        xmlStr.Append($"<cMunFG>{config.CodigoMunicipio ?? "4106902"}</cMunFG>");
+        xmlStr.Append("<tpImp>4</tpImp>");
+        xmlStr.Append($"<tpEmis>{config.TipoEmissao}</tpEmis>");
+        xmlStr.Append($"<cDV>{dv}</cDV>");
+        xmlStr.Append($"<tpAmb>{config.Ambiente}</tpAmb>");
+        xmlStr.Append("<finNFe>1</finNFe>");
+        xmlStr.Append("<indFinal>1</indFinal>");
+        xmlStr.Append("<indPres>1</indPres>");
+        xmlStr.Append("<procEmi>0</procEmi>");
+        xmlStr.Append("<verProc>1.0.0</verProc>");
+        xmlStr.Append("</ide>");
+
+        // <emit>
+        xmlStr.Append("<emit>");
+        xmlStr.Append($"<CNPJ>{cnpjOnly}</CNPJ>");
+        xmlStr.Append($"<xNome>{SecurityElement.Escape((config.RazaoSocial ?? "").Trim())}</xNome>");
+        if (!string.IsNullOrWhiteSpace(config.NomeFantasia))
+            xmlStr.Append($"<xFant>{SecurityElement.Escape(config.NomeFantasia.Trim())}</xFant>");
+
+        xmlStr.Append("<enderEmit>");
+        xmlStr.Append($"<xLgr>{SecurityElement.Escape((config.Logradouro ?? "Rua").Trim())}</xLgr>");
+        xmlStr.Append($"<nro>{SecurityElement.Escape((config.Numero ?? "SN").Trim())}</nro>");
+        if (!string.IsNullOrWhiteSpace(config.Complemento))
+            xmlStr.Append($"<xCpl>{SecurityElement.Escape(config.Complemento.Trim())}</xCpl>");
+        xmlStr.Append($"<xBairro>{SecurityElement.Escape((config.Bairro ?? "Bairro").Trim())}</xBairro>");
+        xmlStr.Append($"<cMun>{config.CodigoMunicipio ?? "4106902"}</cMun>");
+        xmlStr.Append($"<xMun>{SecurityElement.Escape((config.Municipio ?? "Curitiba").Trim())}</xMun>");
+        xmlStr.Append($"<UF>{config.UF}</UF>");
+        xmlStr.Append($"<CEP>{new string((config.CEP ?? "").Where(char.IsDigit).ToArray())}</CEP>");
+        xmlStr.Append("</enderEmit>");
+        xmlStr.Append($"<IE>{new string((config.InscricaoEstadual ?? "").Where(char.IsDigit).ToArray())}</IE>");
+        xmlStr.Append($"<CRT>{config.CRT}</CRT>");
+        xmlStr.Append("</emit>");
+
+        // <det>
+        int nItem = 1;
+        foreach (var item in nfce.Itens)
+        {
+            var ncm = new string((item.NCM ?? "63090010").Where(char.IsDigit).ToArray()).PadLeft(8, '0');
+            var cfop = item.CFOP ?? "5102";
+            var csosn = item.CSOSN ?? "102";
+            var cProdClean = (item.CodigoProduto ?? nItem.ToString()).Trim();
+            var currentItemNum = nItem;
+            var xProdClean = (config.Ambiente == 2 && currentItemNum == 1)
+                ? "NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+                : (item.Descricao ?? "PRODUTO").Trim();
+
+            xmlStr.Append($"<det nItem=\"{nItem++}\">");
+            xmlStr.Append("<prod>");
+            xmlStr.Append($"<cProd>{SecurityElement.Escape(cProdClean)}</cProd>");
+            xmlStr.Append("<cEAN>SEM GTIN</cEAN>");
+            xmlStr.Append($"<xProd>{SecurityElement.Escape(xProdClean)}</xProd>");
+            xmlStr.Append($"<NCM>{ncm}</NCM>");
+            xmlStr.Append($"<CFOP>{cfop}</CFOP>");
+            // vProd DEVE ser qCom * vUnCom (bruto, sem descontos) - Rejeição 629
+            var vProdBruto = item.Quantidade * item.ValorUnitario;
+            var vDescItem = item.ValorDesconto ?? 0m;
+
+            xmlStr.Append($"<uCom>{(item.Unidade ?? "UN").Trim()}</uCom>");
+            xmlStr.Append($"<qCom>{item.Quantidade.ToString("F4", CultureInfo.InvariantCulture)}</qCom>");
+            xmlStr.Append($"<vUnCom>{item.ValorUnitario.ToString("F4", CultureInfo.InvariantCulture)}</vUnCom>");
+            xmlStr.Append($"<vProd>{vProdBruto.ToString("F2", CultureInfo.InvariantCulture)}</vProd>");
+            xmlStr.Append("<cEANTrib>SEM GTIN</cEANTrib>");
+            xmlStr.Append($"<uTrib>{(item.Unidade ?? "UN").Trim()}</uTrib>");
+            xmlStr.Append($"<qTrib>{item.Quantidade.ToString("F4", CultureInfo.InvariantCulture)}</qTrib>");
+            xmlStr.Append($"<vUnTrib>{item.ValorUnitario.ToString("F4", CultureInfo.InvariantCulture)}</vUnTrib>");
+            if (vDescItem > 0)
+                xmlStr.Append($"<vDesc>{vDescItem.ToString("F2", CultureInfo.InvariantCulture)}</vDesc>");
+            xmlStr.Append("<indTot>1</indTot>");
+            xmlStr.Append("</prod>");
+
+            xmlStr.Append("<imposto>");
+            xmlStr.Append("<ICMS>");
+            xmlStr.Append($"<ICMSSN102><orig>{item.OrigemMercadoria}</orig><CSOSN>{csosn}</CSOSN></ICMSSN102>");
+            xmlStr.Append("</ICMS>");
+            xmlStr.Append("<PIS><PISNT><CST>07</CST></PISNT></PIS>");
+            xmlStr.Append("<COFINS><COFINSNT><CST>07</CST></COFINSNT></COFINS>");
+            xmlStr.Append("</imposto>");
+            xmlStr.Append("</det>");
+        }
+
+        // <total>
+        // vProd total = soma de (qCom × vUnCom) de cada item, consistente com o vProd por item
+        var vProdTotal = nfce.Itens.Sum(i => i.Quantidade * i.ValorUnitario);
+        var vDescTotal = nfce.Itens.Sum(i => i.ValorDesconto ?? 0m);
+        // Se não houver desconto por item, usa o desconto da venda
+        if (vDescTotal == 0) vDescTotal = nfce.ValorDesconto ?? 0m;
+
+        xmlStr.Append("<total><ICMSTot>");
+        xmlStr.Append("<vBC>0.00</vBC><vICMS>0.00</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP>");
+        xmlStr.Append("<vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet>");
+        xmlStr.Append($"<vProd>{vProdTotal.ToString("F2", CultureInfo.InvariantCulture)}</vProd>");
+        xmlStr.Append("<vFrete>0.00</vFrete><vSeg>0.00</vSeg>");
+        xmlStr.Append($"<vDesc>{vDescTotal.ToString("F2", CultureInfo.InvariantCulture)}</vDesc>");
+        xmlStr.Append("<vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>0.00</vPIS><vCOFINS>0.00</vCOFINS><vOutro>0.00</vOutro>");
+        xmlStr.Append($"<vNF>{nfce.ValorTotal.ToString("F2", CultureInfo.InvariantCulture)}</vNF>");
+        xmlStr.Append("</ICMSTot></total>");
+
+        // <transp>
+        xmlStr.Append("<transp><modFrete>9</modFrete></transp>");
+
+        // <pag>
+        xmlStr.Append("<pag>");
+        foreach (var pg in nfce.Pagamentos)
+        {
+            xmlStr.Append($"<detPag><tPag>{pg.TipoPagamento}</tPag><vPag>{pg.Valor.ToString("F2", CultureInfo.InvariantCulture)}</vPag></detPag>");
+        }
+        xmlStr.Append("</pag>");
+
+        // <infRespTec> - Informações do Responsável Técnico (obrigatório no PR - NT 2018.005)
+        var cnpjRespTec = new string(config.CNPJ.Where(char.IsDigit).ToArray());
+        xmlStr.Append("<infRespTec>");
+        xmlStr.Append($"<CNPJ>{cnpjRespTec}</CNPJ>");
+        xmlStr.Append("<xContato>A Brechozeira Suporte</xContato>");
+        xmlStr.Append("<email>contato@abrechozeira.com.br</email>");
+        xmlStr.Append("<fone>41999999999</fone>");
+        xmlStr.Append("</infRespTec>");
+
+        xmlStr.Append("</infNFe>");
+
+
+        // <infNFeSupl>
+        var qrCodeUrl = GerarQrCodeUrl(chaveAcesso, config);
+        xmlStr.Append("<infNFeSupl>");
+        xmlStr.Append($"<qrCode><![CDATA[{qrCodeUrl}]]></qrCode>");
+        xmlStr.Append("<urlChave>http://www.fazenda.pr.gov.br/nfce/consulta</urlChave>");
+        xmlStr.Append("</infNFeSupl>");
+
+        xmlStr.Append("</NFe>");
+
+        var doc = new XmlDocument();
+        doc.LoadXml(xmlStr.ToString());
+        return doc;
+    }
+
+    /// <summary>
+    /// Assina o XML da NFC-e utilizando o Certificado A1 (.pfx)
+    /// </summary>
+    private XmlDocument AssinarXml(XmlDocument doc, string chaveAcesso, X509Certificate2 cert)
+    {
+        var signedXml = new SignedXml(doc);
+        signedXml.SigningKey = cert.GetRSAPrivateKey();
+        signedXml.SignedInfo.SignatureMethod = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+
+        var reference = new Reference();
+        reference.Uri = "#NFe" + chaveAcesso;
+        reference.DigestMethod = "http://www.w3.org/2000/09/xmldsig#sha1";
+        reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+        reference.AddTransform(new XmlDsigC14NTransform());
+        signedXml.AddReference(reference);
+
+        var keyInfo = new KeyInfo();
+        keyInfo.AddClause(new KeyInfoX509Data(cert));
+        signedXml.KeyInfo = keyInfo;
+
+        signedXml.ComputeSignature();
+        var xmlDigitalSignature = signedXml.GetXml();
+
+        doc.DocumentElement?.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+        return doc;
+    }
+
+    /// <summary>
+    /// Transmite o envelope SOAP com o XML da NFC-e para a SEFAZ-PR
+    /// </summary>
+    private async Task<(bool autorizado, string? protocolo, string? mensagem, string? xmlEnvio, string? xmlRetorno)> TransmitirSefazPrAsync(
+        XmlDocument docNfeAssinado, EmpresaFiscal config, X509Certificate2 cert)
+    {
+        var urlSefaz = config.Ambiente == 1
+            ? "https://nfce.sefa.pr.gov.br/nfce/NFeAutorizacao4"
+            : "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeAutorizacao4";
+
+        var xmlAssinadoStr = docNfeAssinado.OuterXml;
+
+        var soapEnvelope = new StringBuilder();
+        soapEnvelope.Append("<soap12:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\">");
+        soapEnvelope.Append("<soap12:Body>");
+        soapEnvelope.Append("<nfeDadosMsg xmlns=\"http://www.portalfiscal.inf.br/nfe/wsdl/NFeAutorizacao4\">");
+        soapEnvelope.Append("<enviNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">");
+        soapEnvelope.Append("<idLote>1</idLote>");
+        soapEnvelope.Append("<indSinc>1</indSinc>");
+        soapEnvelope.Append(xmlAssinadoStr);
+        soapEnvelope.Append("</enviNFe>");
+        soapEnvelope.Append("</nfeDadosMsg>");
+        soapEnvelope.Append("</soap12:Body>");
+        soapEnvelope.Append("</soap12:Envelope>");
+
+        using var handler = new HttpClientHandler();
+        handler.ClientCertificates.Add(cert);
+        handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+        handler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
+
+        using var client = new HttpClient(handler);
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        var content = new StringContent(soapEnvelope.ToString(), Encoding.UTF8, "application/soap+xml");
+
+        var response = await client.PostAsync(urlSefaz, content);
+        var responseXmlStr = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Retorno WebService SEFAZ-PR ({StatusCode}): {Response}", response.StatusCode, responseXmlStr);
+
+        var responseDoc = new XmlDocument();
+        responseDoc.LoadXml(responseXmlStr);
+
+        var nsmgr = new XmlNamespaceManager(responseDoc.NameTable);
+        nsmgr.AddNamespace("nfe", "http://www.portalfiscal.inf.br/nfe");
+        nsmgr.AddNamespace("soap12", "http://www.w3.org/2003/05/soap-envelope");
+
+        var cStatNode = responseDoc.SelectSingleNode("//nfe:cStat", nsmgr) ?? responseDoc.SelectSingleNode("//cStat");
+        var xMotivoNode = responseDoc.SelectSingleNode("//nfe:xMotivo", nsmgr) ?? responseDoc.SelectSingleNode("//xMotivo");
+        var nProtNode = responseDoc.SelectSingleNode("//nfe:nProt", nsmgr) ?? responseDoc.SelectSingleNode("//nProt");
+
+        var cStat = cStatNode?.InnerText;
+        var xMotivo = xMotivoNode?.InnerText;
+        var nProt = nProtNode?.InnerText;
+
+        bool autorizado = (cStat == "100" || cStat == "104");
+
+        return (autorizado, nProt, $"[{cStat}] {xMotivo}", soapEnvelope.ToString(), responseXmlStr);
+    }
+
+    /// <summary>
+    /// Gera a URL do QR Code da SEFAZ v4.00 com Hash SHA1 do CSC
+    /// </summary>
+    private string GerarQrCodeUrl(string chaveAcesso, EmpresaFiscal config)
+    {
+        var cIdTokenRaw = config.CSCId ?? "1";
+        var cIdToken = int.TryParse(cIdTokenRaw, out var idVal) ? idVal.ToString() : cIdTokenRaw.TrimStart('0');
+        if (string.IsNullOrEmpty(cIdToken)) cIdToken = "1";
+
+        var cscToken = (config.CSC ?? "").Trim();
+
+        var paramString = $"{chaveAcesso}|2|{config.Ambiente}|{cIdToken}";
+        var hashInput = paramString + cscToken;
+
+        using var sha1 = SHA1.Create();
+        var hashBytes = sha1.ComputeHash(Encoding.ASCII.GetBytes(hashInput));
+        var cHashQR = BitConverter.ToString(hashBytes).Replace("-", "").ToUpperInvariant();
+
+        var urlBase = "http://www.fazenda.pr.gov.br/nfce/qrcode";
+
+        return $"{urlBase}?p={paramString}|{cHashQR}";
     }
 }

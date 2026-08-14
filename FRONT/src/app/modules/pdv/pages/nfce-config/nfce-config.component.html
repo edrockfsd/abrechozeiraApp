@@ -150,18 +150,34 @@
 
             <!-- Certificado Digital -->
             <section class="form-section">
-                <h2>🔐 Certificado Digital</h2>
-                <p class="section-description">O certificado A1 (.pfx) deve estar acessível no servidor da API.</p>
+                <h2>🔐 Certificado Digital A1</h2>
+                <p class="section-description">Selecione o arquivo .pfx ou .p12 do seu Certificado Digital A1 para fazer o upload diretamente para o servidor.</p>
                 <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Enviar Arquivo (.pfx / .p12)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" #fileInput accept=".pfx,.p12" (change)="onCertificadoSelected($event)" style="display: none">
+                            <button type="button" class="btn-upload" (click)="fileInput.click()" [disabled]="enviandoCertificado">
+                                📁 {{ enviandoCertificado ? 'Enviando Certificado...' : 'Clique para Selecionar e Enviar o Arquivo .PFX' }}
+                            </button>
+                            <span class="file-status" *ngIf="config.certificadoPath">
+                                ✅ Certificado no servidor: <code>{{ config.certificadoPath }}</code>
+                            </span>
+                        </div>
+                    </div>
                     <div class="form-group" style="flex: 2;">
-                        <label>Caminho do Certificado</label>
+                        <label>Caminho do Certificado no Servidor</label>
                         <input type="text" [(ngModel)]="config.certificadoPath" name="certificadoPath"
-                            placeholder="/caminho/para/certificado.pfx">
+                            placeholder="C:\caminho\para\certificado.pfx">
                     </div>
                     <div class="form-group">
                         <label>Senha do Certificado</label>
                         <input type="password" [(ngModel)]="config.certificadoSenha" name="certificadoSenha"
                             placeholder="••••••">
+                    </div>
+                    <div class="form-group" *ngIf="config.certificadoValidade">
+                        <label>Validade Reconhecida</label>
+                        <input type="text" [value]="config.certificadoValidade | date:'dd/MM/yyyy HH:mm'" disabled>
                     </div>
                 </div>
             </section>

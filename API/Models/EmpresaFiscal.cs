@@ -13,11 +13,11 @@ public class EmpresaFiscal
 
     // Dados da Empresa
     [Required]
-    [StringLength(14)]
+    [StringLength(20)]
     public string CNPJ { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(15)]
+    [StringLength(20)]
     public string InscricaoEstadual { get; set; } = string.Empty;
 
     [Required]
@@ -34,7 +34,7 @@ public class EmpresaFiscal
     [StringLength(10)]
     public string? Numero { get; set; }
 
-    [StringLength(60)]
+    [StringLength(100)]
     public string? Complemento { get; set; }
 
     [StringLength(60)]
@@ -47,12 +47,12 @@ public class EmpresaFiscal
     public string? Municipio { get; set; }
 
     [StringLength(2)]
-    public string UF { get; set; } = "RS";
+    public string UF { get; set; } = "PR";
 
-    [StringLength(8)]
+    [StringLength(10)]
     public string? CEP { get; set; }
 
-    [StringLength(14)]
+    [StringLength(20)]
     public string? Telefone { get; set; }
 
     // Configurações NFC-e
@@ -64,7 +64,7 @@ public class EmpresaFiscal
     /// <summary>
     /// CRT: 1=Simples Nacional, 4=MEI
     /// </summary>
-    public int CRT { get; set; } = 4;
+    public int CRT { get; set; } = 1;
 
     public int Serie { get; set; } = 1;
 

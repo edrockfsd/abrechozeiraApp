@@ -7,6 +7,7 @@ import { DropDownListModule } from '@syncfusion/ej2-angular-dropdowns';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { FormsModule } from '@angular/forms';
 import { PdvService } from '../../services/pdv.service';
+import { NfceService } from '../../services/nfce.service';
 
 @Component({
   selector: 'app-sales-list',
@@ -16,12 +17,16 @@ import { PdvService } from '../../services/pdv.service';
   styleUrls: ['./sales-list.component.scss']
 })
 export class SalesListComponent implements OnInit {
-  constructor(private pdv: PdvService) {}
+  constructor(
+    private pdv: PdvService,
+    private nfceService: NfceService
+  ) {}
 
   vendas: any[] = [];
   loading = false;
   range: any;
   status: string | null = null;
+  mensagem: { tipo: 'success' | 'error'; texto: string } | null = null;
   statusOptions = [
     { text: 'Todas', value: null },
     { text: 'Aberta', value: 'Aberta' },
@@ -49,10 +54,28 @@ export class SalesListComponent implements OnInit {
     });
   }
 
+  emitirNfce(venda: any): void {
+    if (!venda?.id) return;
+    this.mensagem = null;
+    this.nfceService.emitirVendaPdv(venda.id).subscribe({
+      next: (res) => {
+        this.mensagem = { tipo: 'success', texto: `NFC-e Nº ${res.numero} emitida com sucesso para a venda #${venda.id}! Chave: ${res.chaveAcesso}` };
+        this.load();
+      },
+      error: (err) => {
+        this.mensagem = { tipo: 'error', texto: err.error?.erro || 'Erro ao emitir NFC-e' };
+      }
+    });
+  }
+
   cancelarVenda(venda: any) {
     if (!venda?.id) { return; }
     const ok = window.confirm(`Cancelar venda #${venda.id}?`);
     if (!ok) return;
     this.pdv.cancelar(venda.id).subscribe(() => this.load());
+  }
+
+  limparMensagem(): void {
+    this.mensagem = null;
   }
 }

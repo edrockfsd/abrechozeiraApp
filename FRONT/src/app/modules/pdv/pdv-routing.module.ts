@@ -4,11 +4,13 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 import { PdvShellComponent } from './pages/pdv-shell/pdv-shell.component';
 import { SalesListComponent } from './pages/sales-list/sales-list.component';
 import { SalesReceiptComponent } from './pages/sales-receipt/sales-receipt.component';
+import { NfceConfigComponent } from './pages/nfce-config/nfce-config.component';
 
 const routes: Routes = [
   { path: '', component: PdvShellComponent, canActivate: [AuthGuard] },
   { path: 'vendas', component: SalesListComponent, canActivate: [AuthGuard] },
-  { path: 'vendas/:id/cupom', component: SalesReceiptComponent, canActivate: [AuthGuard] }
+  { path: 'vendas/:id/cupom', component: SalesReceiptComponent, canActivate: [AuthGuard] },
+  { path: 'nfce-config', component: NfceConfigComponent, canActivate: [AuthGuard] }
 ];
 
 @NgModule({

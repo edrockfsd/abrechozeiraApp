@@ -1,5 +1,8 @@
 using System;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
@@ -46,6 +49,11 @@ public class NfceController : ControllerBase
     [HttpPost("config")]
     public async Task<ActionResult<EmpresaFiscal>> SaveConfig([FromBody] EmpresaFiscal config)
     {
+        config.CNPJ = new string((config.CNPJ ?? "").Where(char.IsDigit).ToArray());
+        config.InscricaoEstadual = new string((config.InscricaoEstadual ?? "").Where(char.IsDigit).ToArray());
+        if (!string.IsNullOrEmpty(config.CEP))
+            config.CEP = new string(config.CEP.Where(char.IsDigit).ToArray());
+
         var existente = await _context.EmpresaFiscal.FirstOrDefaultAsync(e => e.Ativo);
 
         if (existente == null)
@@ -107,6 +115,69 @@ public class NfceController : ControllerBase
     {
         var (valido, erro) = await _nfceService.ValidarConfiguracaoAsync();
         return Ok(new { valido, erro });
+    }
+
+    /// <summary>
+    /// Realiza o upload do arquivo de certificado digital (.pfx ou .p12)
+    /// </summary>
+    [HttpPost("config/upload-certificado")]
+    public async Task<ActionResult<object>> UploadCertificado([FromForm] IFormFile file, [FromForm] string? senha)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { erro = "Nenhum arquivo enviado." });
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext != ".pfx" && ext != ".p12")
+            return BadRequest(new { erro = "Apenas arquivos com extensão .pfx ou .p12 são permitidos." });
+
+        try
+        {
+            var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "Certificados");
+            if (!Directory.Exists(certFolder))
+                Directory.CreateDirectory(certFolder);
+
+            var fileName = $"cert_{DateTime.UtcNow:yyyyMMddHHmmss}{ext}";
+            var filePath = Path.Combine(certFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            DateTime? validade = null;
+            string? mensagemValidacao = null;
+
+            if (!string.IsNullOrEmpty(senha))
+            {
+                try
+                {
+                    using var cert = new X509Certificate2(filePath, senha, X509KeyStorageFlags.EphemeralKeySet);
+                    validade = cert.NotAfter;
+                    if (validade < DateTime.UtcNow)
+                        mensagemValidacao = $"Atenção: O certificado expirou em {validade:dd/MM/yyyy}.";
+                }
+                catch (System.Security.Cryptography.CryptographicException)
+                {
+                    mensagemValidacao = "Arquivo salvo, porém a senha informada parece estar incorreta.";
+                }
+                catch (Exception ex)
+                {
+                    mensagemValidacao = $"Arquivo salvo, mas erro ao ler certificado: {ex.Message}";
+                }
+            }
+
+            return Ok(new
+            {
+                caminho = filePath,
+                nomeArquivo = file.FileName,
+                validade,
+                mensagem = mensagemValidacao ?? "Certificado enviado com sucesso!"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { erro = $"Erro ao salvar certificado: {ex.Message}" });
+        }
     }
 
     #endregion

@@ -80,6 +80,15 @@ export class NfceService {
         return this.http.get<NfceValidacao>(`${this.api}/config/validar`);
     }
 
+    uploadCertificado(file: File, senha?: string): Observable<{ caminho: string; nomeArquivo?: string; validade?: string; mensagem?: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (senha) {
+            formData.append('senha', senha);
+        }
+        return this.http.post<{ caminho: string; nomeArquivo?: string; validade?: string; mensagem?: string }>(`${this.api}/config/upload-certificado`, formData);
+    }
+
     // ==================== EMISSÃO ====================
 
     emitirVendaPdv(vendaPdvId: number): Observable<Nfce> {

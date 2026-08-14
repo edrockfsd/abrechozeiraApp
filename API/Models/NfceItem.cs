@@ -36,7 +36,7 @@ public class NfceItem
     /// NCM - Nomenclatura Comum do Mercosul (8 dígitos)
     /// </summary>
     [StringLength(8)]
-    public string NCM { get; set; } = "00000000";
+    public string NCM { get; set; } = "63090010";
 
     /// <summary>
     /// CFOP - Código Fiscal de Operações e Prestações

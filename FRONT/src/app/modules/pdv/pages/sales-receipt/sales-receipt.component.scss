@@ -1,6 +1,202 @@
+.receipt-page {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 16px;
+}
+
+.actions-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .btn-action {
+    flex: 1;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.print {
+      background: #e2e8f0;
+      color: #334155;
+      &:hover { background: #cbd5e1; }
+    }
+
+    &.toggle {
+      background: #3b82f6;
+      color: white;
+      &:hover { background: #2563eb; }
+    }
+
+    &.nfce {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      &:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transform: translateY(-1px); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+  }
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+
+  &.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+  &.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+}
+
+.danfe-receipt {
+  width: 300px;
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: #000;
+  background: #fff;
+  padding: 12px;
+  border: 1px dashed #ccc;
+  box-sizing: border-box;
+
+  .danfe-header {
+    text-align: center;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+
+    .company-name {
+      font-weight: bold;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .company-info {
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    .danfe-title {
+      font-weight: bold;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .danfe-subtitle {
+      font-size: 9px;
+      font-style: italic;
+    }
+  }
+
+  .homologation-banner {
+    text-align: center;
+    font-weight: bold;
+    font-size: 10px;
+    background: #fef08a;
+    border: 1px solid #eab308;
+    padding: 4px;
+    margin-bottom: 8px;
+  }
+
+  .danfe-items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+
+    th {
+      font-size: 9px;
+      text-align: left;
+      border-bottom: 1px solid #000;
+      padding-bottom: 2px;
+      &.right { text-align: right; }
+    }
+
+    td {
+      padding: 4px 0;
+      border-bottom: 1px dashed #eee;
+
+      .item-name { font-weight: bold; font-size: 11px; }
+      .item-sub { font-size: 9px; color: #444; }
+      .item-values { display: flex; justify-content: space-between; margin-top: 2px; }
+    }
+  }
+
+  .danfe-totals {
+    border-top: 1px dashed #000;
+    padding-top: 6px;
+    margin-bottom: 8px;
+
+    .tot-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+      font-size: 11px;
+
+      &.main {
+        font-weight: bold;
+        font-size: 13px;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .danfe-payments {
+    border-top: 1px dashed #000;
+    padding-top: 6px;
+    margin-bottom: 8px;
+
+    .pay-title { font-weight: bold; font-size: 10px; margin-bottom: 4px; }
+    .pay-row { display: flex; justify-content: space-between; }
+  }
+
+  .danfe-footer {
+    border-top: 1px dashed #000;
+    padding-top: 8px;
+    text-align: center;
+
+    .info-row { margin-bottom: 3px; font-size: 10px; }
+
+    .key-box {
+      border: 1px solid #000;
+      padding: 6px;
+      margin: 8px 0;
+      text-align: center;
+
+      .key-title { font-size: 9px; font-weight: bold; }
+      .key-code { font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 2px; font-weight: bold; }
+    }
+
+    .sefaz-url {
+      font-size: 9px;
+      margin-bottom: 8px;
+    }
+
+    .qrcode-wrapper {
+      text-align: center;
+      margin-top: 8px;
+
+      .qrcode-img {
+        width: 130px;
+        height: 130px;
+      }
+      .qrcode-label {
+        font-size: 9px;
+        margin-top: 4px;
+      }
+    }
+  }
+}
+
 .receipt { width: 280px; margin: 0 auto; font-family: monospace; font-size: 12px; }
 .row { display:grid; grid-template-columns: 1fr 40px 60px 70px; gap:6px; padding:4px 0; }
 .row.head { font-weight:700; border-bottom:1px dashed #999; }
 .totals { margin-top:8px; }
 .totals div { display:flex; justify-content:space-between; }
-@media print { body { background: #fff !important; } }
+
+@media print {
+  .no-print { display: none !important; }
+  .receipt-page { margin: 0; padding: 0; max-width: 100%; }
+  .danfe-receipt { border: none; padding: 0; width: 100%; }
+  body { background: #fff !important; }
+}
