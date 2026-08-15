@@ -312,6 +312,116 @@ public class NfceService
     }
 
     /// <summary>
+    /// Emite NFC-e a partir de uma Venda (fluxo padrão: Pedido → Venda → NFC-e)
+    /// </summary>
+    public async Task<Nfce> EmitirNfcePorVendaAsync(int vendaId)
+    {
+        var (valido, erro) = await ValidarConfiguracaoAsync();
+        if (!valido)
+            throw new InvalidOperationException(erro);
+
+        var config = await GetConfigAsync();
+        if (config == null)
+            throw new InvalidOperationException("Configurações fiscais não encontradas.");
+
+        var venda = await _context.Venda
+            .Include(v => v.Cliente)
+            .Include(v => v.FormaPagamento)
+            .FirstOrDefaultAsync(v => v.Id == vendaId);
+
+        if (venda == null)
+            throw new ArgumentException($"Venda {vendaId} não encontrada.");
+
+        if (venda.Status == "Cancelada")
+            throw new InvalidOperationException("Não é possível emitir NFC-e para venda cancelada.");
+
+        var nfceExistente = await _context.Nfce.FirstOrDefaultAsync(n => n.VendaId == vendaId && n.Status != "Cancelada");
+        if (nfceExistente != null)
+            throw new InvalidOperationException($"Já existe NFC-e emitida para esta venda: {nfceExistente.ChaveAcesso}");
+
+        var itensPedido = await _context.PedidoProduto
+            .Include(i => i.Produto)
+            .Where(i => i.PedidoId == venda.PedidoId)
+            .ToListAsync();
+
+        if (!itensPedido.Any())
+            throw new InvalidOperationException($"Venda {vendaId} sem itens.");
+
+        var valorProdutos = itensPedido.Sum(i => (i.ValorFinalProduto ?? 0) * i.Quantidade);
+
+        var nfce = new Nfce
+        {
+            Numero = config.ProximoNumero,
+            Serie = config.Serie,
+            Ambiente = config.Ambiente,
+            VendaId = vendaId,
+            PedidoId = venda.PedidoId,
+            ClienteId = venda.ClienteId,
+            ValorProdutos = valorProdutos,
+            ValorDesconto = venda.Desconto,
+            ValorTotal = venda.ValorTotal,
+            Status = "Pendente",
+            DataEmissao = DateTime.UtcNow
+        };
+
+        var itensNfce = new List<NfceItem>();
+        int numItem = 1;
+        foreach (var item in itensPedido)
+        {
+            itensNfce.Add(new NfceItem
+            {
+                NumeroItem = numItem++,
+                ProdutoId = item.ProdutoId,
+                CodigoProduto = item.ProdutoId.ToString(),
+                Descricao = item.Produto?.Descricao ?? "Produto",
+                NCM = "63090010",
+                CFOP = "5102",
+                Unidade = "UN",
+                Quantidade = item.Quantidade,
+                ValorUnitario = item.ValorFinalProduto ?? 0,
+                ValorTotal = (item.ValorFinalProduto ?? 0) * item.Quantidade,
+                CSOSN = "102",
+                OrigemMercadoria = 0
+            });
+        }
+
+        var tipoPag = MapearFormaPagamentoParaNfce(venda.FormaPagamento?.Descricao);
+        nfce.Itens = itensNfce;
+        nfce.Pagamentos = new List<NfcePagamento>
+        {
+            new NfcePagamento { TipoPagamento = tipoPag, Valor = venda.ValorTotal, TipoIntegracao = 2 }
+        };
+
+        _logger.LogInformation("Processando NFC-e {Numero} para venda {VendaId}", nfce.Numero, vendaId);
+        await ProcessarEmissaoAsync(config, nfce);
+
+        _context.Nfce.Add(nfce);
+        config.ProximoNumero++;
+        config.DataAlteracao = DateTime.UtcNow;
+
+        venda.Status = "Faturada";
+        venda.DataAlteracao = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("NFC-e {ChaveAcesso} emitida para venda {VendaId}", nfce.ChaveAcesso, vendaId);
+        return nfce;
+    }
+
+    /// <summary>
+    /// Mapeia descrição da forma de pagamento para código NFC-e
+    /// </summary>
+    private string MapearFormaPagamentoParaNfce(string? descricao)
+    {
+        if (string.IsNullOrWhiteSpace(descricao)) return "01";
+        var d = descricao.ToUpperInvariant();
+        if (d.Contains("PIX")) return "17";
+        if (d.Contains("DEBITO") || d.Contains("DÉBITO")) return "04";
+        if (d.Contains("CREDITO") || d.Contains("CRÉDITO")) return "03";
+        if (d.Contains("BOLETO")) return "15";
+        return "01";
+    }
+
+    /// <summary>
     /// Cancela uma NFC-e
     /// </summary>
     public async Task<Nfce> CancelarNfceAsync(int nfceId, string justificativa)

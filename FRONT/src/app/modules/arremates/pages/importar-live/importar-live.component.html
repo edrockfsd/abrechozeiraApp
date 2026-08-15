@@ -1,0 +1,281 @@
+<div class="importar-live-container">
+  <ejs-toast #toast [position]="toastPosition" [width]="toastWidth"></ejs-toast>
+
+  <!-- Header & Navegação entre abas de Arremates -->
+  <div class="page-header">
+    <div class="header-titles">
+      <div class="subtitle"><span class="badge-ai">✨ IA Gemini + Claude Fallback</span> Automação de Lives Instagram</div>
+      <h1>Importação de Planilha de Live</h1>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/arremates" class="btn-nav">
+        <span class="material-icons">edit_note</span>
+        Lançamento Manual
+      </a>
+      <a routerLink="/arremates/importar" class="btn-nav active">
+        <span class="material-icons">cloud_download</span>
+        Importar Planilha
+      </a>
+    </div>
+  </div>
+
+  <!-- Card de Configuração da Importação -->
+  <div class="config-card">
+    <div class="card-section">
+      <div class="section-title">
+        <span class="step-num">1</span>
+        <h3>Identificação da Live</h3>
+      </div>
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label class="field-label">Selecione a Live no Sistema *</label>
+          <ejs-combobox
+            id="liveSelect"
+            [dataSource]="lives"
+            [fields]="liveFields"
+            [(value)]="selectedLiveId"
+            placeholder="Selecione a live para vincular os arremates"
+            [allowFiltering]="true"
+            (change)="onLiveChange($event)"
+            cssClass="e-outline custom-combobox">
+          </ejs-combobox>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-section">
+      <div class="section-title">
+        <span class="step-num">2</span>
+        <h3>Origem dos Dados</h3>
+        <div class="mode-toggle">
+          <button 
+            type="button" 
+            class="toggle-btn" 
+            [class.active]="modoImportacao === 'url'"
+            (click)="modoImportacao = 'url'">
+            <span class="material-icons">link</span> Google Sheets (URL)
+          </button>
+          <button 
+            type="button" 
+            class="toggle-btn" 
+            [class.active]="modoImportacao === 'arquivo'"
+            (click)="modoImportacao = 'arquivo'">
+            <span class="material-icons">upload_file</span> Upload Arquivo (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo URL -->
+      <div class="mode-content" *ngIf="modoImportacao === 'url'">
+        <div class="form-row grid-2">
+          <div class="form-field flex-3">
+            <label class="field-label">Link da Planilha Google *</label>
+            <input 
+              type="text" 
+              class="custom-input" 
+              [(ngModel)]="googleSheetUrl" 
+              placeholder="https://docs.google.com/spreadsheets/d/..." />
+            <span class="helper-text">A planilha deve estar compartilhada como pública ou acessível para leitura.</span>
+          </div>
+          <div class="form-field flex-1">
+            <label class="field-label">Nome da Aba</label>
+            <input 
+              type="text" 
+              class="custom-input" 
+              [(ngModel)]="sheetName" 
+              placeholder="vendas" />
+            <span class="helper-text">Padrão: <code>vendas</code></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modo Arquivo Local -->
+      <div class="mode-content" *ngIf="modoImportacao === 'arquivo'">
+        <div class="upload-box" (click)="fileInput.click()">
+          <input 
+            #fileInput 
+            type="file" 
+            accept=".xlsx, .xls" 
+            (change)="onFileSelected($event)" 
+            style="display: none;" />
+          <span class="material-icons upload-icon">cloud_upload</span>
+          <div class="upload-text" *ngIf="!selectedFileName">
+            <strong>Clique para selecionar a planilha</strong> ou arraste o arquivo aqui (.xlsx)
+          </div>
+          <div class="upload-text selected" *ngIf="selectedFileName">
+            <strong>Arquivo selecionado:</strong> {{ selectedFileName }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Ações -->
+    <div class="actions-bar">
+      <button 
+        *ngIf="modoImportacao === 'url'"
+        class="btn btn-secondary" 
+        (click)="carregarPreview()" 
+        [disabled]="loadingPreview || loadingImport">
+        <span class="material-icons" *ngIf="!loadingPreview">visibility</span>
+        <span class="spinner" *ngIf="loadingPreview"></span>
+        {{ loadingPreview ? 'Carregando Dados...' : 'Visualizar Preview' }}
+      </button>
+
+      <button 
+        class="btn btn-primary" 
+        (click)="executarImportacao()" 
+        [disabled]="loadingImport || loadingPreview || !selectedLiveId">
+        <span class="material-icons" *ngIf="!loadingImport">auto_awesome</span>
+        <span class="spinner" *ngIf="loadingImport"></span>
+        {{ loadingImport ? 'Processando com IA & Importando...' : 'Processar & Importar com IA' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-overlay" *ngIf="loadingImport">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <h3>Processando arremates com IA...</h3>
+      <p>Estamos desmembrando as descrições em Marca/Grupo/Gênero/Tamanho, cadastrando Produtos no Estoque e gerando Pedidos e Vendas por cliente.</p>
+    </div>
+  </div>
+
+  <!-- Resultado da Importação -->
+  <div class="result-container" *ngIf="resultadoImportacao">
+    <div class="result-header">
+      <div class="success-badge">
+        <span class="material-icons">check_circle</span>
+        <h2>Importação Concluída com Sucesso!</h2>
+      </div>
+      <a [routerLink]="['/pdv/vendas']" [queryParams]="{ liveId: selectedLiveId }" class="btn btn-action">
+        <span class="material-icons">receipt_long</span>
+        Ir para Vendas & Emitir NFC-e em Lote
+      </a>
+    </div>
+
+    <!-- KPIs de Resumo -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <span class="kpi-icon material-icons">inventory_2</span>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ resultadoImportacao.produtosCadastrados }}</span>
+          <span class="kpi-label">Produtos Cadastrados</span>
+        </div>
+      </div>
+      <div class="kpi-card purple">
+        <span class="kpi-icon material-icons">gavel</span>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ resultadoImportacao.arrematesImportados }}</span>
+          <span class="kpi-label">Arremates no Histórico</span>
+        </div>
+      </div>
+      <div class="kpi-card green">
+        <span class="kpi-icon material-icons">shopping_bag</span>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ resultadoImportacao.pedidosGerados }}</span>
+          <span class="kpi-label">Pedidos Gerados</span>
+        </div>
+      </div>
+      <div class="kpi-card emerald">
+        <span class="kpi-icon material-icons">point_of_sale</span>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ resultadoImportacao.vendasGeradas }}</span>
+          <span class="kpi-label">Vendas Registradas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas e Avisos -->
+    <div class="alert-box warning" *ngIf="resultadoImportacao.avisos && resultadoImportacao.avisos.length > 0">
+      <div class="alert-header">
+        <span class="material-icons">warning_amber</span>
+        <strong>Avisos do Processamento ({{ resultadoImportacao.avisos.length }})</strong>
+      </div>
+      <ul class="alert-list">
+        <li *ngFor="let aviso of resultadoImportacao.avisos">{{ aviso }}</li>
+      </ul>
+    </div>
+
+    <!-- Tabela de Pedidos/Vendas Geradas -->
+    <div class="details-table-card">
+      <div class="table-title">
+        <h3>Pedidos e Vendas por Comprador</h3>
+        <span class="table-subtitle">{{ resultadoImportacao.detalhesPedidos.length }} compradores processados</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cliente (Instagram)</th>
+              <th>Status do Cadastro</th>
+              <th>Cód. Pedido</th>
+              <th>ID Venda</th>
+              <th>Qtd. Peças</th>
+              <th>Valor Total</th>
+              <th>Peças Arrematadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of resultadoImportacao.detalhesPedidos" [class.new-customer-row]="item.pessoaCriada">
+              <td class="client-cell">
+                <span class="client-name">&#64;{{ item.cliente }}</span>
+              </td>
+              <td>
+                <span class="badge-tag new-tag" *ngIf="item.pessoaCriada">
+                  <span class="material-icons mini-icon">person_add</span> Auto-cadastrado
+                </span>
+                <span class="badge-tag exist-tag" *ngIf="!item.pessoaCriada">
+                  <span class="material-icons mini-icon">verified_user</span> Já cadastrado
+                </span>
+              </td>
+              <td><strong>#{{ item.pedidoCodigo }}</strong></td>
+              <td>#{{ item.vendaId }}</td>
+              <td><span class="items-count">{{ item.itens }} {{ item.itens === 1 ? 'peça' : 'peças' }}</span></td>
+              <td class="price-cell">{{ formatCurrency(item.valorTotal) }}</td>
+              <td class="items-cell">
+                <div class="items-tags">
+                  <span class="item-tag" *ngFor="let desc of item.descricaoItens">{{ desc }}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview de Dados da Planilha -->
+  <div class="preview-container" *ngIf="previewData && !resultadoImportacao">
+    <div class="preview-header">
+      <div class="preview-title">
+        <span class="material-icons">table_chart</span>
+        <h3>Prévia dos Dados da Planilha</h3>
+        <span class="badge-count">{{ previewResumo?.totalLinhas }} itens • {{ previewResumo?.compradores }} clientes</span>
+      </div>
+      <button class="btn btn-primary" (click)="executarImportacao()" [disabled]="loadingImport">
+        <span class="material-icons">auto_awesome</span>
+        Importar estes Dados Agora
+      </button>
+    </div>
+
+    <ejs-grid 
+      #gridPreview
+      [dataSource]="previewData" 
+      [allowPaging]="true"
+      [pageSettings]="{ pageSize: 15 }"
+      [allowSorting]="true"
+      [allowFiltering]="true"
+      [filterSettings]="{ type: 'Excel' }">
+      <e-columns>
+        <e-column field="linhaOriginal" headerText="Linha" width="80" textAlign="Center"></e-column>
+        <e-column field="codigoLive" headerText="Cód. Live" width="100" textAlign="Center"></e-column>
+        <e-column field="descricao" headerText="Peça / Descrição" width="280"></e-column>
+        <e-column field="valor" headerText="Valor (R$)" width="130" type="number" format="C2" textAlign="Right"></e-column>
+        <e-column field="comprador" headerText="Comprador (@)" width="180"></e-column>
+        <e-column field="fila" headerText="Fila de Espera" width="220"></e-column>
+      </e-columns>
+    </ejs-grid>
+  </div>
+</div>

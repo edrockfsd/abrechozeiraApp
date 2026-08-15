@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ComboBoxModule } from '@syncfusion/ej2-angular-dropdowns';
 import { ArremateComponent } from './pages/arremate/arremate.component';
+import { ImportarLiveComponent } from './pages/importar-live/importar-live.component';
 import { ARREMATES_ROUTES } from './arremates.routes';
 import { 
   GridModule, 
@@ -21,7 +22,8 @@ import {
     ReactiveFormsModule,
     ComboBoxModule,
     GridModule,
-    ArremateComponent
+    ArremateComponent,
+    ImportarLiveComponent
   ],
   providers: [
     FilterService,

@@ -63,6 +63,11 @@ public class Nfce
     public int? PedidoId { get; set; }
     public Pedido? Pedido { get; set; }
 
+    // Relacionamento com Venda (NFC-e é emitida a partir da Venda)
+    [ForeignKey("Venda")]
+    public int? VendaId { get; set; }
+    public Venda? Venda { get; set; }
+
     // Relacionamento com Cliente (opcional)
     [ForeignKey("Cliente")]
     public int? ClienteId { get; set; }

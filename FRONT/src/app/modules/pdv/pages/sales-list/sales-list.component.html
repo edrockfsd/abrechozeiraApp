@@ -1,33 +1,133 @@
 <div class="sales-list">
   <div class="header">
-    <h3>Vendas (recentes)</h3>
+    <div class="header-title">
+      <h3>Listagem de Vendas & Emissão Fiscal</h3>
+      <span class="subtitle">Gestão de vendas geradas a partir de pedidos de lives e PDV</span>
+    </div>
     <div class="filters">
+      <ejs-combobox 
+        [dataSource]="lives" 
+        [fields]="{ text: 'titulo', value: 'id' }" 
+        [(value)]="selectedLiveId" 
+        width="220" 
+        placeholder="Filtrar por Live" 
+        [allowFiltering]="true">
+      </ejs-combobox>
+
       <ejs-daterangepicker [(ngModel)]="range" placeholder="Período"></ejs-daterangepicker>
-      <ejs-dropdownlist [dataSource]="statusOptions" [fields]="{ text: 'text', value: 'value' }" [(ngModel)]="status" width="160" placeholder="Status"></ejs-dropdownlist>
-      <button ejs-button cssClass="e-primary" (click)="load()" [disabled]="loading">Aplicar</button>
+      
+      <ejs-dropdownlist 
+        [dataSource]="statusOptions" 
+        [fields]="{ text: 'text', value: 'value' }" 
+        [(ngModel)]="status" 
+        width="160" 
+        placeholder="Status">
+      </ejs-dropdownlist>
+
+      <button ejs-button cssClass="e-primary" (click)="load()" [disabled]="loading">
+        <span class="material-icons" style="font-size: 16px; margin-right: 4px;">filter_alt</span>
+        Filtrar
+      </button>
+
+      <button 
+        ejs-button 
+        cssClass="e-success" 
+        (click)="emitirNfceLote()" 
+        [disabled]="loading || loadingBatchNfce"
+        style="background: #059669; color: white; border: none; font-weight: 600;">
+        <span class="material-icons" style="font-size: 16px; margin-right: 4px;" *ngIf="!loadingBatchNfce">receipt_long</span>
+        <span class="spinner-mini" *ngIf="loadingBatchNfce"></span>
+        {{ loadingBatchNfce ? 'Emitindo em Lote...' : 'Gerar NFC-e em Lote' }}
+      </button>
     </div>
   </div>
 
-  <div class="alert" *ngIf="mensagem" [class.success]="mensagem.tipo === 'success'" [class.error]="mensagem.tipo === 'error'" style="margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-    <span>{{ mensagem.texto }}</span>
-    <button (click)="limparMensagem()" style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+  <div class="alert" *ngIf="mensagem" [class.success]="mensagem.tipo === 'success'" [class.warning]="mensagem.tipo === 'warning'" [class.error]="mensagem.tipo === 'error'">
+    <div class="alert-content">
+      <span class="material-icons alert-icon" *ngIf="mensagem.tipo === 'success'">check_circle</span>
+      <span class="material-icons alert-icon" *ngIf="mensagem.tipo === 'warning'">warning</span>
+      <span class="material-icons alert-icon" *ngIf="mensagem.tipo === 'error'">error</span>
+      <span>{{ mensagem.texto }}</span>
+    </div>
+    <button (click)="limparMensagem()" class="btn-close">×</button>
   </div>
 
-  <ejs-grid [dataSource]="vendas" height="400" [allowFiltering]="true" [filterSettings]="{ type: 'Menu' }">
+  <ejs-grid 
+    #grid 
+    [dataSource]="vendas" 
+    height="500" 
+    [allowPaging]="true"
+    [pageSettings]="{ pageSize: 20 }"
+    [allowSorting]="true"
+    [allowFiltering]="true" 
+    [filterSettings]="{ type: 'Excel' }"
+    [selectionSettings]="selectionOptions">
     <e-columns>
-      <e-column field="id" headerText="ID" width="90" textAlign="Right"></e-column>
-      <e-column field="dataVenda" headerText="Data" width="180" type="dateTime" format="dd/MM/y HH:mm"></e-column>
-      <e-column field="status" headerText="Status" width="120"></e-column>
-      <e-column field="valorBruto" headerText="Bruto" width="120" format="C2" textAlign="Right"></e-column>
-      <e-column field="desconto" headerText="Desc" width="100" format="C2" textAlign="Right"></e-column>
-      <e-column field="valorLiquido" headerText="Líquido" width="130" format="C2" textAlign="Right"></e-column>
-      <e-column headerText="Ações" width="320" [template]="actionTpl"></e-column>
+      <e-column type="checkbox" width="50"></e-column>
+      <e-column field="id" headerText="Venda #" width="90" textAlign="Center"></e-column>
+      <e-column field="pedidoId" headerText="Pedido #" width="90" textAlign="Center"></e-column>
+      <e-column field="liveTitulo" headerText="Live" width="160" [template]="liveTpl"></e-column>
+      <e-column field="clienteNome" headerText="Cliente" width="180" [template]="clienteTpl"></e-column>
+      <e-column field="dataVenda" headerText="Data" width="150" type="dateTime" format="dd/MM/y HH:mm"></e-column>
+      <e-column field="qtdItens" headerText="Peças" width="90" textAlign="Center" [template]="itensTpl"></e-column>
+      <e-column field="valorTotal" headerText="Total (R$)" width="120" format="C2" textAlign="Right"></e-column>
+      <e-column field="formaPagamento" headerText="Pagamento" width="130"></e-column>
+      <e-column field="status" headerText="Status Venda" width="120" [template]="statusVendaTpl"></e-column>
+      <e-column field="nfceStatus" headerText="NFC-e Fiscal" width="140" [template]="nfceStatusTpl"></e-column>
+      <e-column headerText="Ações" width="180" [template]="actionTpl"></e-column>
     </e-columns>
+
+    <ng-template #liveTpl let-data>
+      <span class="live-badge" *ngIf="data.liveTitulo">{{ data.liveTitulo }}</span>
+      <span class="text-muted" *ngIf="!data.liveTitulo">—</span>
+    </ng-template>
+
+    <ng-template #clienteTpl let-data>
+      <div class="client-info">
+        <strong *ngIf="data.clienteNick">&#64;{{ data.clienteNick }}</strong>
+        <span class="sub-name" *ngIf="data.clienteNome && data.clienteNome !== data.clienteNick">{{ data.clienteNome }}</span>
+        <span class="text-muted" *ngIf="!data.clienteNick && !data.clienteNome">—</span>
+      </div>
+    </ng-template>
+
+    <ng-template #itensTpl let-data>
+      <span class="badge-count">{{ data.qtdItens }} un</span>
+    </ng-template>
+
+    <ng-template #statusVendaTpl let-data>
+      <span class="badge-status status-confirmada" *ngIf="data.status === 'Confirmada'">Confirmada</span>
+      <span class="badge-status status-faturada" *ngIf="data.status === 'Faturada'">Faturada</span>
+      <span class="badge-status status-cancelada" *ngIf="data.status === 'Cancelada'">Cancelada</span>
+      <span class="badge-status" *ngIf="data.status !== 'Confirmada' && data.status !== 'Faturada' && data.status !== 'Cancelada'">{{ data.status }}</span>
+    </ng-template>
+
+    <ng-template #nfceStatusTpl let-data>
+      <span class="badge-status nfce-autorizada" *ngIf="data.temNfce">
+        <span class="material-icons mini">verified</span> Emitida
+      </span>
+      <span class="badge-status nfce-pendente" *ngIf="!data.temNfce && data.status !== 'Cancelada'">
+        <span class="material-icons mini">schedule</span> Pendente
+      </span>
+      <span class="badge-status nfce-cancelada" *ngIf="data.status === 'Cancelada'">
+        Cancelada
+      </span>
+    </ng-template>
+
     <ng-template #actionTpl let-data>
-      <a [routerLink]="['/pdv']" [queryParams]="{ id: data.id }" ejs-button class="e-flat e-small">Editar</a>
-      <a [routerLink]="['/pdv/vendas', data.id, 'cupom']" target="_blank" ejs-button class="e-flat e-small">Imprimir</a>
-      <button *ngIf="data.status === 'Finalizada'" ejs-button class="e-flat e-small e-primary" (click)="emitirNfce(data)">📄 Emitir NFC-e</button>
-      <button *ngIf="data.status !== 'Cancelada'" ejs-button class="e-flat e-small" (click)="cancelarVenda(data)">Cancelar</button>
+      <div class="action-buttons">
+        <button 
+          *ngIf="!data.temNfce && data.status !== 'Cancelada'" 
+          ejs-button 
+          class="e-flat e-small e-primary btn-emit" 
+          (click)="emitirNfceIndividual(data)"
+          title="Emitir NFC-e para esta venda">
+          <span class="material-icons" style="font-size: 14px; margin-right: 2px;">receipt</span>
+          Emitir NFC-e
+        </button>
+        <span class="text-success-label" *ngIf="data.temNfce">
+          <span class="material-icons mini">check</span> NFC-e OK
+        </span>
+      </div>
     </ng-template>
   </ejs-grid>
 </div>

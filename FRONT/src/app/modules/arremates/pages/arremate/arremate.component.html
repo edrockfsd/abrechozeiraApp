@@ -3,8 +3,18 @@
   <ejs-toast #toast [position]="toastPosition" [width]="toastWidth"></ejs-toast>
   
   <div class="header">
-    <div class="header-content">
-      <h1>Arremate</h1>
+    <div class="header-content" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <h1>Lançamento de Arremates</h1>
+      <div style="display: flex; gap: 10px;">
+        <a routerLink="/arremates" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; background: #3b82f6; color: white;">
+          <span class="material-icons" style="font-size: 18px;">edit_note</span>
+          Lançamento Manual
+        </a>
+        <a routerLink="/arremates/importar" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; background: #f1f5f9; color: #475569;">
+          <span class="material-icons" style="font-size: 18px;">cloud_download</span>
+          Importar Planilha Live
+        </a>
+      </div>
     </div>
   </div>
 

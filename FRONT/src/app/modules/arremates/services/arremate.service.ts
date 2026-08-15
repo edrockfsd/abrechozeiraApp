@@ -3,12 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
-interface LiveCombo {
+export interface LiveCombo {
   id: number;
   titulo: string;
 }
 
-interface Produto {
+export interface Produto {
   id: number;
   descricao: string;
   precoVenda: number;
@@ -41,6 +41,44 @@ export interface ArremateRequest {
   fila?: string;
 }
 
+export interface LinhaPreview {
+  codigoLive?: number | null;
+  descricao: string;
+  valor: number;
+  comprador: string;
+  fila?: string;
+  linhaOriginal: number;
+}
+
+export interface PreviewResultado {
+  totalLinhas: number;
+  compradores: number;
+  linhas: LinhaPreview[];
+}
+
+export interface DetalhePedidoLive {
+  cliente: string;
+  pessoaCriada: boolean;
+  pessoaId: number;
+  pedidoId: number;
+  pedidoCodigo: number;
+  vendaId: number;
+  itens: number;
+  valorTotal: number;
+  descricaoItens: string[];
+}
+
+export interface ResultadoImportacaoLive {
+  mensagem: string;
+  produtosCadastrados: number;
+  arrematesImportados: number;
+  pedidosGerados: number;
+  vendasGeradas: number;
+  detalhesPedidos: DetalhePedidoLive[];
+  erros: any[];
+  avisos: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -71,5 +109,28 @@ export class ArremateService {
 
   deleteArremate(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/Arremates/${id}`);
+  }
+
+  // ==================== IMPORTAÇÃO DE LIVES ====================
+
+  previewUrl(url: string, sheet: string = 'vendas'): Observable<PreviewResultado> {
+    return this.http.get<PreviewResultado>(
+      `${this.apiUrl}/LiveImport/preview-url?url=${encodeURIComponent(url)}&sheet=${encodeURIComponent(sheet)}`
+    );
+  }
+
+  importarPlanilhaUrl(liveId: number, googleSheetUrl: string, sheetName: string = 'vendas'): Observable<ResultadoImportacaoLive> {
+    return this.http.post<ResultadoImportacaoLive>(`${this.apiUrl}/LiveImport/importar-url`, {
+      liveId,
+      googleSheetUrl,
+      sheetName
+    });
+  }
+
+  importarPlanilhaXlsx(arquivo: File, liveId: number): Observable<ResultadoImportacaoLive> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    formData.append('liveId', liveId.toString());
+    return this.http.post<ResultadoImportacaoLive>(`${this.apiUrl}/LiveImport/importar-xlsx`, formData);
   }
 }

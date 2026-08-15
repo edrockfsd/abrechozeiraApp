@@ -1,19 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ComboBoxModule } from '@syncfusion/ej2-angular-dropdowns';
 import { GridComponent, GridModule } from '@syncfusion/ej2-angular-grids';
-import { ArremateService } from '../../services/arremate.service';
-import { Arremate, ArremateRequest } from '../../services/arremate.service';
-// Add ToastModule import
 import { ToastModule, ToastComponent } from '@syncfusion/ej2-angular-notifications';
-
-import { ToolbarItems } from '@syncfusion/ej2-angular-grids';
-
-interface LiveCombo {
-  id: number;
-  titulo: string;
-}
+import { ArremateService, Arremate, ArremateRequest, LiveCombo } from '../../services/arremate.service';
 
 @Component({
   selector: 'app-arremate',
@@ -22,17 +14,17 @@ interface LiveCombo {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     ReactiveFormsModule,
     ComboBoxModule,
     GridModule,
-    ToastModule // Add ToastModule to imports
+    ToastModule
   ]
 })
 export class ArremateComponent implements OnInit {
-  @ViewChild('grid') public grid: GridComponent;
-  @ViewChild('toast') public toast: ToastComponent; // Add toast reference
+  @ViewChild('grid') public grid!: GridComponent;
+  @ViewChild('toast') public toast!: ToastComponent;
 
-  // Add toast configuration
   public toastPosition = { X: 'Right', Y: 'Top' };
   public toastWidth = '400';
   arremateForm: FormGroup;
@@ -47,28 +39,22 @@ export class ArremateComponent implements OnInit {
     private formBuilder: FormBuilder,
     private arremateService: ArremateService
   ) {
-    this.criarFormulario();
-  }
-
-  public toolbarOptions: string[];
-  public editSettings: object;
-
-  ngOnInit(): void {
-    this.carregarLives();
-    this.toolbarOptions = ['Delete'];
-    this.editSettings = { 
-      allowEditing: false, 
-      allowAdding: false, 
-      allowDeleting: true,
-      mode: 'Dialog',
-      primaryKey: 'id'
-    };
-  }
-
-  private criarFormulario(): void {
     this.arremateForm = this.formBuilder.group({
       liveId: ['', [Validators.required]]
     });
+  }
+
+  public toolbarOptions: string[] = ['Delete'];
+  public editSettings: object = { 
+    allowEditing: false, 
+    allowAdding: false, 
+    allowDeleting: true,
+    mode: 'Dialog',
+    primaryKey: 'id'
+  };
+
+  ngOnInit(): void {
+    this.carregarLives();
   }
 
   private carregarLives(): void {
@@ -160,7 +146,6 @@ export class ArremateComponent implements OnInit {
     }
   }
 
-  // Add this property to store the product ID
   selectedProdutoId: number | null = null;
 
   onCodigoEstoqueBlur(event: any): void {
@@ -169,7 +154,6 @@ export class ArremateComponent implements OnInit {
     const precoVendaInput = document.getElementById('quickPrecoVenda') as HTMLInputElement;
 
     if (!codigoEstoque) {
-      // Sem código -> habilita entrada manual
       this.selectedProdutoId = null;
       if (pecaInput) pecaInput.readOnly = false;
       if (precoVendaInput) precoVendaInput.readOnly = false;
@@ -179,7 +163,6 @@ export class ArremateComponent implements OnInit {
     this.arremateService.getProdutoByCodigoEstoque(codigoEstoque)
       .subscribe({
         next: (response: any) => {
-          // Caso API retorne objeto com Id=0 (não encontrado), NÃO travar campos
           const found = response && typeof response.id === 'number' && response.id > 0;
 
           if (found) {
@@ -194,14 +177,12 @@ export class ArremateComponent implements OnInit {
               });
             }
           } else {
-            // Não encontrado: liberar edição manual e manter/limpar valores
             this.selectedProdutoId = null;
             const codigoEstoqueInput = document.getElementById('quickCodigoEstoque') as HTMLInputElement;
             if (codigoEstoqueInput) {
               codigoEstoqueInput.value = '';
             }
             if (pecaInput) {
-              // Evita deixar "Produto não encontrado" como texto
               if (!pecaInput.value || (response?.descricao && /n.o encontrado/i.test(response.descricao))) {
                 pecaInput.value = '';
               }
@@ -217,7 +198,6 @@ export class ArremateComponent implements OnInit {
           }
         },
         error: (error) => {
-          // Reset the product ID on error e permitir entrada manual
           this.selectedProdutoId = null;
           console.error('Erro ao buscar produto:', error);
           const codigoEstoqueInput = document.getElementById('quickCodigoEstoque') as HTMLInputElement;
@@ -231,7 +211,6 @@ export class ArremateComponent implements OnInit {
   }
 
   onAddButtonClick(): void {
-    // Validate all required fields
     const missingFields = [];
 
     const codigoEstoqueInput = document.getElementById('quickCodigoEstoque') as HTMLInputElement;
@@ -266,8 +245,6 @@ export class ArremateComponent implements OnInit {
       return;
     }
     
-    // ProdutoId passa a ser opcional (pode ser null)
-    // Remove currency formatting and convert to number
     const codigoLiveStr = codigoLiveInput.value.trim();
     const codigoLive = parseInt(codigoLiveStr);
     const precoVendaStr = precoVendaInput.value.replace('R$', '').replace('.', '').replace(',', '.').trim();
@@ -286,29 +263,21 @@ export class ArremateComponent implements OnInit {
       dataAlteracao: new Date().toISOString(),
       usuarioModificacaoId: 1
     };
-    console.log(arremateRequest);
 
     this.arremateService.createArremate(arremateRequest).subscribe({
       next: (response) => {
-        console.log('Arremate criado com sucesso:', response);
-        // Show success toast
         this.showToast('success', 'Sucesso', 'Arremate criado com sucesso');
         
-        // Clear all form fields
         codigoEstoqueInput.value = '';
         codigoLiveInput.value = '';
         pecaInput.value = '';
         precoVendaInput.value = '';
         arrematanteInput.value = '';
         filaInput.value = '';
-        // Re-enable manual editing by default
         pecaInput.readOnly = false;
         precoVendaInput.readOnly = false;
         
-        // Reset the product ID
         this.selectedProdutoId = null;
-        
-        // Refresh the grid
         this.carregarArremates(this.selectedLiveId!);
       },
       error: (error) => {
@@ -318,7 +287,6 @@ export class ArremateComponent implements OnInit {
     });
   }
 
-  // Add toast method
   showToast(severity: string, title: string, message: string): void {
     this.toast.show({
       title: title,
@@ -332,35 +300,27 @@ export class ArremateComponent implements OnInit {
     });
   }
 
-
-
-
   formatarData(data: string): string {
     if (!data) return '';
     const d = new Date(data);
     return d.toLocaleString('pt-BR');
   }
 
-  // Formatação de moeda BRL no input conforme digita
   onPrecoVendaInput(event: any): void {
     const input = event.target as HTMLInputElement;
     if (input.readOnly) return;
 
-    // Mantém apenas dígitos
     const cleaned = (input.value || '').replace(/\D/g, '');
-    // Remove zeros à esquerda para evitar formatos como 000.299,00
     const digits = cleaned.replace(/^0+/, '') || '0';
     if (!digits) {
       input.value = '';
       return;
     }
 
-    // Converte para centavos (últimos 2 dígitos)
     const cents = digits.padStart(3, '0');
     const inteiro = cents.slice(0, -2);
     const decimal = cents.slice(-2);
 
-    // Aplica máscara BRL: R$ 0.000,00
     const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     input.value = `R$ ${inteiroFormatado},${decimal}`;
   }
@@ -368,7 +328,6 @@ export class ArremateComponent implements OnInit {
   onPrecoVendaBlur(event: any): void {
     const input = event.target as HTMLInputElement;
     if (!input.value) return;
-    // Garante sempre formato R$ 0,00
     const onlyDigits = input.value.replace(/\D/g, '').replace(/^0+/, '') || '0';
     const cents = onlyDigits.padStart(3, '0');
     const inteiro = cents.slice(0, -2);
