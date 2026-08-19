@@ -335,9 +335,21 @@ public class NfceService
         if (venda.Status == "Cancelada")
             throw new InvalidOperationException("Não é possível emitir NFC-e para venda cancelada.");
 
-        var nfceExistente = await _context.Nfce.FirstOrDefaultAsync(n => n.VendaId == vendaId && n.Status != "Cancelada");
+        var nfceExistente = await _context.Nfce.FirstOrDefaultAsync(n => n.VendaId == vendaId && n.Status == "Autorizada");
         if (nfceExistente != null)
-            throw new InvalidOperationException($"Já existe NFC-e emitida para esta venda: {nfceExistente.ChaveAcesso}");
+            throw new InvalidOperationException($"Já existe NFC-e autorizada para esta venda: {nfceExistente.ChaveAcesso}");
+
+        // Se houver tentativa anterior rejeitada/pendente, remover para substituir
+        var tentativasAnteriores = await _context.Nfce
+            .Include(n => n.Itens)
+            .Include(n => n.Pagamentos)
+            .Where(n => n.VendaId == vendaId && n.Status != "Autorizada")
+            .ToListAsync();
+        if (tentativasAnteriores.Any())
+        {
+            _context.Nfce.RemoveRange(tentativasAnteriores);
+            await _context.SaveChangesAsync();
+        }
 
         var itensPedido = await _context.PedidoProduto
             .Include(i => i.Produto)
@@ -756,7 +768,14 @@ public class NfceService
         xmlStr.Append("<pag>");
         foreach (var pg in nfce.Pagamentos)
         {
-            xmlStr.Append($"<detPag><tPag>{pg.TipoPagamento}</tPag><vPag>{pg.Valor.ToString("F2", CultureInfo.InvariantCulture)}</vPag></detPag>");
+            xmlStr.Append("<detPag>");
+            xmlStr.Append($"<tPag>{pg.TipoPagamento}</tPag>");
+            xmlStr.Append($"<vPag>{pg.Valor.ToString("F2", CultureInfo.InvariantCulture)}</vPag>");
+            if (pg.TipoPagamento != "01") // Não é dinheiro em espécie -> incluir card com tpIntegra=2 (não integrado)
+            {
+                xmlStr.Append("<card><tpIntegra>2</tpIntegra></card>");
+            }
+            xmlStr.Append("</detPag>");
         }
         xmlStr.Append("</pag>");
 

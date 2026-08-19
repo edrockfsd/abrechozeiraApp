@@ -72,11 +72,26 @@ namespace ABrechozeiraApp.Controllers
                     ClienteNick = v.Cliente != null ? v.Cliente.NickName : null,
                     LiveTitulo = v.Live != null ? v.Live.Titulo : null,
                     FormaPagamento = v.FormaPagamento != null ? v.FormaPagamento.Descricao : null,
-                    TemNfce = _context.Nfce.Any(n => n.VendaId == v.Id && n.Status != "Cancelada"),
+                    TemNfce = _context.Nfce.Any(n => n.VendaId == v.Id && n.Status == "Autorizada"),
                     NfceStatus = _context.Nfce
                         .Where(n => n.VendaId == v.Id)
                         .OrderByDescending(n => n.DataEmissao)
                         .Select(n => n.Status)
+                        .FirstOrDefault(),
+                    NfceChave = _context.Nfce
+                        .Where(n => n.VendaId == v.Id && n.Status == "Autorizada")
+                        .OrderByDescending(n => n.DataEmissao)
+                        .Select(n => n.ChaveAcesso)
+                        .FirstOrDefault(),
+                    NfceNumero = _context.Nfce
+                        .Where(n => n.VendaId == v.Id && n.Status == "Autorizada")
+                        .OrderByDescending(n => n.DataEmissao)
+                        .Select(n => (int?)n.Numero)
+                        .FirstOrDefault(),
+                    NfceProtocolo = _context.Nfce
+                        .Where(n => n.VendaId == v.Id && n.Status == "Autorizada")
+                        .OrderByDescending(n => n.DataEmissao)
+                        .Select(n => n.Protocolo)
                         .FirstOrDefault(),
                     QtdItens = _context.PedidoProduto.Count(pp => pp.PedidoId == v.PedidoId)
                 })
@@ -169,15 +184,26 @@ namespace ABrechozeiraApp.Controllers
                 try
                 {
                     var nfce = await _nfceService.EmitirNfcePorVendaAsync(vendaId);
-                    sucessos++;
-                    resultados.Add(new
+                    if (nfce.Status == "Autorizada")
                     {
-                        vendaId,
-                        nfceId = nfce.Id,
-                        numero = nfce.Numero,
-                        chaveAcesso = nfce.ChaveAcesso,
-                        status = nfce.Status
-                    });
+                        sucessos++;
+                        resultados.Add(new
+                        {
+                            vendaId,
+                            nfceId = nfce.Id,
+                            numero = nfce.Numero,
+                            chaveAcesso = nfce.ChaveAcesso,
+                            status = nfce.Status
+                        });
+                    }
+                    else
+                    {
+                        erros.Add(new
+                        {
+                            vendaId,
+                            erro = nfce.MensagemRetorno ?? "Nota fiscal rejeitada pela SEFAZ."
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {

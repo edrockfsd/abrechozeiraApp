@@ -20,6 +20,9 @@ export interface VendaListItem {
   formaPagamento?: string | null;
   temNfce: boolean;
   nfceStatus?: string | null;
+  nfceChave?: string | null;
+  nfceNumero?: number | null;
+  nfceProtocolo?: string | null;
   qtdItens: number;
 }
 

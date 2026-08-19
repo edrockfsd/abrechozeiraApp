@@ -142,7 +142,14 @@ export class SalesListComponent implements OnInit {
   }
 
   emitirNfceLote(): void {
-    const selectedRecords = (this.grid?.getSelectedRecords() as VendaListItem[]) || [];
+    let selectedRecords = (this.grid?.getSelectedRecords() as VendaListItem[]) || [];
+    
+    if (selectedRecords.length === 0 && this.grid) {
+      const selectedIndexes = this.grid.getSelectedRowIndexes();
+      if (selectedIndexes && selectedIndexes.length > 0) {
+        selectedRecords = selectedIndexes.map(idx => this.vendas[idx]).filter(Boolean);
+      }
+    }
     
     if (selectedRecords.length === 0) {
       this.mensagem = {
@@ -185,6 +192,23 @@ export class SalesListComponent implements OnInit {
           texto: err.error?.erro || 'Erro no processamento da emissão em lote.'
         };
       }
+    });
+  }
+
+  copiarChave(chave: string): void {
+    if (!chave) return;
+    navigator.clipboard.writeText(chave).then(() => {
+      this.mensagem = {
+        tipo: 'success',
+        texto: `Chave copiada: ${chave}`
+      };
+      setTimeout(() => {
+        if (this.mensagem?.texto.includes(chave)) {
+          this.mensagem = null;
+        }
+      }, 4000);
+    }).catch(() => {
+      prompt('Copie a chave da NFC-e:', chave);
     });
   }
 

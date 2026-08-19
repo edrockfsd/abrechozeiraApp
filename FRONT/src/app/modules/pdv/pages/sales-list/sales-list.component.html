@@ -64,7 +64,7 @@
     [selectionSettings]="selectionOptions">
     <e-columns>
       <e-column type="checkbox" width="50"></e-column>
-      <e-column field="id" headerText="Venda #" width="90" textAlign="Center"></e-column>
+      <e-column field="id" isPrimaryKey="true" headerText="Venda #" width="90" textAlign="Center"></e-column>
       <e-column field="pedidoId" headerText="Pedido #" width="90" textAlign="Center"></e-column>
       <e-column field="liveTitulo" headerText="Live" width="160" [template]="liveTpl"></e-column>
       <e-column field="clienteNome" headerText="Cliente" width="180" [template]="clienteTpl"></e-column>
@@ -102,9 +102,16 @@
     </ng-template>
 
     <ng-template #nfceStatusTpl let-data>
-      <span class="badge-status nfce-autorizada" *ngIf="data.temNfce">
-        <span class="material-icons mini">verified</span> Emitida
-      </span>
+      <div *ngIf="data.temNfce" class="nfce-cell-info">
+        <span class="badge-status nfce-autorizada" [title]="'NFC-e Nº ' + (data.nfceNumero || '') + (data.nfceProtocolo ? ' | Protocolo SEFAZ: ' + data.nfceProtocolo : '')">
+          <span class="material-icons mini">verified</span> Nº {{ data.nfceNumero || 'OK' }}
+        </span>
+        <div class="chave-chip" *ngIf="data.nfceChave" (click)="copiarChave(data.nfceChave)" title="Clique para copiar a chave: {{ data.nfceChave }}">
+          <span class="material-icons mini">key</span>
+          <code>...{{ data.nfceChave.substring(data.nfceChave.length - 14) }}</code>
+          <span class="material-icons mini copy-icon">content_copy</span>
+        </div>
+      </div>
       <span class="badge-status nfce-pendente" *ngIf="!data.temNfce && data.status !== 'Cancelada'">
         <span class="material-icons mini">schedule</span> Pendente
       </span>
@@ -124,9 +131,22 @@
           <span class="material-icons" style="font-size: 14px; margin-right: 2px;">receipt</span>
           Emitir NFC-e
         </button>
-        <span class="text-success-label" *ngIf="data.temNfce">
-          <span class="material-icons mini">check</span> NFC-e OK
-        </span>
+        <div *ngIf="data.temNfce" class="btn-group-actions">
+          <a 
+            [routerLink]="['/pdv/vendas', data.id, 'cupom']" 
+            class="btn-cupom" 
+            title="Visualizar DANFE / Cupom Fiscal NFC-e">
+            <span class="material-icons" style="font-size: 15px;">receipt_long</span>
+            <span>Ver Cupom</span>
+          </a>
+          <button 
+            *ngIf="data.nfceChave" 
+            class="btn-icon-copy" 
+            (click)="copiarChave(data.nfceChave)" 
+            title="Copiar Chave da NFC-e completa">
+            <span class="material-icons" style="font-size: 15px;">content_copy</span>
+          </button>
+        </div>
       </div>
     </ng-template>
   </ejs-grid>
