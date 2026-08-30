@@ -54,6 +54,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Certificados\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ACBrLib.Core" Version="1.2.33" />
     <PackageReference Include="ACBrLib.NFe" Version="1.0.28" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />

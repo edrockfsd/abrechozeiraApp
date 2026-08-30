@@ -596,12 +596,22 @@ public class NfceService
     /// </summary>
     private async Task ProcessarEmissaoAsync(EmpresaFiscal config, Nfce nfce)
     {
-        if (!string.IsNullOrEmpty(config.CertificadoPath) && File.Exists(config.CertificadoPath) && !string.IsNullOrEmpty(config.CertificadoSenha))
+        var certPath = config.CertificadoPath;
+        if (!string.IsNullOrEmpty(certPath) && !File.Exists(certPath))
+        {
+            var localPath = Path.Combine(AppContext.BaseDirectory, certPath.TrimStart('/', '\\'));
+            if (File.Exists(localPath))
+            {
+                certPath = localPath;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(certPath) && File.Exists(certPath) && !string.IsNullOrEmpty(config.CertificadoSenha))
         {
             try
             {
                 _logger.LogInformation("Iniciando assinatura e transmissão real da NFC-e {Numero} via SEFAZ-PR...", nfce.Numero);
-                var certBytes = await File.ReadAllBytesAsync(config.CertificadoPath);
+                var certBytes = await File.ReadAllBytesAsync(certPath);
                 using var cert = new X509Certificate2(certBytes, config.CertificadoSenha, X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
                 _logger.LogInformation("Certificado A1 carregado: Subject='{Subject}', CNPJ Config='{ConfigCNPJ}'", cert.Subject, config.CNPJ);
 
