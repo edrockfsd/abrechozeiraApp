@@ -68,6 +68,17 @@ export interface DetalhePedidoLive {
   descricaoItens: string[];
 }
 
+export interface StatusLiveImportacao {
+  liveId: number;
+  tituloLive: string;
+  totalVendas: number;
+  totalNfceAutorizadas: number;
+  totalArrematesProvisorios: number;
+  totalArrematesOficiais: number;
+  bloqueadoParaImportacao: boolean;
+  motivoBloqueio?: string;
+}
+
 export interface ResultadoImportacaoLive {
   mensagem: string;
   produtosCadastrados: number;
@@ -86,6 +97,10 @@ export class ArremateService {
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
+
+  getStatusLive(liveId: number): Observable<StatusLiveImportacao> {
+    return this.http.get<StatusLiveImportacao>(`${this.apiUrl}/LiveImport/status-live/${liveId}`);
+  }
 
   getLivesCombo(): Observable<LiveCombo[]> {
     return this.http.get<LiveCombo[]>(`${this.apiUrl}/Lives/GetLivesCombo`);

@@ -39,6 +39,33 @@
             (change)="onLiveChange($event)"
             cssClass="e-outline custom-combobox">
           </ejs-combobox>
+
+          <!-- Alerta de Bloqueio Fiscal (NFC-e Autorizada) -->
+          <div class="live-status-alert alert-danger" *ngIf="statusLive?.bloqueadoParaImportacao">
+            <span class="material-icons alert-icon">lock</span>
+            <div class="alert-body">
+              <strong>Importação Bloqueada por Regra Fiscal</strong>
+              <p>{{ statusLive?.motivoBloqueio }}</p>
+            </div>
+          </div>
+
+          <!-- Alerta de Substituição de Vendas Anteriores -->
+          <div class="live-status-alert alert-warning" *ngIf="!statusLive?.bloqueadoParaImportacao && statusLive && statusLive.totalVendas > 0">
+            <span class="material-icons alert-icon">published_with_changes</span>
+            <div class="alert-body">
+              <strong>Reimportação de Live</strong>
+              <p>Esta Live já possui {{ statusLive.totalVendas }} venda(s) gerada(s) anteriormente sem emissão fiscal. Ao importar uma nova planilha, os dados anteriores serão substituídos automaticamente sem duplicidade.</p>
+            </div>
+          </div>
+
+          <!-- Alerta Informativo de Conversão de Provisórios da Live -->
+          <div class="live-status-alert alert-info" *ngIf="!statusLive?.bloqueadoParaImportacao && statusLive && statusLive.totalArrematesProvisorios > 0 && statusLive.totalVendas === 0">
+            <span class="material-icons alert-icon">swap_horizontal_circle</span>
+            <div class="alert-body">
+              <strong>Transição da Live para Oficial</strong>
+              <p>Esta Live possui {{ statusLive.totalArrematesProvisorios }} arremate(s) provisório(s) sincronizado(s) durante a transmissão online. Ao processar a planilha final, eles serão substituídos pelos produtos oficiais no estoque e faturados.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -124,10 +151,10 @@
       <button 
         class="btn btn-primary" 
         (click)="executarImportacao()" 
-        [disabled]="loadingImport || loadingPreview || !selectedLiveId">
+        [disabled]="loadingImport || loadingPreview || !selectedLiveId || statusLive?.bloqueadoParaImportacao">
         <span class="material-icons" *ngIf="!loadingImport">auto_awesome</span>
         <span class="spinner" *ngIf="loadingImport"></span>
-        {{ loadingImport ? 'Processando com IA & Importando...' : 'Processar & Importar com IA' }}
+        {{ loadingImport ? 'Processando com IA & Importando...' : (statusLive?.bloqueadoParaImportacao ? 'Importação Bloqueada (NFC-e Autorizada)' : 'Processar & Importar com IA') }}
       </button>
     </div>
   </div>

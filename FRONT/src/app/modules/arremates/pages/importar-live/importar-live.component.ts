@@ -11,7 +11,8 @@ import {
   LiveCombo,
   LinhaPreview,
   ResultadoImportacaoLive,
-  DetalhePedidoLive
+  DetalhePedidoLive,
+  StatusLiveImportacao
 } from '../../services/arremate.service';
 
 @Component({
@@ -41,6 +42,10 @@ export class ImportarLiveComponent implements OnInit {
   lives: LiveCombo[] = [];
   selectedLiveId: number | null = null;
   public liveFields: object = { text: 'titulo', value: 'id' };
+
+  // Status da Live Selecionada (regras de bloqueio e substituição)
+  statusLive: StatusLiveImportacao | null = null;
+  loadingStatusLive: boolean = false;
 
   // Modo de importação
   modoImportacao: 'url' | 'arquivo' = 'url';
@@ -76,6 +81,7 @@ export class ImportarLiveComponent implements OnInit {
         this.lives = data;
         if (data.length > 0 && !this.selectedLiveId) {
           this.selectedLiveId = data[0].id;
+          this.carregarStatusLive(this.selectedLiveId);
         }
       },
       error: (err) => {
@@ -87,6 +93,29 @@ export class ImportarLiveComponent implements OnInit {
 
   onLiveChange(event: any): void {
     this.selectedLiveId = event.value;
+    if (this.selectedLiveId) {
+      this.carregarStatusLive(this.selectedLiveId);
+    } else {
+      this.statusLive = null;
+    }
+  }
+
+  carregarStatusLive(liveId: number): void {
+    this.loadingStatusLive = true;
+    this.statusLive = null;
+    this.arremateService.getStatusLive(liveId).subscribe({
+      next: (status) => {
+        this.statusLive = status;
+        this.loadingStatusLive = false;
+        if (status.bloqueadoParaImportacao) {
+          this.showToast('error', 'Live Bloqueada para Reimportação', status.motivoBloqueio || 'Esta live possui NFC-e autorizada.');
+        }
+      },
+      error: (err) => {
+        this.loadingStatusLive = false;
+        console.warn('Não foi possível verificar o status prévio da live:', err);
+      }
+    });
   }
 
   onFileSelected(event: any): void {
@@ -140,6 +169,11 @@ export class ImportarLiveComponent implements OnInit {
       return;
     }
 
+    if (this.statusLive?.bloqueadoParaImportacao) {
+      this.showToast('error', 'Importação Bloqueada', this.statusLive.motivoBloqueio || 'Esta live possui notas fiscais autorizadas na SEFAZ.');
+      return;
+    }
+
     if (this.modoImportacao === 'url' && !this.googleSheetUrl.trim()) {
       this.showToast('warning', 'URL Obrigatória', 'Informe o link da Google Sheet.');
       return;
@@ -150,12 +184,26 @@ export class ImportarLiveComponent implements OnInit {
       return;
     }
 
-    const confirmMsg = `Confirma a importação dos arremates da live selecionada?
+    let confirmMsg = `Confirma a importação dos arremates da live selecionada?
 Isso irá:
 1. Cadastrar as peças como Produtos (desmembradas por IA)
 2. Gerar registros de Arremates
 3. Criar Pedidos e Vendas para cada cliente
 4. Vincular para posterior emissão de NFC-e`;
+
+    if (this.statusLive && this.statusLive.totalVendas > 0) {
+      confirmMsg = `⚠️ ATENÇÃO: Esta Live já possui ${this.statusLive.totalVendas} vendas geradas anteriormente (sem NFC-e autorizada).
+
+Ao confirmar, os dados anteriores da Live serão substituídos com os novos dados desta planilha.
+
+Deseja continuar com a substituição?`;
+    } else if (this.statusLive && this.statusLive.totalArrematesProvisorios > 0) {
+      confirmMsg = `ℹ️ Esta Live possui ${this.statusLive.totalArrematesProvisorios} arremates provisórios sincronizados durante a transmissão online.
+
+Eles serão substituídos automaticamente pelos produtos e vendas oficiais desta planilha final.
+
+Deseja iniciar o processamento?`;
+    }
 
     if (!confirm(confirmMsg)) return;
 
@@ -169,12 +217,14 @@ Isso irá:
           this.resultadoImportacao = res;
           this.loadingImport = false;
           this.showToast('success', 'Importação Concluída!', `${res.produtosCadastrados} produtos cadastrados, ${res.pedidosGerados} pedidos e ${res.vendasGeradas} vendas geradas.`);
+          if (this.selectedLiveId) this.carregarStatusLive(this.selectedLiveId);
         },
         error: (err) => {
           this.loadingImport = false;
           console.error('Erro na importação:', err);
           const msg = err.error?.erro || 'Erro durante o processamento da importação.';
           this.showToast('error', 'Erro na Importação', msg);
+          if (this.selectedLiveId) this.carregarStatusLive(this.selectedLiveId);
         }
       });
     } else if (this.selectedFile) {
@@ -183,12 +233,14 @@ Isso irá:
           this.resultadoImportacao = res;
           this.loadingImport = false;
           this.showToast('success', 'Importação Concluída!', `${res.produtosCadastrados} produtos cadastrados, ${res.pedidosGerados} pedidos e ${res.vendasGeradas} vendas geradas.`);
+          if (this.selectedLiveId) this.carregarStatusLive(this.selectedLiveId);
         },
         error: (err) => {
           this.loadingImport = false;
           console.error('Erro na importação:', err);
           const msg = err.error?.erro || 'Erro durante o processamento da importação.';
           this.showToast('error', 'Erro na Importação', msg);
+          if (this.selectedLiveId) this.carregarStatusLive(this.selectedLiveId);
         }
       });
     }

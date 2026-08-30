@@ -100,8 +100,28 @@ Nesta sessão, foram concluídos os testes de geração de NFC-e a partir de pla
 
 ---
 
-## 6. Próximos Passos
-- Executar `git push origin main` para disparar o pipeline CI/CD no GitHub Actions.
+## 6. Regras de Negócio de Arremates Online vs. Planilha Final Oficial
+
+### 6.1 Contexto e Desafio
+- Durante a Live, a funcionalidade *“Sincronizar Planilha”* do Google Sheets popula a tabela `Arremate` com dados provisórios (`ProdutoId = null`) para consulta em tempo real pelas clientes no Portal do Cliente.
+- Ao finalizar a Live e subir a planilha oficial consolidada, esses arremates provisórios causavam **duplicidade de peças e valores dobrados** no portal do cliente.
+
+### 6.2 Soluções Implementadas
+1. **Limpeza Automática de Provisórios:**
+   - No início de `ProcessarImportacao`, o sistema remove automaticamente todos os arremates provisórios (`ProdutoId == null`) daquela Live antes de cadastrar os produtos e arremates oficiais.
+2. **Bloqueio Rígido de Reimportação por Segurança Fiscal:**
+   - Se a Live já possuir qualquer **NFC-e autorizada** perante a SEFAZ (`Status == "Autorizada"`), a reimportação é terminantemente **bloqueada** (tanto no backend via exceção quanto no frontend).
+   - Impede que vendas já acobertadas por cupom fiscal oficial sejam sobrescritas ou alteradas.
+3. **Substituição Segura em Caso de Reimportação (sem NFC-e autorizada):**
+   - Se a Live tiver vendas geradas mas nenhuma NFC-e autorizada (ex: erro no Excel percebido pelo operador antes de faturar), o sistema substitui os dados anteriores sem duplicidade.
+4. **Interface e Endpoint de Status da Live:**
+   - Endpoint: `GET /api/LiveImport/status-live/{liveId}` (`[AllowAnonymous]`)
+   - O Frontend exibe banners de alerta contextuais (vermelho para bloqueio fiscal, amarelo para substituição de vendas e azul para conversão de provisórios da transmissão online), desabilitando o botão de importação caso esteja bloqueada.
+
+---
+
+## 7. Próximos Passos
+- Executar `git push origin main` com as novas regras de negócio para atualizar o ambiente de produção na KingHost.
 - Acompanhar os estágios:
   1. `build-backend`
   2. `build-frontend`

@@ -112,6 +112,49 @@ public class LiveImportController : ControllerBase
     }
 
     /// <summary>
+    /// Consulta o status da Live para saber se permite nova importação ou se está bloqueada por NFC-e autorizada
+    /// </summary>
+    [HttpGet("status-live/{liveId}")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<IActionResult> GetStatusLive(int liveId)
+    {
+        var live = await _context.Live.FindAsync(liveId);
+        if (live == null) return NotFound(new { erro = $"Live {liveId} não encontrada." });
+
+        var vendas = await _context.Venda.Where(v => v.LiveId == liveId).ToListAsync();
+        var vendaIds = vendas.Select(v => v.Id).ToList();
+
+        var nfcesAutorizadas = await _context.Nfce
+            .Where(n => n.VendaId.HasValue && vendaIds.Contains(n.VendaId.Value) && n.Status == "Autorizada")
+            .CountAsync();
+
+        var arrematesProvisorios = await _context.Arremate
+            .Where(a => a.LiveId == liveId && a.ProdutoId == null)
+            .CountAsync();
+
+        var arrematesOficiais = await _context.Arremate
+            .Where(a => a.LiveId == liveId && a.ProdutoId != null)
+            .CountAsync();
+
+        var bloqueado = nfcesAutorizadas > 0;
+        string? motivo = bloqueado 
+            ? $"Esta Live possui {nfcesAutorizadas} nota(s) fiscal(is) (NFC-e) já autorizada(s) perante a SEFAZ. Por segurança contábil e fiscal, o reenvio da planilha de arremates está bloqueado."
+            : null;
+
+        return Ok(new
+        {
+            liveId,
+            tituloLive = live.Titulo,
+            totalVendas = vendas.Count,
+            totalNfceAutorizadas = nfcesAutorizadas,
+            totalArrematesProvisorios = arrematesProvisorios,
+            totalArrematesOficiais = arrematesOficiais,
+            bloqueadoParaImportacao = bloqueado,
+            motivoBloqueio = motivo
+        });
+    }
+
+    /// <summary>
     /// Limpa dados de teste gerados para uma Live específica (NFC-e, Vendas, Pedidos, Arremates, Estoque, Produtos)
     /// </summary>
     [HttpDelete("limpar-live/{liveId}")]
@@ -124,67 +167,31 @@ public class LiveImportController : ControllerBase
             if (live == null)
                 return NotFound(new { erro = $"Live {liveId} não encontrada." });
 
-            // 1. Obter Vendas e Pedidos da live
             var vendas = await _context.Venda.Where(v => v.LiveId == liveId).ToListAsync();
             var vendaIds = vendas.Select(v => v.Id).ToList();
-            var pedidoIds = vendas.Select(v => v.PedidoId).Distinct().ToList();
 
-            var outrosPedidos = await _context.Pedido
-                .Where(p => p.Observacoes != null && (p.Observacoes.Contains($"Live - {live.Titulo}") || p.Observacoes.Contains($"Live {liveId}")))
-                .Select(p => p.Id)
-                .ToListAsync();
-            pedidoIds = pedidoIds.Union(outrosPedidos).Distinct().ToList();
+            // Checagem de segurança fiscal: se houver NFC-e autorizada, impedir exclusão
+            var nfcesAutorizadas = await _context.Nfce
+                .Where(n => n.VendaId.HasValue && vendaIds.Contains(n.VendaId.Value) && n.Status == "Autorizada")
+                .CountAsync();
 
-            // 2. Nfce geradas para essas vendas OU pedidos
-            var nfces = await _context.Nfce
-                .Where(n => (n.VendaId.HasValue && vendaIds.Contains(n.VendaId.Value)) ||
-                            (n.PedidoId.HasValue && pedidoIds.Contains(n.PedidoId.Value)))
-                .ToListAsync();
-            var nfceIds = nfces.Select(n => n.Id).ToList();
+            if (nfcesAutorizadas > 0)
+            {
+                return BadRequest(new { 
+                    erro = $"Operação cancelada: a Live {liveId} possui {nfcesAutorizadas} nota(s) fiscal(is) já autorizada(s) perante a SEFAZ. Não é permitido excluir os dados." 
+                });
+            }
 
-            var nfcePagamentos = await _context.NfcePagamento.Where(p => nfceIds.Contains(p.NfceId)).ToListAsync();
-            _context.NfcePagamento.RemoveRange(nfcePagamentos);
-
-            var nfceItens = await _context.NfceItem.Where(i => nfceIds.Contains(i.NfceId)).ToListAsync();
-            _context.NfceItem.RemoveRange(nfceItens);
-
-            _context.Nfce.RemoveRange(nfces);
-            await _context.SaveChangesAsync();
-
-            // 3. Deletar Vendas
-            _context.Venda.RemoveRange(vendas);
-            await _context.SaveChangesAsync();
-
-            // 4. Deletar Pedidos e PedidoProdutos
-            var pedidoProdutos = await _context.PedidoProduto.Where(pp => pedidoIds.Contains(pp.PedidoId)).ToListAsync();
-            _context.PedidoProduto.RemoveRange(pedidoProdutos);
-
-            var pedidos = await _context.Pedido.Where(p => pedidoIds.Contains(p.Id)).ToListAsync();
-            _context.Pedido.RemoveRange(pedidos);
-            await _context.SaveChangesAsync();
-
-            // 5. Deletar Arremates
-            var arremates = await _context.Arremate.Where(a => a.LiveId == liveId).ToListAsync();
-            var produtoIds = arremates.Where(a => a.ProdutoId.HasValue).Select(a => a.ProdutoId!.Value).Distinct().ToList();
-            _context.Arremate.RemoveRange(arremates);
-            await _context.SaveChangesAsync();
-
-            // 6. Deletar Estoque e Produtos criados da Live
-            var estoques = await _context.Estoque.Where(e => produtoIds.Contains(e.ProdutoId)).ToListAsync();
-            _context.Estoque.RemoveRange(estoques);
-
-            var produtos = await _context.Produto.Where(p => produtoIds.Contains(p.Id)).ToListAsync();
-            _context.Produto.RemoveRange(produtos);
-            await _context.SaveChangesAsync();
+            var resultado = await ExecutarLimpezaInterna(liveId, live);
 
             return Ok(new
             {
                 mensagem = $"Dados da Live {liveId} ({live.Titulo}) resetados com sucesso.",
-                vendasRemovidas = vendas.Count,
-                nfcesRemovidas = nfces.Count,
-                pedidosRemovidos = pedidos.Count,
-                arrematesRemovidos = arremates.Count,
-                produtosRemovidos = produtos.Count
+                vendasRemovidas = resultado.vendasRemovidas,
+                nfcesRemovidas = resultado.nfcesRemovidas,
+                pedidosRemovidos = resultado.pedidosRemovidos,
+                arrematesRemovidos = resultado.arrematesRemovidos,
+                produtosRemovidos = resultado.produtosRemovidos
             });
         }
         catch (Exception ex)
@@ -192,6 +199,65 @@ public class LiveImportController : ControllerBase
             _logger.LogError(ex, "Erro ao limpar dados da Live {LiveId}", liveId);
             return StatusCode(500, new { erro = $"Erro ao limpar dados: {ex.Message}" });
         }
+    }
+
+    private async Task<(int vendasRemovidas, int nfcesRemovidas, int pedidosRemovidos, int arrematesRemovidos, int produtosRemovidos)> ExecutarLimpezaInterna(int liveId, Live live)
+    {
+        // 1. Obter Vendas e Pedidos da live
+        var vendas = await _context.Venda.Where(v => v.LiveId == liveId).ToListAsync();
+        var vendaIds = vendas.Select(v => v.Id).ToList();
+        var pedidoIds = vendas.Select(v => v.PedidoId).Distinct().ToList();
+
+        var outrosPedidos = await _context.Pedido
+            .Where(p => p.Observacoes != null && (p.Observacoes.Contains($"Live - {live.Titulo}") || p.Observacoes.Contains($"Live {liveId}")))
+            .Select(p => p.Id)
+            .ToListAsync();
+        pedidoIds = pedidoIds.Union(outrosPedidos).Distinct().ToList();
+
+        // 2. Nfce geradas para essas vendas OU pedidos (apenas as que não forem autorizadas, por segurança)
+        var nfces = await _context.Nfce
+            .Where(n => ((n.VendaId.HasValue && vendaIds.Contains(n.VendaId.Value)) ||
+                        (n.PedidoId.HasValue && pedidoIds.Contains(n.PedidoId.Value))) &&
+                        n.Status != "Autorizada")
+            .ToListAsync();
+        var nfceIds = nfces.Select(n => n.Id).ToList();
+
+        var nfcePagamentos = await _context.NfcePagamento.Where(p => nfceIds.Contains(p.NfceId)).ToListAsync();
+        _context.NfcePagamento.RemoveRange(nfcePagamentos);
+
+        var nfceItens = await _context.NfceItem.Where(i => nfceIds.Contains(i.NfceId)).ToListAsync();
+        _context.NfceItem.RemoveRange(nfceItens);
+
+        _context.Nfce.RemoveRange(nfces);
+        await _context.SaveChangesAsync();
+
+        // 3. Deletar Vendas
+        _context.Venda.RemoveRange(vendas);
+        await _context.SaveChangesAsync();
+
+        // 4. Deletar Pedidos e PedidoProdutos
+        var pedidoProdutos = await _context.PedidoProduto.Where(pp => pedidoIds.Contains(pp.PedidoId)).ToListAsync();
+        _context.PedidoProduto.RemoveRange(pedidoProdutos);
+
+        var pedidos = await _context.Pedido.Where(p => pedidoIds.Contains(p.Id)).ToListAsync();
+        _context.Pedido.RemoveRange(pedidos);
+        await _context.SaveChangesAsync();
+
+        // 5. Deletar Arremates
+        var arremates = await _context.Arremate.Where(a => a.LiveId == liveId).ToListAsync();
+        var produtoIds = arremates.Where(a => a.ProdutoId.HasValue).Select(a => a.ProdutoId!.Value).Distinct().ToList();
+        _context.Arremate.RemoveRange(arremates);
+        await _context.SaveChangesAsync();
+
+        // 6. Deletar Estoque e Produtos criados da Live
+        var estoques = await _context.Estoque.Where(e => produtoIds.Contains(e.ProdutoId)).ToListAsync();
+        _context.Estoque.RemoveRange(estoques);
+
+        var produtos = await _context.Produto.Where(p => produtoIds.Contains(p.Id)).ToListAsync();
+        _context.Produto.RemoveRange(produtos);
+        await _context.SaveChangesAsync();
+
+        return (vendas.Count, nfces.Count, pedidos.Count, arremates.Count, produtos.Count);
     }
 
     /// <summary>
@@ -203,6 +269,43 @@ public class LiveImportController : ControllerBase
         var live = await _context.Live.FindAsync(liveId);
         if (live == null)
             throw new ArgumentException($"Live {liveId} não encontrada.");
+
+        var avisos = new List<string>();
+
+        // REGRA DE NEGÓCIO 2: Se a live já tiver vendas com NFC-e autorizada, BLOQUEAR reimportação
+        var vendasExistentes = await _context.Venda.Where(v => v.LiveId == liveId).ToListAsync();
+        var vendaIdsExistentes = vendasExistentes.Select(v => v.Id).ToList();
+
+        var nfcesAutorizadas = await _context.Nfce
+            .Where(n => n.VendaId.HasValue && vendaIdsExistentes.Contains(n.VendaId.Value) && n.Status == "Autorizada")
+            .CountAsync();
+
+        if (nfcesAutorizadas > 0)
+        {
+            throw new InvalidOperationException(
+                $"Importação bloqueada: A Live '{live.Titulo}' possui {nfcesAutorizadas} nota(s) fiscal(is) (NFC-e) já autorizada(s) perante a SEFAZ. Por segurança fiscal, não é permitido reenviar a planilha de arremates.");
+        }
+
+        // Se já existirem vendas anteriores (sem NFC-e autorizada), limpar os dados anteriores para não duplicar
+        if (vendasExistentes.Any())
+        {
+            await ExecutarLimpezaInterna(liveId, live);
+            avisos.Add("Dados e vendas anteriores da Live foram substituídos com sucesso.");
+        }
+        else
+        {
+            // REGRA DE NEGÓCIO 1: Se existirem arremates provisórios da sincronização online (ProdutoId == null), remover automaticamente
+            var arrematesProvisorios = await _context.Arremate
+                .Where(a => a.LiveId == liveId && a.ProdutoId == null)
+                .ToListAsync();
+
+            if (arrematesProvisorios.Any())
+            {
+                _context.Arremate.RemoveRange(arrematesProvisorios);
+                await _context.SaveChangesAsync();
+                avisos.Add($"Substituídos {arrematesProvisorios.Count} arremates provisórios da transmissão online pela planilha oficial.");
+            }
+        }
 
         // Carregar cache de domínio para IA
         await _cacheSistema.CarregarAsync();
@@ -226,7 +329,6 @@ public class LiveImportController : ControllerBase
         var produtosCadastrados = 0;
         var arrematesImportados = 0;
         var erros = new List<object>();
-        var avisos = new List<string>();
 
         // Mapeamento: comprador -> lista de (produtoId, valor, descricao)
         var arrematePorComprador = new Dictionary<string, List<(int produtoId, decimal valor, string descricao)>>(
