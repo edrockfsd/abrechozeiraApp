@@ -112,6 +112,89 @@ public class LiveImportController : ControllerBase
     }
 
     /// <summary>
+    /// Limpa dados de teste gerados para uma Live específica (NFC-e, Vendas, Pedidos, Arremates, Estoque, Produtos)
+    /// </summary>
+    [HttpDelete("limpar-live/{liveId}")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<IActionResult> LimparDadosLive(int liveId)
+    {
+        try
+        {
+            var live = await _context.Live.FindAsync(liveId);
+            if (live == null)
+                return NotFound(new { erro = $"Live {liveId} não encontrada." });
+
+            // 1. Obter Vendas e Pedidos da live
+            var vendas = await _context.Venda.Where(v => v.LiveId == liveId).ToListAsync();
+            var vendaIds = vendas.Select(v => v.Id).ToList();
+            var pedidoIds = vendas.Select(v => v.PedidoId).Distinct().ToList();
+
+            var outrosPedidos = await _context.Pedido
+                .Where(p => p.Observacoes != null && (p.Observacoes.Contains($"Live - {live.Titulo}") || p.Observacoes.Contains($"Live {liveId}")))
+                .Select(p => p.Id)
+                .ToListAsync();
+            pedidoIds = pedidoIds.Union(outrosPedidos).Distinct().ToList();
+
+            // 2. Nfce geradas para essas vendas OU pedidos
+            var nfces = await _context.Nfce
+                .Where(n => (n.VendaId.HasValue && vendaIds.Contains(n.VendaId.Value)) ||
+                            (n.PedidoId.HasValue && pedidoIds.Contains(n.PedidoId.Value)))
+                .ToListAsync();
+            var nfceIds = nfces.Select(n => n.Id).ToList();
+
+            var nfcePagamentos = await _context.NfcePagamento.Where(p => nfceIds.Contains(p.NfceId)).ToListAsync();
+            _context.NfcePagamento.RemoveRange(nfcePagamentos);
+
+            var nfceItens = await _context.NfceItem.Where(i => nfceIds.Contains(i.NfceId)).ToListAsync();
+            _context.NfceItem.RemoveRange(nfceItens);
+
+            _context.Nfce.RemoveRange(nfces);
+            await _context.SaveChangesAsync();
+
+            // 3. Deletar Vendas
+            _context.Venda.RemoveRange(vendas);
+            await _context.SaveChangesAsync();
+
+            // 4. Deletar Pedidos e PedidoProdutos
+            var pedidoProdutos = await _context.PedidoProduto.Where(pp => pedidoIds.Contains(pp.PedidoId)).ToListAsync();
+            _context.PedidoProduto.RemoveRange(pedidoProdutos);
+
+            var pedidos = await _context.Pedido.Where(p => pedidoIds.Contains(p.Id)).ToListAsync();
+            _context.Pedido.RemoveRange(pedidos);
+            await _context.SaveChangesAsync();
+
+            // 5. Deletar Arremates
+            var arremates = await _context.Arremate.Where(a => a.LiveId == liveId).ToListAsync();
+            var produtoIds = arremates.Where(a => a.ProdutoId.HasValue).Select(a => a.ProdutoId!.Value).Distinct().ToList();
+            _context.Arremate.RemoveRange(arremates);
+            await _context.SaveChangesAsync();
+
+            // 6. Deletar Estoque e Produtos criados da Live
+            var estoques = await _context.Estoque.Where(e => produtoIds.Contains(e.ProdutoId)).ToListAsync();
+            _context.Estoque.RemoveRange(estoques);
+
+            var produtos = await _context.Produto.Where(p => produtoIds.Contains(p.Id)).ToListAsync();
+            _context.Produto.RemoveRange(produtos);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                mensagem = $"Dados da Live {liveId} ({live.Titulo}) resetados com sucesso.",
+                vendasRemovidas = vendas.Count,
+                nfcesRemovidas = nfces.Count,
+                pedidosRemovidos = pedidos.Count,
+                arrematesRemovidos = arremates.Count,
+                produtosRemovidos = produtos.Count
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao limpar dados da Live {LiveId}", liveId);
+            return StatusCode(500, new { erro = $"Erro ao limpar dados: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Processa a importação completa: Produto → Arremate → Pedido → Venda
     /// </summary>
     private async Task<object> ProcessarImportacao(List<LinhaArremate> linhas, int liveId)
@@ -232,6 +315,21 @@ public class LiveImportController : ControllerBase
         // Obter último PedidoCodigo
         var ultimoCodigo = _context.Pedido.Any() ? _context.Pedido.Max(p => p.PedidoCodigo) : 0;
 
+        // Buscar categoria "Cliente" dinamicamente (Id 2)
+        var categoriaCliente = await _context.PessoaCategoria.FirstOrDefaultAsync(c => c.Descricao == "Cliente")
+                            ?? await _context.PessoaCategoria.FirstOrDefaultAsync(c => c.Id == 2);
+        var categoriaClienteId = categoriaCliente?.Id ?? 2;
+
+        // Buscar tipo "Física" dinamicamente (Id 1)
+        var tipoFisica = await _context.PessoaTipo.FirstOrDefaultAsync(t => t.Descricao.Contains("Física") || t.Descricao.Contains("Fisica"))
+                         ?? await _context.PessoaTipo.FirstOrDefaultAsync(t => t.Id == 1);
+        var tipoFisicaId = tipoFisica?.Id ?? 1;
+
+        // Buscar gênero padrão Feminino (Id 1)
+        var generoFeminino = await _context.PessoaGenero.FirstOrDefaultAsync(g => g.Descricao == "Feminino" || g.Sigla == "F")
+                             ?? await _context.PessoaGenero.FirstOrDefaultAsync(g => g.Id == 1);
+        var generoFemininoId = generoFeminino?.Id ?? 1;
+
         foreach (var (comprador, itens) in arrematePorComprador)
         {
             try
@@ -245,14 +343,14 @@ public class LiveImportController : ControllerBase
 
                 if (pessoa == null)
                 {
-                    // Criar Pessoa mínima
+                    // Criar Pessoa mínima com categoria "Cliente"
                     pessoa = new Pessoa
                     {
                         NickName = comprador,
                         Nome = comprador,
-                        PessoaGeneroId = 1,
-                        PessoaCategoriaId = 1,
-                        PessoaTipoId = 1,
+                        PessoaGeneroId = generoFemininoId,
+                        PessoaCategoriaId = categoriaClienteId,
+                        PessoaTipoId = tipoFisicaId,
                         StatusId = 1,
                         DataInclusao = DateTime.Now
                     };

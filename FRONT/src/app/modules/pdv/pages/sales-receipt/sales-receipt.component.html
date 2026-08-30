@@ -85,8 +85,25 @@
       </div>
     </div>
 
+    <!-- DADOS DO CONSUMIDOR -->
+    <div class="danfe-consumer" *ngIf="venda?.cliente || nfce?.clienteNome">
+      <div class="consumer-title">DADOS DO CONSUMIDOR</div>
+      <div class="consumer-row" *ngIf="venda?.cliente?.nome || nfce?.clienteNome">
+        <span>Nome:</span> <strong>{{ venda?.cliente?.nome || nfce?.clienteNome }}</strong>
+      </div>
+      <div class="consumer-row" *ngIf="venda?.cliente?.nickName">
+        <span>Instagram:</span> <strong>&#64;{{ venda?.cliente?.nickName }}</strong>
+      </div>
+      <div class="consumer-row" *ngIf="venda?.pedidoId">
+        <span>Pedido:</span> <span>#{{ venda?.pedidoId }}</span>
+      </div>
+    </div>
+
     <div class="danfe-footer">
       <div class="info-row"><strong>ÁREA DE MENSAGEM FISCAL</strong></div>
+      <div class="info-row" *ngIf="venda?.cliente || nfce?.clienteNome">
+        <strong>Informações Adicionais:</strong> COMPRADOR: {{ venda?.cliente?.nome || nfce?.clienteNome }}<span *ngIf="venda?.cliente?.nickName"> (&#64;{{ venda?.cliente?.nickName }})</span><span *ngIf="venda?.id"> | VENDA #{{ venda?.id }}</span>
+      </div>
       <div class="info-row">NFC-e Nº {{ nfce.numero }} - Série {{ nfce.serie }}</div>
       <div class="info-row">Data de Emissão: {{ (nfce.dataEmissao || venda?.dataVenda) | date:'dd/MM/yyyy HH:mm:ss' }}</div>
       <div class="info-row" *ngIf="nfce.protocolo">Protocolo de Autorização: {{ nfce.protocolo }}</div>

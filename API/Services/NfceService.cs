@@ -139,6 +139,11 @@ public class NfceService
             Ambiente = config.Ambiente,
             VendaPdvId = vendaPdvId,
             ClienteId = venda.ClienteId,
+            Cliente = venda.Cliente,
+            ClienteNome = venda.Cliente != null
+                ? (!string.IsNullOrWhiteSpace(venda.Cliente.Nome) ? venda.Cliente.Nome : venda.Cliente.NickName)
+                : null,
+            ClienteCpfCnpj = venda.Cliente?.CPF,
             ValorProdutos = venda.ValorBruto,
             ValorDesconto = venda.Desconto,
             ValorTotal = venda.ValorLiquido,
@@ -252,6 +257,11 @@ public class NfceService
             Ambiente = config.Ambiente,
             PedidoId = pedidoId,
             ClienteId = pedido.ClienteID,
+            Cliente = pedido.Cliente,
+            ClienteNome = pedido.Cliente != null
+                ? (!string.IsNullOrWhiteSpace(pedido.Cliente.Nome) ? pedido.Cliente.Nome : pedido.Cliente.NickName)
+                : null,
+            ClienteCpfCnpj = pedido.Cliente?.CPF,
             ValorProdutos = valorProdutos,
             ValorTotal = valorTotal,
             Status = "Pendente",
@@ -369,6 +379,11 @@ public class NfceService
             VendaId = vendaId,
             PedidoId = venda.PedidoId,
             ClienteId = venda.ClienteId,
+            Cliente = venda.Cliente,
+            ClienteNome = venda.Cliente != null
+                ? (!string.IsNullOrWhiteSpace(venda.Cliente.Nome) ? venda.Cliente.Nome : venda.Cliente.NickName)
+                : null,
+            ClienteCpfCnpj = venda.Cliente?.CPF,
             ValorProdutos = valorProdutos,
             ValorDesconto = venda.Desconto,
             ValorTotal = venda.ValorTotal,
@@ -697,6 +712,33 @@ public class NfceService
         xmlStr.Append($"<CRT>{config.CRT}</CRT>");
         xmlStr.Append("</emit>");
 
+        // <dest> - Identificação do Destinatário / Consumidor (opcional na NFC-e)
+        var docDigits = new string((nfce.ClienteCpfCnpj ?? "").Where(char.IsDigit).ToArray());
+        if (ValidarCpf(docDigits))
+        {
+            var nomeDest = (nfce.Cliente?.Nome ?? nfce.ClienteNome ?? "").Trim();
+            if (nomeDest.Length > 60) nomeDest = nomeDest.Substring(0, 60);
+
+            xmlStr.Append("<dest>");
+            xmlStr.Append($"<CPF>{docDigits}</CPF>");
+            if (!string.IsNullOrWhiteSpace(nomeDest))
+                xmlStr.Append($"<xNome>{SecurityElement.Escape(nomeDest)}</xNome>");
+            xmlStr.Append("<indIEDest>9</indIEDest>");
+            xmlStr.Append("</dest>");
+        }
+        else if (ValidarCnpj(docDigits))
+        {
+            var nomeDest = (nfce.Cliente?.Nome ?? nfce.ClienteNome ?? "").Trim();
+            if (nomeDest.Length > 60) nomeDest = nomeDest.Substring(0, 60);
+
+            xmlStr.Append("<dest>");
+            xmlStr.Append($"<CNPJ>{docDigits}</CNPJ>");
+            if (!string.IsNullOrWhiteSpace(nomeDest))
+                xmlStr.Append($"<xNome>{SecurityElement.Escape(nomeDest)}</xNome>");
+            xmlStr.Append("<indIEDest>9</indIEDest>");
+            xmlStr.Append("</dest>");
+        }
+
         // <det>
         int nItem = 1;
         foreach (var item in nfce.Itens)
@@ -778,6 +820,48 @@ public class NfceService
             xmlStr.Append("</detPag>");
         }
         xmlStr.Append("</pag>");
+
+        // <infAdic> - Informações Adicionais / Complementares de Interesse do Contribuinte
+        var infoCompParts = new List<string>();
+        var nomeCliente = nfce.Cliente?.Nome ?? nfce.ClienteNome;
+        var nickCliente = nfce.Cliente?.NickName;
+
+        if (!string.IsNullOrWhiteSpace(nomeCliente) && !string.IsNullOrWhiteSpace(nickCliente))
+        {
+            if (nomeCliente.Trim().Equals(nickCliente.Trim(), StringComparison.OrdinalIgnoreCase))
+                infoCompParts.Add($"COMPRADOR: @{nickCliente.Trim()}");
+            else
+                infoCompParts.Add($"COMPRADOR: {nomeCliente.Trim()} (@{nickCliente.Trim()})");
+        }
+        else if (!string.IsNullOrWhiteSpace(nickCliente))
+        {
+            infoCompParts.Add($"COMPRADOR: @{nickCliente.Trim()}");
+        }
+        else if (!string.IsNullOrWhiteSpace(nomeCliente))
+        {
+            infoCompParts.Add($"COMPRADOR: {nomeCliente.Trim()}");
+        }
+
+        if (nfce.PedidoId.HasValue)
+        {
+            infoCompParts.Add($"PEDIDO: #{nfce.PedidoId.Value}");
+        }
+
+        if (nfce.VendaId.HasValue)
+        {
+            infoCompParts.Add($"VENDA: #{nfce.VendaId.Value}");
+        }
+
+        if (infoCompParts.Any())
+        {
+            var infCplTexto = SecurityElement.Escape(string.Join(" | ", infoCompParts));
+            if (infCplTexto.Length > 5000)
+                infCplTexto = infCplTexto.Substring(0, 5000);
+
+            xmlStr.Append("<infAdic>");
+            xmlStr.Append($"<infCpl>{infCplTexto}</infCpl>");
+            xmlStr.Append("</infAdic>");
+        }
 
         // <infRespTec> - Informações do Responsável Técnico (obrigatório no PR - NT 2018.005)
         var cnpjRespTec = new string(config.CNPJ.Where(char.IsDigit).ToArray());
@@ -913,5 +997,69 @@ public class NfceService
         var urlBase = "http://www.fazenda.pr.gov.br/nfce/qrcode";
 
         return $"{urlBase}?p={paramString}|{cHashQR}";
+    }
+
+    /// <summary>
+    /// Valida dígitos verificadores de CPF
+    /// </summary>
+    private static bool ValidarCpf(string cpf)
+    {
+        if (string.IsNullOrWhiteSpace(cpf)) return false;
+        var digits = new string(cpf.Where(char.IsDigit).ToArray());
+        if (digits.Length != 11) return false;
+        if (digits.Distinct().Count() == 1) return false;
+
+        int[] mult1 = { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+        int[] mult2 = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        var tempCpf = digits.Substring(0, 9);
+        var soma = 0;
+        for (int i = 0; i < 9; i++)
+            soma += int.Parse(tempCpf[i].ToString()) * mult1[i];
+
+        var resto = soma % 11;
+        var dv1 = resto < 2 ? 0 : 11 - resto;
+
+        tempCpf += dv1;
+        soma = 0;
+        for (int i = 0; i < 10; i++)
+            soma += int.Parse(tempCpf[i].ToString()) * mult2[i];
+
+        resto = soma % 11;
+        var dv2 = resto < 2 ? 0 : 11 - resto;
+
+        return digits.EndsWith($"{dv1}{dv2}");
+    }
+
+    /// <summary>
+    /// Valida dígitos verificadores de CNPJ
+    /// </summary>
+    private static bool ValidarCnpj(string cnpj)
+    {
+        if (string.IsNullOrWhiteSpace(cnpj)) return false;
+        var digits = new string(cnpj.Where(char.IsDigit).ToArray());
+        if (digits.Length != 14) return false;
+        if (digits.Distinct().Count() == 1) return false;
+
+        int[] mult1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+        int[] mult2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        var tempCnpj = digits.Substring(0, 12);
+        var soma = 0;
+        for (int i = 0; i < 12; i++)
+            soma += int.Parse(tempCnpj[i].ToString()) * mult1[i];
+
+        var resto = soma % 11;
+        var dv1 = resto < 2 ? 0 : 11 - resto;
+
+        tempCnpj += dv1;
+        soma = 0;
+        for (int i = 0; i < 13; i++)
+            soma += int.Parse(tempCnpj[i].ToString()) * mult2[i];
+
+        resto = soma % 11;
+        var dv2 = resto < 2 ? 0 : 11 - resto;
+
+        return digits.EndsWith($"{dv1}{dv2}");
     }
 }
