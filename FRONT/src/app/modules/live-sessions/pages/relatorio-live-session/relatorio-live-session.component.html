@@ -1,19 +1,35 @@
 <div class="relatorio-container">
-  <div class="live-info">
+  <button (click)="voltar()" class="btn-voltar">← Voltar</button>
+
+  <div class="live-info" *ngIf="session as s">
     <h2>Relatório da Live</h2>
     <div class="info-row">
-      <span><strong>Nome:</strong> setterbrazil</span>
-      <span><strong>Data:</strong> 25/06/2025</span>
-      <span><strong>Status:</strong> Finalizada</span>
+      <span><strong>ID da Live (Instagram):</strong> {{ s.liveVideoId }}</span>
+      <span><strong>Status:</strong> {{ s.status }}</span>
+      <span><strong>Total de comentários:</strong> {{ s.totalComentarios }}</span>
     </div>
   </div>
-  <div class="comments-list">
-    <ejs-grid [dataSource]="[]">
+
+  <div class="erro" *ngIf="erro">{{ erro }}</div>
+
+  <div class="loading-overlay" *ngIf="carregando">Carregando comentários...</div>
+
+  <div class="comments-list" *ngIf="!carregando && !erro">
+    <ejs-grid
+      [dataSource]="comentarios"
+      [allowPaging]="true"
+      [allowSorting]="true"
+      [pageSettings]="pageSettings"
+      width="100%">
       <e-columns>
         <e-column field="username" headerText="Usuário" width="200"></e-column>
         <e-column field="commentText" headerText="Comentário" width="400"></e-column>
-        <e-column field="commentTimestamp" headerText="Data/Hora" width="180"></e-column>
+        <e-column field="commentTimestampFmt" headerText="Data/Hora" width="180"></e-column>
       </e-columns>
     </ejs-grid>
+
+    <div class="empty-state" *ngIf="comentarios.length === 0">
+      Nenhum comentário registrado para esta live ainda.
+    </div>
   </div>
-</div> 
+</div>

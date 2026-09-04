@@ -43,6 +43,11 @@ jobs:
               'Audience': 'AbrechozeiraApp',
               'ExpiryMinutes': 60
             },
+            'Instagram': {
+              'VerifyToken': '${{ secrets.PROD_INSTAGRAM_VERIFY_TOKEN }}',
+              'AccessToken': '${{ secrets.PROD_INSTAGRAM_ACCESS_TOKEN }}',
+              'InstagramAccountId': '${{ secrets.PROD_INSTAGRAM_ACCOUNT_ID }}'
+            },
             'Superfrete': {
               'Token': '${{ secrets.PROD_SUPERFRETE_TOKEN }}',
               'BaseUrl': 'https://api.superfrete.com',

@@ -1,43 +1,31 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
+// Espelha o LiveSessionResumoDto retornado por API/Controllers/LiveSessionsController.cs
 export interface LiveSession {
   id: number;
   liveVideoId: number;
   status: string;
   startedAt: string;
-  endedAt: string;
-  user: string;
-  avatarUrl: string;
-  createdAt: string;
-  messages: number;
-  firstMessage: string;
+  endedAt: string | null;
+  totalComentarios: number;
+  primeiroComentarioEm: string | null;
+  ultimoComentarioEm: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LiveSessionService {
+  private apiUrl = `${environment.apiUrl}/LiveSessions`;
+
+  constructor(private http: HttpClient) {}
+
   listar(): Observable<LiveSession[]> {
-    return of([
-      {
-        id: 1,
-        liveVideoId: 123,
-        status: 'Finalizada',
-        startedAt: '2025-06-25T17:27:00',
-        endedAt: '2025-06-25T18:30:00',
-        user: 'setterbrazil',
-        avatarUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
-        createdAt: '2025-06-19T19:35:10',
-        messages: 0,
-        firstMessage: '05:27 PM'
-      }
-    ]);
+    return this.http.get<LiveSession[]>(this.apiUrl);
   }
-  getResumo(): Observable<any> {
-    return of({
-      integracoes: 2,
-      relatorios: 10,
-      mensagens: 57,
-      usuarios: 4
-    });
+
+  buscarPorId(id: number): Observable<LiveSession> {
+    return this.http.get<LiveSession>(`${this.apiUrl}/${id}`);
   }
-} 
+}

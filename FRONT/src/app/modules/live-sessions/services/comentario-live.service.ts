@@ -1,27 +1,24 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
+// Espelha o ComentarioLiveDto retornado por API/Controllers/LiveSessionsController.cs
 export interface ComentarioLive {
   id: number;
   username: string;
   commentText: string;
   commentTimestamp: string;
   createdAt: string;
-  liveSessionId: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ComentarioLiveService {
+  private apiUrl = `${environment.apiUrl}/LiveSessions`;
+
+  constructor(private http: HttpClient) {}
+
   listarPorLiveSession(liveSessionId: number): Observable<ComentarioLive[]> {
-    return of([
-      {
-        id: 1,
-        username: 'usuario1',
-        commentText: 'Primeiro comentário!',
-        commentTimestamp: '2025-06-25T17:28:00',
-        createdAt: '2025-06-25T17:28:00',
-        liveSessionId
-      }
-    ]);
+    return this.http.get<ComentarioLive[]>(`${this.apiUrl}/${liveSessionId}/comentarios`);
   }
-} 
+}
