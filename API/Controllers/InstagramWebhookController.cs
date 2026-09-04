@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -91,7 +91,9 @@ namespace ABrechozeiraApp.Controllers
         {
             var verifyToken = _configuration["Instagram:VerifyToken"]; // Pegar do appsettings.json
 
-            if (mode == "subscribe" && token == verifyToken)
+            bool isMatch = mode == "subscribe" && token == verifyToken;
+
+            if (isMatch)
             {
                 Console.WriteLine("WEBHOOK VERIFICADO COM SUCESSO!");
                 return Ok(challenge); // Retorna o 'challenge' com status 200 OK
@@ -99,7 +101,18 @@ namespace ABrechozeiraApp.Controllers
             else
             {
                 Console.WriteLine("FALHA NA VERIFICAÇÃO DO WEBHOOK.");
-                return Forbid(); // Retorna 403 Forbidden
+                // DIAGNOSTICO TEMPORARIO - responde 200 (nao 403) para o IIS nao
+                // trocar o corpo da resposta por uma pagina de erro customizada.
+                // Nao expõe os valores, so tamanhos e se bateram. REMOVER depois do teste.
+                return StatusCode(200, new
+                {
+                    diagnostico = true,
+                    modeRecebido = mode,
+                    tokenRecebidoTamanho = token != null ? token.Length : -1,
+                    tokenConfiguradoTamanho = verifyToken != null ? verifyToken.Length : -1,
+                    tokenConfiguradoEhNuloOuVazio = string.IsNullOrEmpty(verifyToken),
+                    bateram = isMatch
+                });
             }
         }
 
