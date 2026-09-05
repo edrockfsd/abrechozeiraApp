@@ -103,6 +103,29 @@ namespace ABrechozeiraApp.Controllers
             }
         }
 
+        // ENDPOINT TEMPORARIO DE DEBUG - remover apos validar o recebimento de eventos de teste da Meta.
+        // Lista os ultimos comentarios salvos direto da tabela ComentarioLive, sem depender de LiveSession existir.
+        [HttpGet("debug-comentarios")]
+        public async Task<IActionResult> DebugComentarios()
+        {
+            var ultimos = await _dbContext.ComentarioLive
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(10)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Username,
+                    c.CommentText,
+                    c.CommentTimestamp,
+                    c.CreatedAt,
+                    c.LiveSessionId,
+                    c.InstagramCommentId
+                })
+                .ToListAsync();
+
+            return Ok(ultimos);
+        }
+
         // Ação para receber os eventos (POST)
         [HttpPost]
         public async Task<IActionResult> ReceiveWebhookEvent()
@@ -216,7 +239,8 @@ namespace ABrechozeiraApp.Controllers
                         CommentText = commentValue.text,
                         CommentTimestamp = DateTime.Now,
                         CreatedAt = DateTime.Now,
-                        LiveSessionId = liveVideoId
+                        LiveSessionId = liveVideoId,
+                        InstagramCommentId = commentValue.id
                     };
 
                     _dbContext.ComentarioLive.Add(comentario);

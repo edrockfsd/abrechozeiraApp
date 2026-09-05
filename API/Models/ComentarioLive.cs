@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -29,4 +29,11 @@ public partial class ComentarioLive
     public DateTime CreatedAt { get; set; }
 
     public long? LiveSessionId { get; set; }
+
+    /// <summary>
+    /// ID do comentário fornecido pela Meta (campo "id" do payload de live_comments).
+    /// Usado para evitar duplicidade caso o mesmo evento seja reenviado pelo webhook.
+    /// </summary>
+    [StringLength(100)]
+    public string? InstagramCommentId { get; set; }
 }

@@ -238,7 +238,8 @@ jobs:
             set net:max-retries 5;
             set net:reconnect-interval-base 5;
             open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:21;
-            mirror --reverse --parallel=2 --delete -x ^app_offline\.htm$ --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            mirror --reverse --parallel=2 --delete --ignore-time -x ^app_offline\.htm$ --verbose --no-perms ./publish-backend/ ${{ secrets.FTP_API_PATH }};
+            put -O ${{ secrets.FTP_API_PATH }} ./publish-backend/appsettings.json;
             quit
           "
 
