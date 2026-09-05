@@ -54,12 +54,9 @@ namespace ABrechozeiraApp.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var accessTokenInicial = _configuration["Instagram:AccessToken"];
-            if (string.IsNullOrWhiteSpace(accessTokenInicial))
-            {
-                _logger.LogInformation("Instagram:AccessToken nao configurado - polling de comentarios de live desativado.");
-                return;
-            }
+            // Polling desabilitado: operando exclusivamente com Webhook oficial da Meta.
+            _logger.LogInformation("InstagramLivePollingService esta DESABILITADO. Operando 100% via Webhook oficial.");
+            return;
 
             _logger.LogInformation("Polling de comentarios de live do Instagram iniciado (plano B para o webhook live_comments).");
 

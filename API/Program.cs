@@ -39,7 +39,8 @@ builder.Services.AddScoped<ABrechozeiraApp.Services.GoogleSheetReaderService>();
 builder.Services.AddHttpClient("Superfrete");
 builder.Services.AddHttpClient("WhatsAppCloud");
 builder.Services.AddHttpClient("InstagramGraph");
-builder.Services.AddHostedService<ABrechozeiraApp.Services.InstagramLivePollingService>();
+// Polling desabilitado a pedido do usuário - operando 100% via Webhook oficial do Instagram:
+// builder.Services.AddHostedService<ABrechozeiraApp.Services.InstagramLivePollingService>();
 
 builder.Services.AddDbContextPool<AbrechozeiraContext>(options =>
 {
