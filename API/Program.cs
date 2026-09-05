@@ -38,6 +38,8 @@ builder.Services.AddScoped<ABrechozeiraApp.Services.CacheSistemaService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.GoogleSheetReaderService>();
 builder.Services.AddHttpClient("Superfrete");
 builder.Services.AddHttpClient("WhatsAppCloud");
+builder.Services.AddHttpClient("InstagramGraph");
+builder.Services.AddHostedService<ABrechozeiraApp.Services.InstagramLivePollingService>();
 
 builder.Services.AddDbContextPool<AbrechozeiraContext>(options =>
 {

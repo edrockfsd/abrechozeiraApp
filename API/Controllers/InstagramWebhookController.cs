@@ -265,6 +265,21 @@ namespace ABrechozeiraApp.Controllers
                 {
                     long liveVideoId = long.Parse(commentValue.media.id);
 
+                    // Evita duplicidade: o InstagramLivePollingService (plano B, ja que a Meta
+                    // as vezes nao entrega esse webhook) pode ter salvo esse mesmo comentario
+                    // primeiro via polling.
+                    if (!string.IsNullOrEmpty(commentValue.id))
+                    {
+                        var jaExiste = await _dbContext.ComentarioLive
+                            .AnyAsync(c => c.InstagramCommentId == commentValue.id);
+
+                        if (jaExiste)
+                        {
+                            Console.WriteLine($"Comentário {commentValue.id} já estava salvo (provavelmente via polling) - ignorado.");
+                            return;
+                        }
+                    }
+
                     // A Meta nao possui um campo de webhook "live_videos" (nao existe na API atual),
                     // entao a LiveSession e criada aqui mesmo, no primeiro comentario recebido
                     // daquele vídeo, em vez de esperar um evento de inicio de live que nunca chega.
