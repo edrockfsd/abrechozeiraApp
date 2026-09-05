@@ -121,7 +121,12 @@ namespace ABrechozeiraApp.Services
 
         private async Task<long?> ObterLiveMediaIdAsync(HttpClient httpClient, string accessToken, CancellationToken ct)
         {
-            var url = $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}";
+            bool isFbToken = accessToken.StartsWith("EAA", StringComparison.OrdinalIgnoreCase);
+            var igAccountId = _configuration["Instagram:InstagramAccountId"] ?? "17841472957302808";
+            
+            var url = isFbToken
+                ? $"https://graph.facebook.com/{ApiVersion}/{igAccountId}/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}"
+                : $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}";
 
             using var response = await httpClient.GetAsync(url, ct);
             VerificarHeadersRateLimit(response);
@@ -181,8 +186,11 @@ namespace ABrechozeiraApp.Services
 
         private async Task BuscarESalvarComentariosAsync(HttpClient httpClient, string accessToken, long liveVideoId, CancellationToken ct)
         {
+            bool isFbToken = accessToken.StartsWith("EAA", StringComparison.OrdinalIgnoreCase);
+            var baseUrl = isFbToken ? "https://graph.facebook.com" : "https://graph.instagram.com";
+
             // Requisita id, text, from (com username real) e timestamp
-            var url = $"https://graph.instagram.com/{ApiVersion}/{liveVideoId}/comments?fields=id,text,from,timestamp&access_token={Uri.EscapeDataString(accessToken)}";
+            var url = $"{baseUrl}/{ApiVersion}/{liveVideoId}/comments?fields=id,text,from,timestamp&access_token={Uri.EscapeDataString(accessToken)}";
 
             using var response = await httpClient.GetAsync(url, ct);
             VerificarHeadersRateLimit(response);
