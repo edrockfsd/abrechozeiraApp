@@ -204,6 +204,62 @@ namespace ABrechozeiraApp.Controllers
             });
         }
 
+        // Diagnóstico em produção usando o AccessToken configurado
+        [HttpGet("debug-meta-status")]
+        public async Task<IActionResult> DebugMetaStatus([FromServices] IHttpClientFactory clientFactory)
+        {
+            var token = _configuration["Instagram:AccessToken"];
+            var igId = _configuration["Instagram:InstagramAccountId"] ?? "17841472957302808";
+
+            if (string.IsNullOrEmpty(token))
+                return Ok(new { erro = "Instagram:AccessToken está vazio no appsettings" });
+
+            var client = clientFactory.CreateClient();
+
+            // 1. Validar token e identidade
+            var meRes = await client.GetAsync($"https://graph.facebook.com/v23.0/me?access_token={token}");
+            var meContent = await meRes.Content.ReadAsStringAsync();
+
+            // 2. Consultar se a conta está inscrita nos webhooks do app
+            var subRes = await client.GetAsync($"https://graph.facebook.com/v23.0/{igId}/subscribed_apps?access_token={token}");
+            var subContent = await subRes.Content.ReadAsStringAsync();
+
+            // 3. Consultar se há live ativa registrada na Meta
+            var liveRes = await client.GetAsync($"https://graph.facebook.com/v23.0/{igId}/live_media?access_token={token}");
+            var liveContent = await liveRes.Content.ReadAsStringAsync();
+
+            return Ok(new
+            {
+                meStatus = (int)meRes.StatusCode,
+                me = meContent,
+                subscribedAppsStatus = (int)subRes.StatusCode,
+                subscribedApps = subContent,
+                liveMediaStatus = (int)liveRes.StatusCode,
+                liveMedia = liveContent
+            });
+        }
+
+        // Força a subscrição dos campos de live_comments e messages via Graph API
+        [HttpGet("debug-forcar-inscricao")]
+        public async Task<IActionResult> DebugForcarInscricao([FromServices] IHttpClientFactory clientFactory)
+        {
+            var token = _configuration["Instagram:AccessToken"];
+            var igId = _configuration["Instagram:InstagramAccountId"] ?? "17841472957302808";
+
+            if (string.IsNullOrEmpty(token))
+                return Ok(new { erro = "Instagram:AccessToken está vazio" });
+
+            var client = clientFactory.CreateClient();
+            var res = await client.PostAsync($"https://graph.facebook.com/v23.0/{igId}/subscribed_apps?subscribed_fields=live_comments,messages,comments&access_token={token}", null);
+            var content = await res.Content.ReadAsStringAsync();
+
+            return Ok(new
+            {
+                statusCode = (int)res.StatusCode,
+                resposta = content
+            });
+        }
+
         private async Task ProcessLiveVideoEvent(JsonElement value)
         {
             try
