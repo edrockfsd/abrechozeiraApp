@@ -155,6 +155,15 @@ namespace ABrechozeiraApp.Controllers
                 {
                     foreach (var entry in root.entry)
                     {
+                        // Nem todo evento e uma "mudanca de campo" (comments/live_comments/etc):
+                        // eventos de mensagens (DM) chegam com "messaging" em vez de "changes",
+                        // entao entry.changes vem nulo nesses casos - so processamos se existir.
+                        if (entry.changes == null)
+                        {
+                            Console.WriteLine("Evento recebido sem 'changes' (provavelmente mensagem/DM) - ignorado por este endpoint.");
+                            continue;
+                        }
+
                         foreach (var change in entry.changes)
                         {
                             if (change.field == "live_videos")
