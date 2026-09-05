@@ -76,7 +76,7 @@ jobs:
               'EnableSsl': 'true'
             },
             'WhatsApp': {
-              'ApiToken': '${{ secrets.PROD_WHATSAPP_API_TOKEN }}' or 'EAAblKLwZCAZAUBSDEFZBZBJy3kfZCcf2KgZBNNhij4b72shLfaJKJXgSWQpw8V5oeXo6m4FuVQgrfyMFmzZC9g8mZC55cmyQWZBxsKIw6ZBR5ERDzKj9W4CFQMraN35LmarvFhJwicPbntGw1KJXO7TLdZAq0QThllClUWknrp9tyZATnKHXkDGoApSGhxgbfLLvQPZACcQZDZD',
+              'ApiToken': '${{ secrets.PROD_WHATSAPP_API_TOKEN }}' or '',
               'PhoneId': '${{ secrets.PROD_WHATSAPP_PHONE_ID }}' or '1253160761208868',
               'BusinessAccountId': '1004235942391029',
               'TemplateCotacao': 'cotacao_frete_v2',

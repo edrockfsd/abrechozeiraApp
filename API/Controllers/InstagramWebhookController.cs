@@ -76,6 +76,12 @@ namespace ABrechozeiraApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly AbrechozeiraContext _dbContext;
 
+        // DEBUG TEMPORARIO - guarda em memoria o ultimo payload cru recebido e qualquer
+        // erro de processamento, so para diagnostico. Remover assim que resolvermos.
+        private static string? _ultimoPayloadRecebidoDebug = null;
+        private static string? _ultimoErroDebug = null;
+        private static DateTime? _ultimoRecebidoEmDebug = null;
+
         // Injetar IConfiguration para ler o Verify Token do appsettings.json
         public InstagramWebhookController(IConfiguration configuration, AbrechozeiraContext dbContext)
         {
@@ -138,6 +144,11 @@ namespace ABrechozeiraApp.Controllers
                 Console.WriteLine("--- NOVO EVENTO RECEBIDO ---");
                 Console.WriteLine(body);
 
+                // DEBUG TEMPORARIO
+                _ultimoPayloadRecebidoDebug = body;
+                _ultimoRecebidoEmDebug = DateTime.Now;
+                _ultimoErroDebug = null;
+
                 var root = JsonSerializer.Deserialize<InstagramWebhookRoot>(body);
 
                 if (root?.entry != null)
@@ -167,8 +178,21 @@ namespace ABrechozeiraApp.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar webhook: {ex.Message}");
+                _ultimoErroDebug = ex.ToString(); // DEBUG TEMPORARIO
                 return StatusCode(500, "Erro interno do servidor");
             }
+        }
+
+        // ENDPOINT TEMPORARIO DE DEBUG - remover junto com o debug-comentarios.
+        [HttpGet("debug-ultimo-payload")]
+        public IActionResult DebugUltimoPayload()
+        {
+            return Ok(new
+            {
+                recebidoEm = _ultimoRecebidoEmDebug,
+                payload = _ultimoPayloadRecebidoDebug,
+                erro = _ultimoErroDebug
+            });
         }
 
         private async Task ProcessLiveVideoEvent(JsonElement value)
@@ -271,6 +295,7 @@ namespace ABrechozeiraApp.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar comentário: {ex.Message}");
+                _ultimoErroDebug = ex.ToString(); // DEBUG TEMPORARIO
             }
         }
     }
