@@ -215,27 +215,32 @@ namespace ABrechozeiraApp.Controllers
                 return Ok(new { erro = "Instagram:AccessToken está vazio no appsettings" });
 
             var client = clientFactory.CreateClient();
+            var prefix = token.Length > 8 ? token.Substring(0, 8) + "..." : "curto";
 
-            // 1. Validar token e identidade
-            var meRes = await client.GetAsync($"https://graph.facebook.com/v23.0/me?access_token={token}");
-            var meContent = await meRes.Content.ReadAsStringAsync();
+            // 1. Validar no graph.facebook.com
+            var fbMeRes = await client.GetAsync($"https://graph.facebook.com/v23.0/me?access_token={token.Trim()}");
+            var fbMeContent = await fbMeRes.Content.ReadAsStringAsync();
 
-            // 2. Consultar se a conta está inscrita nos webhooks do app
-            var subRes = await client.GetAsync($"https://graph.facebook.com/v23.0/{igId}/subscribed_apps?access_token={token}");
+            // 2. Validar no graph.instagram.com
+            var igMeRes = await client.GetAsync($"https://graph.instagram.com/v23.0/me?fields=id,username&access_token={token.Trim()}");
+            var igMeContent = await igMeRes.Content.ReadAsStringAsync();
+
+            // 3. Subscribed apps no graph.facebook.com
+            var subRes = await client.GetAsync($"https://graph.facebook.com/v23.0/{igId}/subscribed_apps?access_token={token.Trim()}");
             var subContent = await subRes.Content.ReadAsStringAsync();
 
-            // 3. Consultar se há live ativa registrada na Meta
-            var liveRes = await client.GetAsync($"https://graph.facebook.com/v23.0/{igId}/live_media?access_token={token}");
-            var liveContent = await liveRes.Content.ReadAsStringAsync();
+            // 4. Live media no graph.instagram.com
+            var igLiveRes = await client.GetAsync($"https://graph.instagram.com/v23.0/me/live_media?fields=id,status&access_token={token.Trim()}");
+            var igLiveContent = await igLiveRes.Content.ReadAsStringAsync();
 
             return Ok(new
             {
-                meStatus = (int)meRes.StatusCode,
-                me = meContent,
-                subscribedAppsStatus = (int)subRes.StatusCode,
-                subscribedApps = subContent,
-                liveMediaStatus = (int)liveRes.StatusCode,
-                liveMedia = liveContent
+                tokenLength = token.Length,
+                tokenPrefix = prefix,
+                facebookGraph_me = new { status = (int)fbMeRes.StatusCode, resp = fbMeContent },
+                instagramGraph_me = new { status = (int)igMeRes.StatusCode, resp = igMeContent },
+                subscribedApps = new { status = (int)subRes.StatusCode, resp = subContent },
+                instagramLiveMedia = new { status = (int)igLiveRes.StatusCode, resp = igLiveContent }
             });
         }
 
