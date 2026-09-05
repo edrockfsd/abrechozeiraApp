@@ -231,7 +231,26 @@ namespace ABrechozeiraApp.Controllers
                 if (commentValue != null)
                 {
                     long liveVideoId = long.Parse(commentValue.media.id);
-                    
+
+                    // A Meta nao possui um campo de webhook "live_videos" (nao existe na API atual),
+                    // entao a LiveSession e criada aqui mesmo, no primeiro comentario recebido
+                    // daquele vídeo, em vez de esperar um evento de inicio de live que nunca chega.
+                    var liveSession = await _dbContext.LiveSession
+                        .FirstOrDefaultAsync(l => l.LiveVideoId == liveVideoId);
+
+                    if (liveSession == null)
+                    {
+                        liveSession = new LiveSession
+                        {
+                            LiveVideoId = liveVideoId,
+                            Status = "live",
+                            StartedAt = DateTime.Now
+                        };
+                        _dbContext.LiveSession.Add(liveSession);
+                        await _dbContext.SaveChangesAsync();
+                        Console.WriteLine($"Nova LiveSession criada a partir do primeiro comentário: {liveVideoId}");
+                    }
+
                     // Criar novo comentário
                     var comentario = new ComentarioLive
                     {
