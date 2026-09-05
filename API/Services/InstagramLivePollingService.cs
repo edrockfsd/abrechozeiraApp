@@ -15,16 +15,9 @@ using ABrechozeiraApp.Models;
 namespace ABrechozeiraApp.Services
 {
     /// <summary>
-    /// Plano B para os comentarios de live do Instagram: a Meta, por algum motivo
-    /// (bug conhecido, relatado por outros devs em forums), simplesmente nao entrega
-    /// o webhook do campo "live_comments" em vários casos, mesmo com tudo assinado e
-    /// configurado corretamente (confirmado por testes manuais em 05/09/2026: DMs e o
-    /// botao de "Teste" chegam, comentarios de live real nao chegam nunca).
-    ///
-    /// A leitura direta (GET /{live-media-id}/comments) funciona perfeitamente com o
-    /// mesmo token, entao esse servico substitui a dependencia do push por um polling:
-    /// consulta se ha uma live ativa e, se houver, busca os comentarios periodicamente,
-    /// salvando os que ainda nao existem no banco (por InstagramCommentId).
+    /// Serviço em segundo plano para captura em tempo real (1 segundo) dos comentários de Live do Instagram.
+    /// Utiliza a Graph API oficial do Instagram (GET /{live-id}/comments) com intervalo adaptativo e
+    /// monitoramento de cota (Rate Limit), operando de forma autônoma sem depender do webhook push.
     /// </summary>
     public class InstagramLivePollingService : BackgroundService
     {
@@ -33,12 +26,20 @@ namespace ABrechozeiraApp.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<InstagramLivePollingService> _logger;
 
-        private static readonly TimeSpan IntervaloComLiveAtiva = TimeSpan.FromSeconds(6);
-        private static readonly TimeSpan IntervaloSemLive = TimeSpan.FromSeconds(25);
+        // Intervalo padrão de 1 segundo durante a Live ativa (solicitado pelo usuário)
+        private static readonly TimeSpan IntervaloComLiveAtiva = TimeSpan.FromMilliseconds(1000);
+        // Intervalo de segurança caso a cota da Meta atinja 85%
+        private static readonly TimeSpan IntervaloThrottling = TimeSpan.FromMilliseconds(2500);
+        // Intervalo em repouso (quando não há transmissão ativa)
+        private static readonly TimeSpan IntervaloSemLive = TimeSpan.FromSeconds(15);
         private const string ApiVersion = "v23.0";
+
+        // Token de fallback oficial fornecido pelo usuário (IGAA...)
+        private const string TokenFallback = "IGAAJu7NnteHxBZAFpRRFlsMUR0UTNTNGZA3ZAlRGX1BzOGFocjBwNXZAmQUhjbXNjU1lscWo2SVI5THVObnRXdXpfbE5iUHRHT1Bjd21lZAzE5OUxqb05PSmV1UWNwQmRUX1NvbHh1RVdOUFJoZAHRjR0FDa1JtUWVQSWFPX1ZAlZA2c5cwZDZD";
 
         private long? _liveAtualId = null;
         private HashSet<string> _comentariosConhecidos = new();
+        private bool _emThrottling = false;
 
         public InstagramLivePollingService(
             IServiceScopeFactory scopeFactory,
@@ -52,13 +53,19 @@ namespace ABrechozeiraApp.Services
             _logger = logger;
         }
 
+        private string ObterTokenInstagram()
+        {
+            var tokenConfig = _configuration["Instagram:InstagramUserToken"] ?? _configuration["Instagram:AccessToken"];
+            if (!string.IsNullOrWhiteSpace(tokenConfig) && tokenConfig.Trim().StartsWith("IGAA"))
+            {
+                return tokenConfig.Trim();
+            }
+            return TokenFallback;
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Polling desabilitado: operando exclusivamente com Webhook oficial da Meta.
-            _logger.LogInformation("InstagramLivePollingService esta DESABILITADO. Operando 100% via Webhook oficial.");
-            return;
-
-            _logger.LogInformation("Polling de comentarios de live do Instagram iniciado (plano B para o webhook live_comments).");
+            _logger.LogInformation("Serviço de captura em tempo real de comentários do Instagram INICIADO (Modo: 1 segundo com proteção de rate limit).");
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -66,14 +73,7 @@ namespace ABrechozeiraApp.Services
 
                 try
                 {
-                    // Re-le a cada ciclo, caso o token seja trocado via deploy sem reiniciar o processo.
-                    var accessToken = _configuration["Instagram:AccessToken"];
-                    if (string.IsNullOrWhiteSpace(accessToken))
-                    {
-                        await Task.Delay(IntervaloSemLive, stoppingToken);
-                        continue;
-                    }
-
+                    var accessToken = ObterTokenInstagram();
                     var httpClient = _httpClientFactory.CreateClient("InstagramGraph");
 
                     var liveMediaId = await ObterLiveMediaIdAsync(httpClient, accessToken, stoppingToken);
@@ -84,23 +84,24 @@ namespace ABrechozeiraApp.Services
                         {
                             _liveAtualId = liveMediaId;
                             _comentariosConhecidos = await PrepararNovaLiveAsync(liveMediaId.Value, stoppingToken);
-                            _logger.LogInformation("Polling detectou live ativa: {LiveId}", liveMediaId);
+                            _logger.LogInformation(">>> LIVE ATIVA DETECTADA! ID: {LiveId}. Modo turbo (1s) ativado.", liveMediaId);
                         }
 
                         await BuscarESalvarComentariosAsync(httpClient, accessToken, liveMediaId.Value, stoppingToken);
-                        proximoIntervalo = IntervaloComLiveAtiva;
+
+                        proximoIntervalo = _emThrottling ? IntervaloThrottling : IntervaloComLiveAtiva;
                     }
                     else if (_liveAtualId != null)
                     {
                         await FinalizarLiveAsync(_liveAtualId.Value, stoppingToken);
-                        _logger.LogInformation("Polling detectou fim da live: {LiveId}", _liveAtualId);
+                        _logger.LogInformation("<<< Fim da Live detectado. Live ID: {LiveId}. Voltando para modo repouso (15s).", _liveAtualId);
                         _liveAtualId = null;
-                        _comentariosConhecidos = new HashSet<string>();
+                        _comentariosConhecidos.Clear();
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Erro no polling de comentarios de live do Instagram.");
+                    _logger.LogError(ex, "Erro no ciclo de captura de comentários do Instagram.");
                 }
 
                 try
@@ -109,24 +110,26 @@ namespace ABrechozeiraApp.Services
                 }
                 catch (TaskCanceledException)
                 {
-                    // Encerramento normal do servico (app sendo finalizado).
+                    break;
                 }
             }
         }
 
         private async Task<long?> ObterLiveMediaIdAsync(HttpClient httpClient, string accessToken, CancellationToken ct)
         {
-            var url = $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id&access_token={Uri.EscapeDataString(accessToken)}";
+            var url = $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}";
 
             using var response = await httpClient.GetAsync(url, ct);
-            var json = await response.Content.ReadAsStringAsync(ct);
+            VerificarHeadersRateLimit(response);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Falha ao consultar live_media ({Status}): {Erro}", response.StatusCode, json);
+                var erro = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogWarning("Falha ao consultar live_media ({Status}): {Erro}", response.StatusCode, erro);
                 return null;
             }
 
+            var json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
 
             if (doc.RootElement.TryGetProperty("data", out var data) && data.GetArrayLength() > 0)
@@ -155,11 +158,10 @@ namespace ABrechozeiraApp.Services
                 };
                 db.LiveSession.Add(liveSession);
                 await db.SaveChangesAsync(ct);
-                _logger.LogInformation("Nova LiveSession criada via polling: {LiveId}", liveVideoId);
+                _logger.LogInformation("Nova LiveSession criada: {LiveId}", liveVideoId);
             }
             else if (liveSession.EndedAt != null)
             {
-                // A mesma live voltou a aparecer como ativa (raro) - reabre a sessao.
                 liveSession.EndedAt = null;
                 liveSession.Status = "live";
                 await db.SaveChangesAsync(ct);
@@ -175,17 +177,20 @@ namespace ABrechozeiraApp.Services
 
         private async Task BuscarESalvarComentariosAsync(HttpClient httpClient, string accessToken, long liveVideoId, CancellationToken ct)
         {
-            var url = $"https://graph.instagram.com/{ApiVersion}/{liveVideoId}/comments?fields=id,text,username,timestamp&access_token={Uri.EscapeDataString(accessToken)}";
+            // Requisita id, text, from (com username real) e timestamp
+            var url = $"https://graph.instagram.com/{ApiVersion}/{liveVideoId}/comments?fields=id,text,from,timestamp&access_token={Uri.EscapeDataString(accessToken)}";
 
             using var response = await httpClient.GetAsync(url, ct);
-            var json = await response.Content.ReadAsStringAsync(ct);
+            VerificarHeadersRateLimit(response);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Falha ao consultar comentarios da live {LiveId} ({Status}): {Erro}", liveVideoId, response.StatusCode, json);
+                var erro = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogWarning("Falha ao consultar comentários da live {LiveId} ({Status}): {Erro}", liveVideoId, response.StatusCode, erro);
                 return;
             }
 
+            var json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
 
             if (!doc.RootElement.TryGetProperty("data", out var data))
@@ -200,9 +205,19 @@ namespace ABrechozeiraApp.Services
                     continue;
 
                 var texto = item.TryGetProperty("text", out var textoEl) ? (textoEl.GetString() ?? "") : "";
-                var username = item.TryGetProperty("username", out var userEl) ? (userEl.GetString() ?? "desconhecido") : "desconhecido";
-                var commentTimestamp = DateTime.Now;
+                
+                // Extrai o username de dentro do objeto 'from' ou da raiz
+                var username = "desconhecido";
+                if (item.TryGetProperty("from", out var fromEl) && fromEl.TryGetProperty("username", out var userEl))
+                {
+                    username = userEl.GetString() ?? "desconhecido";
+                }
+                else if (item.TryGetProperty("username", out var uEl))
+                {
+                    username = uEl.GetString() ?? "desconhecido";
+                }
 
+                var commentTimestamp = DateTime.Now;
                 if (item.TryGetProperty("timestamp", out var tsEl) &&
                     DateTimeOffset.TryParse(tsEl.GetString(), out var parsedTs))
                 {
@@ -231,7 +246,44 @@ namespace ABrechozeiraApp.Services
             await db.SaveChangesAsync(ct);
 
             foreach (var c in novos)
-                _logger.LogInformation("Comentario salvo via polling: {Username} - {Texto}", c.Username, c.CommentText);
+            {
+                _logger.LogInformation("Comentário salvo em tempo real: [{Username}] -> {Texto}", c.Username, c.CommentText);
+            }
+        }
+
+        private void VerificarHeadersRateLimit(HttpResponseMessage response)
+        {
+            try
+            {
+                if (response.Headers.TryGetValues("X-App-Usage", out var values))
+                {
+                    var headerVal = values.FirstOrDefault();
+                    if (!string.IsNullOrEmpty(headerVal))
+                    {
+                        using var doc = JsonDocument.Parse(headerVal);
+                        if (doc.RootElement.TryGetProperty("call_count", out var cc) && cc.TryGetInt32(out var callCount))
+                        {
+                            if (callCount >= 85)
+                            {
+                                if (!_emThrottling)
+                                {
+                                    _logger.LogWarning("Uso de cota da Meta atingiu {Uso}%. Ativando throttling preventivo (2.5s).", callCount);
+                                    _emThrottling = true;
+                                }
+                            }
+                            else if (callCount < 70 && _emThrottling)
+                            {
+                                _logger.LogInformation("Uso de cota da Meta normalizou em {Uso}%. Retomando modo 1 segundo.", callCount);
+                                _emThrottling = false;
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignora erros na leitura de headers para não travar o loop principal
+            }
         }
 
         private async Task FinalizarLiveAsync(long liveVideoId, CancellationToken ct)
