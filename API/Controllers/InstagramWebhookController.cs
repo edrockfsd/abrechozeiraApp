@@ -244,6 +244,34 @@ namespace ABrechozeiraApp.Controllers
             });
         }
 
+        // Consulta os comentários da live ativa direto da Meta para ver o que foi postado
+        [HttpGet("debug-ler-comentarios-live")]
+        public async Task<IActionResult> DebugLerComentariosLive([FromServices] IHttpClientFactory clientFactory)
+        {
+            var token = _configuration["Instagram:AccessToken"];
+            if (string.IsNullOrEmpty(token))
+                return Ok(new { erro = "Sem token" });
+
+            var client = clientFactory.CreateClient();
+            var liveMediaRes = await client.GetAsync($"https://graph.instagram.com/v23.0/me/live_media?fields=id,status&access_token={token.Trim()}");
+            var liveMediaJson = await liveMediaRes.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(liveMediaJson);
+            if (!doc.RootElement.TryGetProperty("data", out var data) || data.GetArrayLength() == 0)
+                return Ok(new { msg = "Nenhuma live encontrada", raw = liveMediaJson });
+
+            var liveId = data[0].GetProperty("id").GetString();
+            var commentsRes = await client.GetAsync($"https://graph.instagram.com/v23.0/{liveId}/comments?fields=id,text,username,timestamp&access_token={token.Trim()}");
+            var commentsJson = await commentsRes.Content.ReadAsStringAsync();
+
+            return Ok(new
+            {
+                liveId = liveId,
+                statusComments = (int)commentsRes.StatusCode,
+                comentarios = commentsJson
+            });
+        }
+
         // Força a subscrição dos campos de live_comments e messages via Graph API
         [HttpGet("debug-forcar-inscricao")]
         public async Task<IActionResult> DebugForcarInscricao([FromServices] IHttpClientFactory clientFactory)
