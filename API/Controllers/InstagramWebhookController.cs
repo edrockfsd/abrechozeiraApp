@@ -91,9 +91,7 @@ namespace ABrechozeiraApp.Controllers
         {
             var verifyToken = _configuration["Instagram:VerifyToken"]; // Pegar do appsettings.json
 
-            bool isMatch = mode == "subscribe" && token == verifyToken;
-
-            if (isMatch)
+            if (mode == "subscribe" && token == verifyToken)
             {
                 Console.WriteLine("WEBHOOK VERIFICADO COM SUCESSO!");
                 return Ok(challenge); // Retorna o 'challenge' com status 200 OK
@@ -101,35 +99,7 @@ namespace ABrechozeiraApp.Controllers
             else
             {
                 Console.WriteLine("FALHA NA VERIFICAÇÃO DO WEBHOOK.");
-                // DIAGNOSTICO TEMPORARIO - responde 200 (nao 403) para o IIS nao
-                // trocar o corpo da resposta por uma pagina de erro customizada.
-                // Nao expõe os valores, so tamanhos e se bateram. REMOVER depois do teste.
-                string tokenConfiguradoHash = null;
-                string tokenRecebidoHash = null;
-                if (!string.IsNullOrEmpty(verifyToken))
-                {
-                    using var sha1 = System.Security.Cryptography.SHA256.Create();
-                    var bytes1 = sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(verifyToken));
-                    tokenConfiguradoHash = Convert.ToHexString(bytes1).Substring(0, 10);
-                }
-                if (!string.IsNullOrEmpty(token))
-                {
-                    using var sha2 = System.Security.Cryptography.SHA256.Create();
-                    var bytes2 = sha2.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token));
-                    tokenRecebidoHash = Convert.ToHexString(bytes2).Substring(0, 10);
-                }
-
-                return StatusCode(200, new
-                {
-                    diagnostico = true,
-                    modeRecebido = mode,
-                    tokenRecebidoTamanho = token != null ? token.Length : -1,
-                    tokenConfiguradoTamanho = verifyToken != null ? verifyToken.Length : -1,
-                    tokenConfiguradoEhNuloOuVazio = string.IsNullOrEmpty(verifyToken),
-                    tokenConfiguradoHash = tokenConfiguradoHash,
-                    tokenRecebidoHash = tokenRecebidoHash,
-                    bateram = isMatch
-                });
+                return Forbid(); // Retorna 403 Forbidden
             }
         }
 
