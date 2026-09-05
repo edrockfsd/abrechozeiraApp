@@ -34,9 +34,6 @@ namespace ABrechozeiraApp.Services
         private static readonly TimeSpan IntervaloSemLive = TimeSpan.FromSeconds(15);
         private const string ApiVersion = "v23.0";
 
-        // Token de fallback oficial fornecido pelo usuário (IGAA...)
-        private const string TokenFallback = "IGAAJu7NnteHxBZAFpRRFlsMUR0UTNTNGZA3ZAlRGX1BzOGFocjBwNXZAmQUhjbXNjU1lscWo2SVI5THVObnRXdXpfbE5iUHRHT1Bjd21lZAzE5OUxqb05PSmV1UWNwQmRUX1NvbHh1RVdOUFJoZAHRjR0FDa1JtUWVQSWFPX1ZAlZA2c5cwZDZD";
-
         private long? _liveAtualId = null;
         private HashSet<string> _comentariosConhecidos = new();
         private bool _emThrottling = false;
@@ -53,14 +50,14 @@ namespace ABrechozeiraApp.Services
             _logger = logger;
         }
 
-        private string ObterTokenInstagram()
+        private string? ObterTokenInstagram()
         {
             var tokenConfig = _configuration["Instagram:InstagramUserToken"] ?? _configuration["Instagram:AccessToken"];
-            if (!string.IsNullOrWhiteSpace(tokenConfig) && tokenConfig.Trim().StartsWith("IGAA"))
+            if (!string.IsNullOrWhiteSpace(tokenConfig))
             {
                 return tokenConfig.Trim();
             }
-            return TokenFallback;
+            return null;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,6 +71,13 @@ namespace ABrechozeiraApp.Services
                 try
                 {
                     var accessToken = ObterTokenInstagram();
+                    if (string.IsNullOrWhiteSpace(accessToken))
+                    {
+                        _logger.LogWarning("Instagram:AccessToken não configurado. Aguardando...");
+                        await Task.Delay(IntervaloSemLive, stoppingToken);
+                        continue;
+                    }
+
                     var httpClient = _httpClientFactory.CreateClient("InstagramGraph");
 
                     var liveMediaId = await ObterLiveMediaIdAsync(httpClient, accessToken, stoppingToken);
