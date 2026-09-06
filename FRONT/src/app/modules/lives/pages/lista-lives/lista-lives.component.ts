@@ -7,6 +7,8 @@ import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notificatio
 import { LiveService } from '../../services/live.service';
 import { Live } from '../../models/live';
 import { ToastService } from '../../../../services/toast.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-lista-lives',
@@ -25,6 +27,7 @@ export class ListaLivesComponent implements OnInit {
   @ViewChild('toast') private toastObj: ToastComponent;
 
   public lives: Live[] = [];
+  public liveAtiva: any = null;
   public pageSettings = { pageSize: 10 };
   public toolbar = ['Search'];
   public filterSettings = { type: 'Excel' };
@@ -32,11 +35,35 @@ export class ListaLivesComponent implements OnInit {
   constructor(
     private liveService: LiveService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.carregarLives();
+    this.verificarLiveAtiva();
+  }
+
+  private verificarLiveAtiva(): void {
+    this.http.get<any[]>(`${environment.apiUrl}/LiveSessions`).subscribe({
+      next: (sessions) => {
+        if (sessions && sessions.length > 0) {
+          const quatroHorasAtras = new Date(Date.now() - 4 * 60 * 60 * 1000);
+          const ativa = sessions.find(s => 
+            s.status === 'live' && 
+            !s.endedAt && 
+            s.startedAt && 
+            new Date(s.startedAt) >= quatroHorasAtras
+          );
+          this.liveAtiva = ativa || null;
+        } else {
+          this.liveAtiva = null;
+        }
+      },
+      error: () => {
+        this.liveAtiva = null;
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -59,6 +86,24 @@ export class ListaLivesComponent implements OnInit {
 
   onNovaLive(): void {
     this.router.navigate(['/lives/novo']);
+  }
+
+  onOperarLive(live: Live): void {
+    this.router.navigate(['/lives', live.id, 'gestao']);
+  }
+
+  onOperarLiveAtiva(): void {
+    if (!this.liveAtiva) return;
+    const videoIdStr = this.liveAtiva.liveVideoId?.toString();
+    const liveCorrespondente = this.lives.find(l => 
+      videoIdStr && l.observacoes && l.observacoes.includes(videoIdStr)
+    ) || (this.lives && this.lives.length > 0 ? this.lives[0] : null);
+
+    if (liveCorrespondente) {
+      this.router.navigate(['/lives', liveCorrespondente.id, 'gestao']);
+    } else {
+      this.router.navigate(['/live-sessions', this.liveAtiva.id, 'gestao']);
+    }
   }
 
   onEditar(live: Live): void {

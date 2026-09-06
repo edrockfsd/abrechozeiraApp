@@ -69,8 +69,8 @@ namespace ABrechozeiraApp.Controllers
                     StartedAt = ls.StartedAt,
                     EndedAt = ls.EndedAt,
                     TotalComentarios = comentarios.Count(),
-                    PrimeiroComentarioEm = comentarios.Min(c => (DateTime?)c.CommentTimestamp),
-                    UltimoComentarioEm = comentarios.Max(c => (DateTime?)c.CommentTimestamp)
+                    PrimeiroComentarioEm = comentarios.Min(c => (DateTime?)c.CreatedAt),
+                    UltimoComentarioEm = comentarios.Max(c => (DateTime?)c.CreatedAt)
                 }
             ).ToListAsync();
 
@@ -98,8 +98,8 @@ namespace ABrechozeiraApp.Controllers
                 StartedAt = liveSession.StartedAt,
                 EndedAt = liveSession.EndedAt,
                 TotalComentarios = await comentariosQuery.CountAsync(),
-                PrimeiroComentarioEm = await comentariosQuery.MinAsync(c => (DateTime?)c.CommentTimestamp),
-                UltimoComentarioEm = await comentariosQuery.MaxAsync(c => (DateTime?)c.CommentTimestamp)
+                PrimeiroComentarioEm = await comentariosQuery.MinAsync(c => (DateTime?)c.CreatedAt),
+                UltimoComentarioEm = await comentariosQuery.MaxAsync(c => (DateTime?)c.CreatedAt)
             };
 
             return Ok(dto);
@@ -117,13 +117,13 @@ namespace ABrechozeiraApp.Controllers
 
             var comentarios = await _context.ComentarioLive
                 .Where(c => c.LiveSessionId == liveSession.LiveVideoId)
-                .OrderBy(c => c.CommentTimestamp)
+                .OrderBy(c => c.CreatedAt)
                 .Select(c => new ComentarioLiveDto
                 {
                     Id = c.Id,
                     Username = c.Username,
                     CommentText = c.CommentText,
-                    CommentTimestamp = c.CommentTimestamp,
+                    CommentTimestamp = c.CreatedAt,
                     CreatedAt = c.CreatedAt
                 })
                 .ToListAsync();

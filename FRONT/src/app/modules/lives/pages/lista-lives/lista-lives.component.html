@@ -15,6 +15,26 @@
     </div>
   </div>
 
+  <!-- Banner de Transmissão Ativa no Instagram -->
+  <div class="live-ativa-banner" *ngIf="liveAtiva">
+    <div class="live-ativa-info">
+      <span class="pulse-dot"></span>
+      <div class="live-texts">
+        <strong>🔴 TRANSMISSÃO AO VIVO DETECTADA NO INSTAGRAM!</strong>
+        <span class="sub">ID: {{ liveAtiva.liveVideoId }} • {{ liveAtiva.totalComentarios || 0 }} comentários capturados</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button ejs-button cssClass="e-warning" (click)="onOperarLiveAtiva()">
+        <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">radar</span>
+        Operar Live Agora
+      </button>
+      <button ejs-button cssClass="e-flat" (click)="liveAtiva = null" title="Fechar aviso" style="color: #fff; min-width: 32px; padding: 4px 8px;">
+        <span class="material-icons" style="font-size: 18px;">close</span>
+      </button>
+    </div>
+  </div>
+
   <ejs-grid 
     #grid 
     [dataSource]="lives"
@@ -45,9 +65,12 @@
           </button>
         </ng-template>
       </e-column>
-      <e-column headerText="Ações" width="130" textAlign="Center">
+      <e-column headerText="Ações" width="165" textAlign="Center">
         <ng-template #template let-data>
           <div class="action-buttons" style="display: flex; gap: 4px; justify-content: center;">
+            <button ejs-button cssClass="e-warning e-small" (click)="onOperarLive(data)" title="Operar Live (Rastrear Peças)">
+              <span class="material-icons" style="font-size: 16px;">radar</span>
+            </button>
             <button ejs-button cssClass="e-success e-small" (click)="onSyncSheet(data)" title="Sincronizar Planilha">
               <span class="material-icons" style="font-size: 16px;">cloud_sync</span>
             </button>

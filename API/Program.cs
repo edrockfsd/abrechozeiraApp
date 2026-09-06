@@ -36,6 +36,9 @@ builder.Services.AddScoped<ABrechozeiraApp.Services.VendaService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.ProdutoIAService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.CacheSistemaService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.GoogleSheetReaderService>();
+builder.Services.AddScoped<ABrechozeiraApp.Services.GoogleSheetsSyncService>();
+builder.Services.AddSingleton<ABrechozeiraApp.Services.LiveTrackerService>();
+builder.Services.AddSignalR();
 builder.Services.AddHttpClient("Superfrete");
 builder.Services.AddHttpClient("WhatsAppCloud");
 builder.Services.AddHttpClient("InstagramGraph");
@@ -57,11 +60,12 @@ builder.Services.AddDbContextPool<AbrechozeiraContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: myAllowSpecificOrigins,
-        builder =>
+        policy =>
         {
-            builder.AllowAnyOrigin()
-            .AllowAnyMethod() .AllowAnyMethod() .AllowAnyMethod()
-            .AllowAnyHeader();
+            policy.SetIsOriginAllowed(_ => true)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
         });
 });
 
@@ -104,5 +108,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ABrechozeiraApp.Hubs.LiveHub>("/hubs/live-chat");
 
 app.Run();

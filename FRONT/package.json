@@ -20,6 +20,7 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@microsoft/signalr": "^10.0.11",
     "@syncfusion/ej2-angular-buttons": "^28.2.7",
     "@syncfusion/ej2-angular-calendars": "^28.2.9",
     "@syncfusion/ej2-angular-dropdowns": "^28.2.9",

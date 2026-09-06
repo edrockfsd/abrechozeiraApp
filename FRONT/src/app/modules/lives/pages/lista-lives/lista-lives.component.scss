@@ -22,6 +22,62 @@
     }
   }
 
+  .live-ativa-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #2a1515 0%, #1a0f0f 100%);
+    border: 2px solid #f85149;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(248, 81, 73, 0.25);
+    animation: pulseBorder 2s infinite ease-in-out;
+
+    .live-ativa-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .pulse-dot {
+        width: 14px;
+        height: 14px;
+        background-color: #f85149;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #f85149;
+        animation: pulseDot 1s infinite alternate;
+      }
+
+      .live-texts {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+
+        strong {
+          color: #ff7b72;
+          font-size: 1.05rem;
+          letter-spacing: 0.5px;
+        }
+
+        .sub {
+          color: #8b949e;
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  @keyframes pulseDot {
+    from { transform: scale(0.85); opacity: 0.7; }
+    to { transform: scale(1.25); opacity: 1; }
+  }
+
+  @keyframes pulseBorder {
+    0% { border-color: #f85149; }
+    50% { border-color: #ff7b72; box-shadow: 0 0 25px rgba(255, 123, 114, 0.4); }
+    100% { border-color: #f85149; }
+  }
+
   .action-buttons {
     display: flex;
     gap: $spacing-2;

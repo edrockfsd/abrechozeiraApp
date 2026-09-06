@@ -16,5 +16,11 @@ export const LIVSESSIONS_ROUTES: Routes = [
     component: RelatorioLiveSessionComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: { permissions: ['relatorios_read', 'full_access'] }
+  },
+  {
+    path: ':id/gestao',
+    loadComponent: () => import('./pages/gestao-live/gestao-live.component').then(m => m.GestaoLiveComponent),
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['relatorios_read', 'full_access'] }
   }
 ]; 

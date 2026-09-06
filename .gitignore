@@ -74,3 +74,7 @@ appsettings.Development.json
 API/*.txt
 API/InfinitePayTags.json
 scratch_db/
+scratch/
+credentials/
+**/credentials/
+*service-account*.json

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,7 +26,7 @@ namespace ABrechozeiraApp.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Live>>> GetLive()
         {
-            return await _context.Live.ToListAsync();
+            return await _context.Live.OrderByDescending(l => l.DataLive).ToListAsync();
         }
 
         // GET: api/Lives/5

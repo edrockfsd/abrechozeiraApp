@@ -1,0 +1,375 @@
+<div class="gestao-live-container">
+  <!-- Toast Flutuante -->
+  <div class="toast-alerta" *ngIf="toastVisivel" [ngClass]="toastTipo">
+    <span class="toast-icon">
+      <ng-container [ngSwitch]="toastTipo">
+        <span *ngSwitchCase="'sucesso'">✅</span>
+        <span *ngSwitchCase="'erro'">❌</span>
+        <span *ngSwitchCase="'match'">🎯</span>
+        <span *ngSwitchDefault>ℹ️</span>
+      </ng-container>
+    </span>
+    <span class="toast-texto">{{ toastMensagem }}</span>
+  </div>
+
+  <!-- Barra Superior de Status -->
+  <header class="top-bar">
+    <div class="left-info">
+      <button class="btn-voltar" (click)="voltar()" title="Voltar para a lista">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <div class="live-meta">
+        <h1>{{ liveTitulo }}</h1>
+        <div class="badges-row">
+          <span class="status-pill signalr" [class.online]="isSignalRConnected">
+            <span class="dot"></span>
+            {{ isSignalRConnected ? 'SignalR Conectado' : 'Conectando...' }}
+          </span>
+          <span class="status-pill live-id" *ngIf="liveVideoId > 0">
+            <span class="material-icons icon-sm">videocam</span> ID Meta: {{ liveVideoId }}
+          </span>
+          <span class="status-pill sheets" [class.configured]="googleSheetUrl">
+            <span class="material-icons icon-sm">table_chart</span>
+            {{ googleSheetUrl ? 'Google Sheets Ativo' : 'Sheets Não Configurado' }}
+          </span>
+          <span class="status-pill chat-count">
+            <span class="material-icons icon-sm">chat</span> {{ totalComentarios }} comentários
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-actions">
+      <button class="btn-config" (click)="painelConfigAberto = !painelConfigAberto" title="Configurações e Planilha">
+        <span class="material-icons">tune</span>
+        Configurações
+      </button>
+    </div>
+  </header>
+
+  <!-- Painel Colapsável de Configurações & Contingência -->
+  <section class="config-panel" *ngIf="painelConfigAberto">
+    <div class="config-card">
+      <h3>Sincronização com Google Sheets</h3>
+      <div class="config-grid">
+        <div class="form-group">
+          <label>URL da Planilha Google Sheets</label>
+          <input type="text" [(ngModel)]="googleSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/ID_DA_PLANILHA/edit" class="input-modern">
+        </div>
+        <div class="form-group">
+          <label>Aba de Vendas</label>
+          <input type="text" [(ngModel)]="sheetName" placeholder="vendas" class="input-modern" style="max-width: 150px;">
+        </div>
+      </div>
+      <p class="hint">Os arremates confirmados são gravados no banco de dados e simultaneamente enviados para esta planilha em tempo real com colunas de data/hora.</p>
+    </div>
+
+    <div class="config-card ssn-card">
+      <div class="ssn-header">
+        <h3>Social Stream Ninja (Backup Manual)</h3>
+        <span class="ssn-status" [class.connected]="ssnSocket">{{ ssnStatus }}</span>
+      </div>
+      <p class="hint">O sistema já captura diretamente do chat oficial do Instagram. Ative esta opção apenas se precisar de uma fonte de captura de emergência.</p>
+      <div class="ssn-controls">
+        <input type="text" [(ngModel)]="ssnSessionId" placeholder="Cole o Session ID do SSN (ex: b1c2d3...)" class="input-modern">
+        <button class="btn-ssn" (click)="toggleSSN()">
+          {{ ssnSocket ? 'Desconectar SSN' : 'Conectar SSN Backup' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Corpo Principal: Console do Operador + Chat ao Vivo -->
+  <main class="cockpit-layout">
+    <!-- COLUNA ESQUERDA: Console de Rastreio e Fila -->
+    <div class="cockpit-left">
+      <!-- Banner de Status do Rastreio -->
+      <div class="tracking-banner" [class.active]="isTracking">
+        <div class="banner-badge">
+          <span class="pulse-indicator" *ngIf="isTracking"></span>
+          {{ isTracking ? 'RASTREANDO CÓDIGO NO CHAT' : 'AGUARDANDO CÓDIGO' }}
+        </div>
+        <div class="active-code-highlight">
+          {{ isTracking ? activeCode : '---' }}
+        </div>
+        <div class="active-details" *ngIf="isTracking">
+          <span class="desc-tag">{{ activeDescription || 'Sem descrição' }}</span>
+          <span class="price-tag">R$ {{ (activeValue || 0).toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <!-- Formulário de Entrada Rápida (3 Campos) -->
+      <div class="piece-form-card">
+        <div class="form-inputs-row">
+          <div class="form-field code-field">
+            <label for="inputCodigo">Código da Peça</label>
+            <input
+              #inputCodigoEl
+              id="inputCodigo"
+              type="text"
+              [(ngModel)]="inputCodigo"
+              placeholder="Ex: 005"
+              autocomplete="off"
+              (keydown.enter)="focarDescricao()"
+              class="input-operator code-input">
+          </div>
+
+          <div class="form-field desc-field">
+            <label for="inputDescricao">Descrição da Peça</label>
+            <input
+              #inputDescricaoEl
+              id="inputDescricao"
+              type="text"
+              [(ngModel)]="inputDescricao"
+              placeholder="Ex: Casaco Columbia Rosa Floral"
+              autocomplete="off"
+              (keydown.enter)="focarValor()"
+              class="input-operator desc-input">
+          </div>
+
+          <div class="form-field value-field">
+            <label for="inputValor">Valor (R$)</label>
+            <input
+              #inputValorEl
+              id="inputValor"
+              type="number"
+              step="0.01"
+              [(ngModel)]="inputValor"
+              placeholder="120.00"
+              autocomplete="off"
+              (keydown.enter)="iniciarRastreio()"
+              class="input-operator value-input">
+          </div>
+        </div>
+
+        <div class="form-actions-row">
+          <button class="btn-action btn-track" (click)="iniciarRastreio()" [disabled]="isTracking">
+            <span class="material-icons">radar</span>
+            Rastrear Peça (Enter)
+          </button>
+          <button class="btn-action btn-stop" (click)="pararRastreio()" [disabled]="!isTracking">
+            <span class="material-icons">pause_circle</span>
+            Parar
+          </button>
+          <button class="btn-action btn-confirm" (click)="confirmarArremate()" [disabled]="!activeCode">
+            <span class="material-icons">check_circle</span>
+            Confirmar Arremate & Salvar
+          </button>
+          <button class="btn-action btn-clear" (click)="limparCampos()" title="Limpar Campos">
+            <span class="material-icons">clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card do Vencedor e Fila de Espera -->
+      <div class="results-card">
+        <div class="results-header">
+          <h2>
+            <span class="material-icons">military_tech</span>
+            Resultado do Rastreio
+          </h2>
+          <button class="btn-audit-trigger" (click)="abrirAuditoria()" [disabled]="!activeCode && !inputCodigo" title="Ver lista cronológica com milissegundos">
+            <span class="material-icons">history_edu</span>
+            Ver Prova do Chat (Auditoria)
+          </button>
+        </div>
+
+        <!-- Vazio -->
+        <div class="results-empty" *ngIf="matches.length === 0">
+          <span class="material-icons empty-icon">schedule</span>
+          <p *ngIf="isTracking">Aguardando alguém digitar <strong>"{{ activeCode }}"</strong> no chat do Instagram...</p>
+          <p *ngIf="!isTracking">Nenhum código ativo. Preencha os campos e clique em <strong>Rastrear</strong>.</p>
+        </div>
+
+        <!-- Lista de Vencedor + Fila -->
+        <div class="results-content" *ngIf="matches.length > 0">
+          <!-- 🏆 COMPRADOR -->
+          <div class="buyer-box" *ngIf="comprador">
+            <div class="buyer-badge">
+              <span class="trophy">🏆</span>
+              <span>COMPRADOR (1º LUGAR)</span>
+            </div>
+            <div class="buyer-info">
+              <span class="buyer-user">&#64;{{ comprador.username }}</span>
+              <span class="buyer-time">
+                <span class="material-icons">timer</span>
+                {{ comprador.commentTimestampFmt }}
+              </span>
+              <span class="buyer-text">"{{ comprador.commentText }}"</span>
+            </div>
+            <button class="btn-remove-buyer" (click)="removerMatch(0)" title="Pular este comprador e passar o próximo da fila">
+              <span class="material-icons">person_remove</span>
+              Pular / Remover
+            </button>
+          </div>
+
+          <!-- 📋 FILA DE ESPERA -->
+          <div class="queue-section" *ngIf="fila.length > 0">
+            <h3>Fila de Espera ({{ fila.length }})</h3>
+            <div class="queue-list">
+              <div class="queue-item" *ngFor="let item of fila; let i = index">
+                <span class="queue-pos">{{ item.posicao }}º</span>
+                <span class="queue-nick">&#64;{{ item.username }}</span>
+                <span class="queue-time">{{ item.commentTimestampFmt }}</span>
+                <span class="queue-text">"{{ item.commentText }}"</span>
+                <button class="btn-remove-queue" (click)="removerMatch(i + 1)" title="Remover da fila">
+                  <span class="material-icons">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA: Monitor do Chat do Instagram em Tempo Real -->
+    <div class="cockpit-right">
+      <div class="chat-card">
+        <div class="chat-header">
+          <h3>
+            <span class="material-icons">chat_bubble</span>
+            Chat da Live (Tempo Real)
+          </h3>
+          <div class="chat-controls">
+            <label class="auto-scroll-toggle" title="Rolar automaticamente">
+              <input type="checkbox" [(ngModel)]="autoScrollChat">
+              Auto-scroll
+            </label>
+            <span class="msg-counter">{{ chatMessages.length }} msgs</span>
+          </div>
+        </div>
+
+        <div class="chat-feed" #chatFeedEl>
+          <div class="chat-empty" *ngIf="chatMessages.length === 0">
+            <span class="material-icons">forum</span>
+            <p>Aguardando comentários dos espectadores...</p>
+          </div>
+
+          <div
+            class="chat-bubble"
+            *ngFor="let msg of chatMessages"
+            [class.match-bubble]="isComentarioMatch(msg.commentText)">
+            <div class="bubble-header">
+              <span class="bubble-user">&#64;{{ msg.username }}</span>
+              <span class="bubble-time">{{ msg.commentTimestamp | date:'HH:mm:ss' }}</span>
+              <span class="match-badge" *ngIf="isComentarioMatch(msg.commentText)">🎯 ACERTOU!</span>
+            </div>
+            <div class="bubble-body">
+              {{ msg.commentText }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Seção Inferior: Histórico de Arremates da Live -->
+  <section class="history-section">
+    <div class="history-header">
+      <div class="history-title-row">
+        <h2>
+          <span class="material-icons">shopping_bag</span>
+          Peças Arrematadas nesta Live ({{ historico.length }})
+        </h2>
+        <div class="total-faturado-box">
+          <span class="label">Total Faturado:</span>
+          <span class="valor">R$ {{ totalFaturado.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <div class="history-actions-row">
+        <button class="btn-h-action" (click)="copiarParaClipboard()" title="Copiar em formato de planilha">
+          <span class="material-icons">content_copy</span>
+          Copiar Tabela (Ctrl+C)
+        </button>
+        <button class="btn-h-action" (click)="exportarCSV()" title="Baixar arquivo CSV">
+          <span class="material-icons">download</span>
+          Exportar CSV
+        </button>
+        <button class="btn-h-action btn-concluir" (click)="concluirLiveEProcessar()" title="Ir para faturamento, pedidos e NFC-e">
+          <span class="material-icons">rocket_launch</span>
+          Concluir Live & Processar Vendas
+        </button>
+      </div>
+    </div>
+
+    <div class="history-table-container">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Comprador</th>
+            <th>Horário do Comentário</th>
+            <th>Fila de Espera</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of historico">
+            <td class="td-code">{{ item.codigoLive || '-' }}</td>
+            <td class="td-desc">{{ item.produtoDescricao || item.descricaoManual || '-' }}</td>
+            <td class="td-val">R$ {{ (item.valorArremate || 0).toFixed(2) }}</td>
+            <td class="td-buyer">
+              <span class="buyer-tag">&#64;{{ item.arrematante }}</span>
+            </td>
+            <td class="td-time">{{ item.dataArremate | date:'HH:mm:ss' }}</td>
+            <td class="td-fila">
+              <span class="fila-text" [title]="item.fila">{{ item.fila || 'Sem fila' }}</span>
+            </td>
+            <td class="td-actions">
+              <button class="btn-table-audit" (click)="abrirAuditoria(item.codigoLive?.toString())" title="Auditoria da peça">
+                <span class="material-icons icon-sm">policy</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="historico.length === 0">
+            <td colspan="7" class="empty-td">Nenhuma peça arrematada ainda nesta live.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODAL DE AUDITORIA DO CHAT (PROVA INCONTESTÁVEL) -->
+  <div class="modal-backdrop" *ngIf="modalAuditoriaAberta">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Auditoria e Prova do Chat - Código "{{ auditoriaCodigo }}"</h3>
+          <span class="sub-title">Ordem cronológica exata registrada com milissegundos</span>
+        </div>
+        <button class="btn-close-modal" (click)="fecharAuditoria()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="loading-state" *ngIf="carregandoAuditoria">
+          <span class="material-icons spin">sync</span>
+          Carregando registros do chat...
+        </div>
+
+        <div class="auditoria-list" *ngIf="!carregandoAuditoria">
+          <div class="auditoria-item" *ngFor="let item of auditoriaMatches" [class.winner]="item.posicao === 1">
+            <span class="item-pos">{{ item.status }}</span>
+            <span class="item-user">&#64;{{ item.username }}</span>
+            <span class="item-timestamp">⏰ {{ item.timestampFmt }}</span>
+            <span class="item-text">"{{ item.textoDigitado }}"</span>
+          </div>
+
+          <div class="empty-auditoria" *ngIf="auditoriaMatches.length === 0">
+            Nenhum comentário exato encontrado para o código "{{ auditoriaCodigo }}".
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-copy-comprovante" (click)="copiarComprovanteAuditoria()" [disabled]="auditoriaMatches.length === 0">
+          <span class="material-icons">content_copy</span>
+          Copiar Texto Comprovante (WhatsApp / Direct)
+        </button>
+        <button class="btn-fechar" (click)="fecharAuditoria()">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>

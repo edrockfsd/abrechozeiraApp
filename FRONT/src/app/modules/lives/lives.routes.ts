@@ -29,5 +29,17 @@ export const LIVES_ROUTES: Routes = [
     component: ContabilizacaoLiveComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: { permissions: ['lives_manage', 'full_access'] }
+  },
+  {
+    path: 'gestao/:id',
+    loadComponent: () => import('../live-sessions/pages/gestao-live/gestao-live.component').then(m => m.GestaoLiveComponent),
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['lives_manage', 'full_access'] }
+  },
+  {
+    path: ':id/gestao',
+    loadComponent: () => import('../live-sessions/pages/gestao-live/gestao-live.component').then(m => m.GestaoLiveComponent),
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permissions: ['lives_manage', 'full_access'] }
   }
 ];

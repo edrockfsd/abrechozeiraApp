@@ -24,6 +24,7 @@ namespace ABrechozeiraApp.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly LiveTrackerService _liveTrackerService;
         private readonly ILogger<InstagramLivePollingService> _logger;
 
         // Intervalo padrão de 1 segundo durante a Live ativa (solicitado pelo usuário)
@@ -42,11 +43,13 @@ namespace ABrechozeiraApp.Services
             IServiceScopeFactory scopeFactory,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
+            LiveTrackerService liveTrackerService,
             ILogger<InstagramLivePollingService> logger)
         {
             _scopeFactory = scopeFactory;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _liveTrackerService = liveTrackerService;
             _logger = logger;
         }
 
@@ -63,6 +66,9 @@ namespace ABrechozeiraApp.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Serviço de captura em tempo real de comentários do Instagram INICIADO (Modo: 1 segundo com proteção de rate limit).");
+
+            // Limpeza de inicialização: fecha qualquer sessão antiga do banco que tenha ficado pendente (ex: reinício de servidor)
+            await EncerrarSessoesAntigasAsync(stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -119,14 +125,43 @@ namespace ABrechozeiraApp.Services
             }
         }
 
+        private async Task EncerrarSessoesAntigasAsync(CancellationToken ct)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
+
+                var limite = DateTime.Now.AddHours(-4);
+                var sessoesAbertas = await db.LiveSession
+                    .Where(l => (l.EndedAt == null || l.Status == "live") && l.StartedAt < limite)
+                    .ToListAsync(ct);
+
+                if (sessoesAbertas.Count > 0)
+                {
+                    foreach (var s in sessoesAbertas)
+                    {
+                        s.EndedAt = DateTime.Now;
+                        s.Status = "ended";
+                    }
+                    await db.SaveChangesAsync(ct);
+                    _logger.LogInformation("Limpeza: {Count} sessões antigas pendentes foram encerradas.", sessoesAbertas.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Erro na limpeza de sessões antigas: {Erro}", ex.Message);
+            }
+        }
+
         private async Task<long?> ObterLiveMediaIdAsync(HttpClient httpClient, string accessToken, CancellationToken ct)
         {
             bool isFbToken = accessToken.StartsWith("EAA", StringComparison.OrdinalIgnoreCase);
             var igAccountId = _configuration["Instagram:InstagramAccountId"] ?? "17841472957302808";
             
             var url = isFbToken
-                ? $"https://graph.facebook.com/{ApiVersion}/{igAccountId}/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}"
-                : $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id,status&access_token={Uri.EscapeDataString(accessToken)}";
+                ? $"https://graph.facebook.com/{ApiVersion}/{igAccountId}/live_media?fields=id,timestamp,status&access_token={Uri.EscapeDataString(accessToken)}"
+                : $"https://graph.instagram.com/{ApiVersion}/me/live_media?fields=id,timestamp,media_type,media_product_type&access_token={Uri.EscapeDataString(accessToken)}";
 
             using var response = await httpClient.GetAsync(url, ct);
             VerificarHeadersRateLimit(response);
@@ -143,9 +178,20 @@ namespace ABrechozeiraApp.Services
 
             if (doc.RootElement.TryGetProperty("data", out var data) && data.GetArrayLength() > 0)
             {
-                var idStr = data[0].GetProperty("id").GetString();
-                if (long.TryParse(idStr, out var id))
-                    return id;
+                foreach (var item in data.EnumerateArray())
+                {
+                    // O Instagram limita transmissões ao vivo a no máximo 4 horas. Transmissões com menos de 4 horas são as ativas.
+                    if (item.TryGetProperty("timestamp", out var tsEl) &&
+                        DateTimeOffset.TryParse(tsEl.GetString(), out var ts))
+                    {
+                        if (DateTimeOffset.UtcNow - ts <= TimeSpan.FromHours(4))
+                        {
+                            var idStr = item.GetProperty("id").GetString();
+                            if (long.TryParse(idStr, out var id))
+                                return id;
+                        }
+                    }
+                }
             }
 
             return null;
@@ -174,6 +220,41 @@ namespace ABrechozeiraApp.Services
                 liveSession.EndedAt = null;
                 liveSession.Status = "live";
                 await db.SaveChangesAsync(ct);
+            }
+
+            // Garante que existe também um registro na tabela Live para aparecer no menu /lives!
+            var hoje = DateTime.Today;
+            var liveVideoIdStr = liveVideoId.ToString();
+            var liveExistente = await db.Live
+                .FirstOrDefaultAsync(l => l.Observacoes != null && l.Observacoes.Contains(liveVideoIdStr), ct);
+
+            if (liveExistente == null)
+            {
+                // Verifica todas as lives de hoje para definir sequencial (ex: 01, 02, 03)
+                var livesHoje = await db.Live
+                    .Where(l => l.DataLive.Date == hoje)
+                    .OrderBy(l => l.Id)
+                    .ToListAsync(ct);
+
+                // Se a primeira live de hoje ainda estiver sem sufixo numérico, renomeia para 01
+                if (livesHoje.Count == 1 && !livesHoje[0].Titulo.EndsWith(" 01") && !livesHoje[0].Titulo.EndsWith(" 02"))
+                {
+                    livesHoje[0].Titulo = $"{livesHoje[0].Titulo} 01";
+                }
+
+                var sequencial = (livesHoje.Count + 1).ToString("D2");
+                var titulo = $"Live {DateTime.Now:dd/MM/yyyy} {sequencial}";
+
+                liveExistente = new Live
+                {
+                    Titulo = titulo,
+                    DataLive = DateTime.Now,
+                    DataAlteracao = DateTime.Now,
+                    Observacoes = $"Live Instagram detectada automaticamente (ID: {liveVideoId})"
+                };
+                db.Live.Add(liveExistente);
+                await db.SaveChangesAsync(ct);
+                _logger.LogInformation("Nova Live criada na tabela Live para exibição no sistema: Id {Id}, Titulo {Titulo}", liveExistente.Id, liveExistente.Titulo);
             }
 
             var idsConhecidos = await db.ComentarioLive
@@ -260,6 +341,18 @@ namespace ABrechozeiraApp.Services
             foreach (var c in novos)
             {
                 _logger.LogInformation("Comentário salvo em tempo real: [{Username}] -> {Texto}", c.Username, c.CommentText);
+
+                // Despacha instantaneamente para o LiveTrackerService (SignalR + Match + Fila)
+                var dto = new Controllers.ComentarioLiveDto
+                {
+                    Id = c.Id,
+                    Username = c.Username,
+                    CommentText = c.CommentText,
+                    CommentTimestamp = c.CreatedAt,
+                    CreatedAt = c.CreatedAt
+                };
+
+                await _liveTrackerService.ProcessarNovoComentarioGlobalAsync(liveVideoId, dto);
             }
         }
 
