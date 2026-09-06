@@ -76,4 +76,16 @@ namespace ABrechozeiraApp.DTOs
         public string? Titulo { get; set; }
         public int TotalComentarios { get; set; }
     }
+
+    public class SincronizarPlanilhaRequest
+    {
+        public string? GoogleSheetUrl { get; set; }
+        public string? SheetName { get; set; }
+    }
+
+    public class ConfigurarPlanilhaRequest
+    {
+        public string? GoogleSheetUrl { get; set; }
+    }
 }
+

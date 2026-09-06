@@ -125,6 +125,7 @@ Anteriormente, a operação do brechó dependia do software externo "Social Stre
 | Múltiplas Lives | "Acho q por estarmos fazendo mais de uma live no dia, o sistema está se perdendo... Kd live deve ter seu nome diferenciado (01, 02...)" | Implementada nomeação sequencial automática (`Live dd/MM/yyyy 01`, `02`, etc.) e deduplicação no SignalR e frontend para eliminar balões repetidos. |
 | Fechamento Deploy | "a princípio tudo certo, vamos fazer o deploy? Não esqueça de subir toda nossa conversa junto com o versionamento." | Documentação da sessão em `docs/`, consolidação dos commits e disparo da pipeline de deploy. |
 | Pós-Deploy Produção | "fui fazer o teste em produção agora e uma live está como aberta, mas na verdade é do dia 31/08/2026." | **Hotfix Live Órfã / Falso Positivo**: Criação do endpoint `GET /api/LiveTracker/live-ativa` que consulta o estado em tempo real do polling em memória. Remoção do fallback perigoso `|| this.lives[0]` que abria lives antigas caso o `liveId` não estivesse preenchido. Auto-encerramento imediato de sessões no banco de dados (`Status = 'ended'`, `EndedAt = DateTime.Now`) quando o Instagram confirma que não há transmissão ativa. |
+| Sync Google Sheets | "agora está tudo certo, mas o sistema não está enviando os dados para a planilha google." | **Hotfix Google Sheets em Produção**: 1) Credencial da service account embutida diretamente no `GoogleSheetsSyncService` como fallback resiliente (evitando falhas por arquivos ignorados no `.gitignore` e não presentes na KingHost). 2) Herança automática da `GoogleSheetUrl` em novas lives detectadas pelo polling. 3) Fallback automático para a planilha padrão na confirmação de arremates se a live não possuir URL configurada. 4) Novo endpoint `POST /api/LiveTracker/sincronizar-planilha/{liveId}` e botão na tela **"Enviar para Google Sheets"** para enviar em lote peças já arrematadas anteriormente. 5) Botão **"Salvar na Live"** nas configurações para vincular a planilha diretamente. |
 
 ---
 
@@ -147,15 +148,21 @@ Anteriormente, a operação do brechó dependia do software externo "Social Stre
   - `API/Program.cs`
   - `API/Controllers/LiveSessionsController.cs`
   - `API/Controllers/LivesController.cs`
-  - `API/Controllers/LiveTrackerController.cs` (novo endpoint `live-ativa`)
-  - `API/DTOs/LiveTrackerDtos.cs` (novo DTO `LiveAtivaInfo`)
-  - `API/Services/InstagramLivePollingService.cs` (gerenciamento e encerramento de sessões ativas e órfãs)
-  - `API/Services/LiveTrackerService.cs` (gestão thread-safe de estado de live ativa)
+  - `API/Controllers/LiveTrackerController.cs` (endpoints de live ativa, sincronização em lote e configuração de planilha)
+  - `API/DTOs/LiveTrackerDtos.cs` (DTOs `LiveAtivaInfo`, `SincronizarPlanilhaRequest`, `ConfigurarPlanilhaRequest`)
+  - `API/Services/GoogleSheetsSyncService.cs` (credencial embutida resiliente para cloud/KingHost e sync retroativo)
+  - `API/Services/InstagramLivePollingService.cs` (herança de GoogleSheetUrl e encerramento de órfãs)
+  - `API/Services/LiveTrackerService.cs` (gestão thread-safe de live ativa)
   - `FRONT/package.json` e `package-lock.json`
   - `FRONT/src/app/modules/live-sessions/live-sessions.routes.ts`
+  - `FRONT/src/app/modules/live-sessions/pages/gestao-live/gestao-live.component.html` (botões "Enviar para Google Sheets" e "Salvar na Live")
+  - `FRONT/src/app/modules/live-sessions/pages/gestao-live/gestao-live.component.scss` (estilos dos novos botões de ação e config)
+  - `FRONT/src/app/modules/live-sessions/pages/gestao-live/gestao-live.component.ts` (integração dos fluxos de sincronização)
+  - `FRONT/src/app/modules/live-sessions/services/live-tracker.service.ts` (métodos de API de sincronização e configuração)
   - `FRONT/src/app/modules/lives/lives.routes.ts`
-  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.ts` (consumo de `live-ativa` e remoção de fallback errôneo)
-  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.html` (renderização estrita de `liveAtiva.isLive`)
+  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.ts`
+  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.html`
   - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.scss`
   - `.gitignore`
+
 

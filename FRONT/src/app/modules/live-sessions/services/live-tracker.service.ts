@@ -191,6 +191,19 @@ export class LiveTrackerService {
     return this.http.get<any[]>(`${this.apiUrl}/Arremates/GetArrematesByLiveID?liveID=${liveId}`);
   }
 
+  public sincronizarPlanilhaRetroativo(liveId: number, googleSheetUrl?: string, sheetName?: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/LiveTracker/sincronizar-planilha/${liveId}`, {
+      googleSheetUrl,
+      sheetName
+    });
+  }
+
+  public configurarPlanilha(liveId: number, googleSheetUrl: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/LiveTracker/configurar-planilha/${liveId}`, {
+      googleSheetUrl
+    });
+  }
+
   // ===== Feedback Sonoro (Web Audio API) =====
   public tocarSomMatch(isComprador: boolean): void {
     try {

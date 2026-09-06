@@ -75,6 +75,9 @@ export class GestaoLiveComponent implements OnInit, OnDestroy {
   public ssnSocket?: WebSocket;
   public ssnStatus: string = 'Desconectado';
 
+  public sincronizandoPlanilha: boolean = false;
+  public salvandoConfigPlanilha: boolean = false;
+
   // Alerta Toast
   public toastMensagem: string = '';
   public toastTipo: 'sucesso' | 'erro' | 'info' | 'match' = 'info';
@@ -113,6 +116,18 @@ export class GestaoLiveComponent implements OnInit, OnDestroy {
       next: live => {
         this.liveTitulo = live.titulo || `Live #${this.liveId}`;
         this.googleSheetUrl = live.googleSheetUrl || '';
+
+        // Se a live não tiver planilha configurada, herda a última do sistema ou a padrão
+        if (!this.googleSheetUrl) {
+          this.http.get<any[]>(`${environment.apiUrl}/Lives`).subscribe({
+            next: lives => {
+              const comPlanilha = lives?.find(l => l.googleSheetUrl);
+              const urlDefault = comPlanilha?.googleSheetUrl || 'https://docs.google.com/spreadsheets/d/1HUEcIGWlgdcMuBi1zIhYX4sm660UT_ttyUkb_XhAS3o/edit?gid=1053114646#gid=1053114646';
+              this.googleSheetUrl = urlDefault;
+              this.trackerService.configurarPlanilha(this.liveId, urlDefault).subscribe();
+            }
+          });
+        }
       },
       error: () => {}
     });
@@ -476,6 +491,51 @@ export class GestaoLiveComponent implements OnInit, OnDestroy {
       this.mostrarToast('Tabela copiada! Agora basta dar Ctrl+V no Google Sheets.', 'sucesso');
     }).catch(() => {
       this.mostrarToast('Erro ao copiar tabela.', 'erro');
+    });
+  }
+
+  public salvarConfiguracaoPlanilha(): void {
+    if (!this.googleSheetUrl.trim()) {
+      this.mostrarToast('Informe a URL da planilha Google.', 'erro');
+      return;
+    }
+
+    this.salvandoConfigPlanilha = true;
+    this.trackerService.configurarPlanilha(this.liveId, this.googleSheetUrl.trim()).subscribe({
+      next: () => {
+        this.salvandoConfigPlanilha = false;
+        this.mostrarToast('Planilha vinculada à Live com sucesso!', 'sucesso');
+      },
+      error: () => {
+        this.salvandoConfigPlanilha = false;
+        this.mostrarToast('Erro ao salvar configuração da planilha.', 'erro');
+      }
+    });
+  }
+
+  public sincronizarPlanilha(): void {
+    if (this.historico.length === 0) {
+      this.mostrarToast('Nenhum arremate gravado nesta live para sincronizar.', 'info');
+      return;
+    }
+
+    this.sincronizandoPlanilha = true;
+    this.trackerService.sincronizarPlanilhaRetroativo(this.liveId, this.googleSheetUrl, this.sheetName).subscribe({
+      next: (res) => {
+        this.sincronizandoPlanilha = false;
+        if (res.sucesso) {
+          if (res.googleSheetUrl && !this.googleSheetUrl) {
+            this.googleSheetUrl = res.googleSheetUrl;
+          }
+          this.mostrarToast(res.mensagem || `${res.total} arremate(s) sincronizado(s) com a planilha!`, 'sucesso');
+        } else {
+          this.mostrarToast(res.mensagem || 'Falha ao sincronizar com o Google Sheets.', 'erro');
+        }
+      },
+      error: (err) => {
+        this.sincronizandoPlanilha = false;
+        this.mostrarToast(`Erro ao sincronizar planilha: ${err.message}`, 'erro');
+      }
     });
   }
 

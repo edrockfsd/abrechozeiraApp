@@ -144,10 +144,26 @@ namespace ABrechozeiraApp.Controllers
 
                 // 3. Sincronizar em tempo real no Google Sheets (se configurado na Live ou na request)
                 string? sheetUrl = request.GoogleSheetUrl;
+                var live = await _context.Live.FindAsync(request.LiveId);
                 if (string.IsNullOrWhiteSpace(sheetUrl))
                 {
-                    var live = await _context.Live.FindAsync(request.LiveId);
                     sheetUrl = live?.GoogleSheetUrl;
+                }
+
+                if (string.IsNullOrWhiteSpace(sheetUrl))
+                {
+                    var ultimaComPlanilha = await _context.Live
+                        .Where(l => !string.IsNullOrEmpty(l.GoogleSheetUrl))
+                        .OrderByDescending(l => l.Id)
+                        .FirstOrDefaultAsync();
+
+                    sheetUrl = ultimaComPlanilha?.GoogleSheetUrl ?? "https://docs.google.com/spreadsheets/d/1HUEcIGWlgdcMuBi1zIhYX4sm660UT_ttyUkb_XhAS3o/edit?gid=1053114646#gid=1053114646";
+
+                    if (live != null && string.IsNullOrEmpty(live.GoogleSheetUrl))
+                    {
+                        live.GoogleSheetUrl = sheetUrl;
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 bool sheetSincronizado = false;
@@ -226,5 +242,64 @@ namespace ABrechozeiraApp.Controllers
             await _trackerService.ProcessarNovoComentarioAsync(request.LiveId, dto);
             return Ok(new { sucesso = true });
         }
+
+        /// <summary>
+        /// Sincroniza em lote todos os arremates já gravados no banco para a planilha Google
+        /// </summary>
+        [HttpPost("sincronizar-planilha/{liveId}")]
+        public async Task<IActionResult> SincronizarPlanilhaRetroativo(int liveId, [FromBody] SincronizarPlanilhaRequest? body)
+        {
+            var live = await _context.Live.FindAsync(liveId);
+            if (live == null) return NotFound("Live não encontrada.");
+
+            var sheetUrl = body?.GoogleSheetUrl ?? live.GoogleSheetUrl;
+            if (string.IsNullOrWhiteSpace(sheetUrl))
+            {
+                var ultimaComPlanilha = await _context.Live
+                    .Where(l => !string.IsNullOrEmpty(l.GoogleSheetUrl))
+                    .OrderByDescending(l => l.Id)
+                    .FirstOrDefaultAsync();
+
+                sheetUrl = ultimaComPlanilha?.GoogleSheetUrl ?? "https://docs.google.com/spreadsheets/d/1HUEcIGWlgdcMuBi1zIhYX4sm660UT_ttyUkb_XhAS3o/edit?gid=1053114646#gid=1053114646";
+            }
+
+            if (string.IsNullOrWhiteSpace(live.GoogleSheetUrl) || live.GoogleSheetUrl != sheetUrl)
+            {
+                live.GoogleSheetUrl = sheetUrl;
+                await _context.SaveChangesAsync();
+            }
+
+            var arremates = await _context.Arremate
+                .Where(a => a.LiveId == liveId)
+                .OrderBy(a => a.Id)
+                .ToListAsync();
+
+            var sheetName = body?.SheetName ?? "vendas";
+            var (sucessos, msg) = await _sheetsSync.SincronizarListaArrematesAsync(sheetUrl, sheetName, arremates);
+
+            return Ok(new
+            {
+                sucesso = sucessos > 0,
+                total = sucessos,
+                mensagem = msg,
+                googleSheetUrl = sheetUrl
+            });
+        }
+
+        /// <summary>
+        /// Salva a URL da planilha Google diretamente no registro da Live
+        /// </summary>
+        [HttpPost("configurar-planilha/{liveId}")]
+        public async Task<IActionResult> ConfigurarPlanilha(int liveId, [FromBody] ConfigurarPlanilhaRequest request)
+        {
+            var live = await _context.Live.FindAsync(liveId);
+            if (live == null) return NotFound("Live não encontrada.");
+
+            live.GoogleSheetUrl = request.GoogleSheetUrl?.Trim();
+            await _context.SaveChangesAsync();
+
+            return Ok(new { sucesso = true, googleSheetUrl = live.GoogleSheetUrl });
+        }
     }
 }
+

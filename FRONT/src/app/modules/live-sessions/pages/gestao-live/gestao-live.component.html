@@ -56,12 +56,18 @@
           <label>URL da Planilha Google Sheets</label>
           <input type="text" [(ngModel)]="googleSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/ID_DA_PLANILHA/edit" class="input-modern">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="max-width: 150px;">
           <label>Aba de Vendas</label>
-          <input type="text" [(ngModel)]="sheetName" placeholder="vendas" class="input-modern" style="max-width: 150px;">
+          <input type="text" [(ngModel)]="sheetName" placeholder="vendas" class="input-modern">
+        </div>
+        <div class="form-group" style="flex: 0;">
+          <button class="btn-save-sheet" (click)="salvarConfiguracaoPlanilha()" [disabled]="salvandoConfigPlanilha" title="Salvar URL da planilha nesta Live">
+            <span class="material-icons">save</span>
+            {{ salvandoConfigPlanilha ? 'Salvando...' : 'Salvar na Live' }}
+          </button>
         </div>
       </div>
-      <p class="hint">Os arremates confirmados são gravados no banco de dados e simultaneamente enviados para esta planilha em tempo real com colunas de data/hora.</p>
+      <p class="hint">Os arremates confirmados são gravados no banco de dados e simultaneamente enviados para esta planilha em tempo real.</p>
     </div>
 
     <div class="config-card ssn-card">
@@ -278,6 +284,10 @@
       </div>
 
       <div class="history-actions-row">
+        <button class="btn-h-action btn-sheets-sync" (click)="sincronizarPlanilha()" [disabled]="sincronizandoPlanilha" title="Enviar peças arrematadas para a planilha Google">
+          <span class="material-icons">sync</span>
+          {{ sincronizandoPlanilha ? 'Sincronizando...' : 'Enviar para Google Sheets' }}
+        </button>
         <button class="btn-h-action" (click)="copiarParaClipboard()" title="Copiar em formato de planilha">
           <span class="material-icons">content_copy</span>
           Copiar Tabela (Ctrl+C)

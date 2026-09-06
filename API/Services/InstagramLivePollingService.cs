@@ -256,16 +256,25 @@ namespace ABrechozeiraApp.Services
                 var sequencial = (livesHoje.Count + 1).ToString("D2");
                 var titulo = $"Live {DateTime.Now:dd/MM/yyyy} {sequencial}";
 
+                var ultimaComPlanilha = await db.Live
+                    .Where(l => !string.IsNullOrEmpty(l.GoogleSheetUrl))
+                    .OrderByDescending(l => l.Id)
+                    .FirstOrDefaultAsync(ct);
+
+                var urlPlanilha = ultimaComPlanilha?.GoogleSheetUrl 
+                    ?? "https://docs.google.com/spreadsheets/d/1HUEcIGWlgdcMuBi1zIhYX4sm660UT_ttyUkb_XhAS3o/edit?gid=1053114646#gid=1053114646";
+
                 liveExistente = new Live
                 {
                     Titulo = titulo,
                     DataLive = DateTime.Now,
                     DataAlteracao = DateTime.Now,
+                    GoogleSheetUrl = urlPlanilha,
                     Observacoes = $"Live Instagram detectada automaticamente (ID: {liveVideoId})"
                 };
                 db.Live.Add(liveExistente);
                 await db.SaveChangesAsync(ct);
-                _logger.LogInformation("Nova Live criada na tabela Live para exibição no sistema: Id {Id}, Titulo {Titulo}", liveExistente.Id, liveExistente.Titulo);
+                _logger.LogInformation("Nova Live criada na tabela Live para exibição no sistema: Id {Id}, Titulo {Titulo}, GoogleSheetUrl {Url}", liveExistente.Id, liveExistente.Titulo, liveExistente.GoogleSheetUrl);
             }
 
             var idsConhecidos = await db.ComentarioLive

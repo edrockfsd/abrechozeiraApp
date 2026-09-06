@@ -178,9 +178,28 @@
       line-height: 1.4;
     }
 
+    .btn-save-sheet {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border-radius: 6px;
+      background: #238636;
+      border: 1px solid #2ea043;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      height: 38px;
+      &:hover:not(:disabled) { background: #2ea043; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
     .config-grid {
       display: flex;
       gap: 1rem;
+      align-items: flex-end;
     }
 
     .form-group {
@@ -839,6 +858,14 @@
           border-color: #2ea043;
           color: #fff;
           &:hover { background: #2ea043; }
+        }
+
+        &.btn-sheets-sync {
+          background: #1f6feb;
+          border-color: #388bfd;
+          color: #fff;
+          &:hover:not(:disabled) { background: #388bfd; }
+          &:disabled { opacity: 0.6; cursor: not-allowed; }
         }
       }
     }
