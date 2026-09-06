@@ -93,20 +93,31 @@ namespace ABrechozeiraApp.Services
                         if (_liveAtualId != liveMediaId)
                         {
                             _liveAtualId = liveMediaId;
-                            _comentariosConhecidos = await PrepararNovaLiveAsync(liveMediaId.Value, stoppingToken);
-                            _logger.LogInformation(">>> LIVE ATIVA DETECTADA! ID: {LiveId}. Modo turbo (1s) ativado.", liveMediaId);
+                            var info = await PrepararNovaLiveAsync(liveMediaId.Value, stoppingToken);
+                            _comentariosConhecidos = info.Ids;
+                            _liveTrackerService.RegistrarLiveAtiva(liveMediaId.Value, info.LiveId, info.Titulo);
+                            _logger.LogInformation(">>> LIVE ATIVA DETECTADA! ID: {LiveId} | {Titulo}. Modo turbo (1s) ativado.", liveMediaId, info.Titulo);
                         }
 
                         await BuscarESalvarComentariosAsync(httpClient, accessToken, liveMediaId.Value, stoppingToken);
 
                         proximoIntervalo = _emThrottling ? IntervaloThrottling : IntervaloComLiveAtiva;
                     }
-                    else if (_liveAtualId != null)
+                    else
                     {
-                        await FinalizarLiveAsync(_liveAtualId.Value, stoppingToken);
-                        _logger.LogInformation("<<< Fim da Live detectado. Live ID: {LiveId}. Voltando para modo repouso (15s).", _liveAtualId);
-                        _liveAtualId = null;
-                        _comentariosConhecidos.Clear();
+                        _liveTrackerService.LimparLiveAtiva();
+
+                        if (_liveAtualId != null)
+                        {
+                            await FinalizarLiveAsync(_liveAtualId.Value, stoppingToken);
+                            _logger.LogInformation("<<< Fim da Live detectado. Live ID: {LiveId}. Voltando para modo repouso (15s).", _liveAtualId);
+                            _liveAtualId = null;
+                            _comentariosConhecidos.Clear();
+                        }
+                        else
+                        {
+                            await EncerrarTodasSessoesAbertasAsync(stoppingToken);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -197,7 +208,7 @@ namespace ABrechozeiraApp.Services
             return null;
         }
 
-        private async Task<HashSet<string>> PrepararNovaLiveAsync(long liveVideoId, CancellationToken ct)
+        private async Task<(HashSet<string> Ids, int LiveId, string Titulo)> PrepararNovaLiveAsync(long liveVideoId, CancellationToken ct)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
@@ -262,7 +273,35 @@ namespace ABrechozeiraApp.Services
                 .Select(c => c.InstagramCommentId!)
                 .ToListAsync(ct);
 
-            return new HashSet<string>(idsConhecidos);
+            return (new HashSet<string>(idsConhecidos), liveExistente.Id, liveExistente.Titulo);
+        }
+
+        private async Task EncerrarTodasSessoesAbertasAsync(CancellationToken ct)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
+
+                var sessoesAbertas = await db.LiveSession
+                    .Where(l => l.EndedAt == null || l.Status == "live")
+                    .ToListAsync(ct);
+
+                if (sessoesAbertas.Count > 0)
+                {
+                    foreach (var s in sessoesAbertas)
+                    {
+                        s.EndedAt = DateTime.Now;
+                        s.Status = "ended";
+                    }
+                    await db.SaveChangesAsync(ct);
+                    _logger.LogInformation("Limpeza: {Count} sessões pendentes no banco foram encerradas pois não há live ativa no Instagram.", sessoesAbertas.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Erro na limpeza de sessões abertas: {Erro}", ex.Message);
+            }
         }
 
         private async Task BuscarESalvarComentariosAsync(HttpClient httpClient, string accessToken, long liveVideoId, CancellationToken ct)

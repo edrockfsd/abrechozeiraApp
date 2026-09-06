@@ -34,6 +34,8 @@ namespace ABrechozeiraApp.Services
         private readonly IHubContext<LiveHub> _hubContext;
         private readonly ILogger<LiveTrackerService> _logger;
         private readonly ConcurrentDictionary<int, LiveTrackingState> _lives = new();
+        private LiveAtivaInfo? _liveAtiva;
+        private readonly object _liveAtivaLock = new();
 
         public LiveTrackerService(
             IServiceScopeFactory scopeFactory,
@@ -43,6 +45,49 @@ namespace ABrechozeiraApp.Services
             _scopeFactory = scopeFactory;
             _hubContext = hubContext;
             _logger = logger;
+        }
+
+        public void RegistrarLiveAtiva(long liveVideoId, int liveId, string titulo)
+        {
+            lock (_liveAtivaLock)
+            {
+                _liveAtiva = new LiveAtivaInfo
+                {
+                    IsLive = true,
+                    LiveVideoId = liveVideoId,
+                    LiveId = liveId,
+                    Titulo = titulo
+                };
+            }
+        }
+
+        public void LimparLiveAtiva()
+        {
+            lock (_liveAtivaLock)
+            {
+                _liveAtiva = null;
+            }
+        }
+
+        public LiveAtivaInfo ObterLiveAtiva()
+        {
+            lock (_liveAtivaLock)
+            {
+                if (_liveAtiva == null || !_liveAtiva.IsLive)
+                {
+                    return new LiveAtivaInfo { IsLive = false };
+                }
+
+                if (_liveAtiva.LiveId.HasValue && _lives.TryGetValue(_liveAtiva.LiveId.Value, out var state))
+                {
+                    lock (state.LockObject)
+                    {
+                        _liveAtiva.TotalComentarios = state.MessageBuffer.Count;
+                    }
+                }
+
+                return _liveAtiva;
+            }
         }
 
         private LiveTrackingState ObterOuCriarEstado(int liveId, long? liveVideoId = null)

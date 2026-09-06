@@ -16,12 +16,12 @@
   </div>
 
   <!-- Banner de Transmissão Ativa no Instagram -->
-  <div class="live-ativa-banner" *ngIf="liveAtiva">
+  <div class="live-ativa-banner" *ngIf="liveAtiva && liveAtiva.isLive">
     <div class="live-ativa-info">
       <span class="pulse-dot"></span>
       <div class="live-texts">
-        <strong>🔴 TRANSMISSÃO AO VIVO DETECTADA NO INSTAGRAM!</strong>
-        <span class="sub">ID: {{ liveAtiva.liveVideoId }} • {{ liveAtiva.totalComentarios || 0 }} comentários capturados</span>
+        <strong>🔴 TRANSMISSÃO AO VIVO DETECTADA NO INSTAGRAM! ({{ liveAtiva.titulo || 'Ao Vivo' }})</strong>
+        <span class="sub">ID Meta: {{ liveAtiva.liveVideoId }} • {{ liveAtiva.totalComentarios || 0 }} comentários capturados</span>
       </div>
     </div>
     <div style="display: flex; gap: 8px; align-items: center;">

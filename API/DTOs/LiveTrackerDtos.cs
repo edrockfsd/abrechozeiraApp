@@ -67,4 +67,13 @@ namespace ABrechozeiraApp.DTOs
         public string? Platform { get; set; }
         public long? TimestampMs { get; set; }
     }
+
+    public class LiveAtivaInfo
+    {
+        public bool IsLive { get; set; }
+        public long? LiveVideoId { get; set; }
+        public int? LiveId { get; set; }
+        public string? Titulo { get; set; }
+        public int TotalComentarios { get; set; }
+    }
 }

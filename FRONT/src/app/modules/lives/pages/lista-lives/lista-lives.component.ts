@@ -45,17 +45,10 @@ export class ListaLivesComponent implements OnInit {
   }
 
   private verificarLiveAtiva(): void {
-    this.http.get<any[]>(`${environment.apiUrl}/LiveSessions`).subscribe({
-      next: (sessions) => {
-        if (sessions && sessions.length > 0) {
-          const quatroHorasAtras = new Date(Date.now() - 4 * 60 * 60 * 1000);
-          const ativa = sessions.find(s => 
-            s.status === 'live' && 
-            !s.endedAt && 
-            s.startedAt && 
-            new Date(s.startedAt) >= quatroHorasAtras
-          );
-          this.liveAtiva = ativa || null;
+    this.http.get<any>(`${environment.apiUrl}/LiveTracker/live-ativa`).subscribe({
+      next: (res) => {
+        if (res && res.isLive) {
+          this.liveAtiva = res;
         } else {
           this.liveAtiva = null;
         }
@@ -93,17 +86,8 @@ export class ListaLivesComponent implements OnInit {
   }
 
   onOperarLiveAtiva(): void {
-    if (!this.liveAtiva) return;
-    const videoIdStr = this.liveAtiva.liveVideoId?.toString();
-    const liveCorrespondente = this.lives.find(l => 
-      videoIdStr && l.observacoes && l.observacoes.includes(videoIdStr)
-    ) || (this.lives && this.lives.length > 0 ? this.lives[0] : null);
-
-    if (liveCorrespondente) {
-      this.router.navigate(['/lives', liveCorrespondente.id, 'gestao']);
-    } else {
-      this.router.navigate(['/live-sessions', this.liveAtiva.id, 'gestao']);
-    }
+    if (!this.liveAtiva || !this.liveAtiva.liveId) return;
+    this.router.navigate(['/lives', this.liveAtiva.liveId, 'gestao']);
   }
 
   onEditar(live: Live): void {

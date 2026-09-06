@@ -123,7 +123,8 @@ Anteriormente, a operação do brechó dependia do software externo "Social Stre
 | Live Real 01 | "Tem algo errado já, não estou em live e o card de live está ativo" | Descoberta de sessões antigas com `EndedAt == null` e ajuste do descarte de transmissões antigas. |
 | Live Real 02 | "estou com uma live em curso e novamente o sistema não detectou" | Identificado que a Meta retorna `media_product_type: FEED` mesmo ao vivo. Ajustada a verificação para considerar transmissões criadas nas últimas 4 horas. Live detectada e comentários capturados com sucesso em tempo real. |
 | Múltiplas Lives | "Acho q por estarmos fazendo mais de uma live no dia, o sistema está se perdendo... Kd live deve ter seu nome diferenciado (01, 02...)" | Implementada nomeação sequencial automática (`Live dd/MM/yyyy 01`, `02`, etc.) e deduplicação no SignalR e frontend para eliminar balões repetidos. |
-| Fechamento | "a princípio tudo certo, vamos fazer o deploy? Não esqueça de subir toda nossa conversa junto com o versionamento." | Documentação da sessão em `docs/`, consolidação dos commits e disparo da pipeline de deploy. |
+| Fechamento Deploy | "a princípio tudo certo, vamos fazer o deploy? Não esqueça de subir toda nossa conversa junto com o versionamento." | Documentação da sessão em `docs/`, consolidação dos commits e disparo da pipeline de deploy. |
+| Pós-Deploy Produção | "fui fazer o teste em produção agora e uma live está como aberta, mas na verdade é do dia 31/08/2026." | **Hotfix Live Órfã / Falso Positivo**: Criação do endpoint `GET /api/LiveTracker/live-ativa` que consulta o estado em tempo real do polling em memória. Remoção do fallback perigoso `|| this.lives[0]` que abria lives antigas caso o `liveId` não estivesse preenchido. Auto-encerramento imediato de sessões no banco de dados (`Status = 'ended'`, `EndedAt = DateTime.Now`) quando o Instagram confirma que não há transmissão ativa. |
 
 ---
 
@@ -146,11 +147,15 @@ Anteriormente, a operação do brechó dependia do software externo "Social Stre
   - `API/Program.cs`
   - `API/Controllers/LiveSessionsController.cs`
   - `API/Controllers/LivesController.cs`
-  - `API/Services/InstagramLivePollingService.cs`
+  - `API/Controllers/LiveTrackerController.cs` (novo endpoint `live-ativa`)
+  - `API/DTOs/LiveTrackerDtos.cs` (novo DTO `LiveAtivaInfo`)
+  - `API/Services/InstagramLivePollingService.cs` (gerenciamento e encerramento de sessões ativas e órfãs)
+  - `API/Services/LiveTrackerService.cs` (gestão thread-safe de estado de live ativa)
   - `FRONT/package.json` e `package-lock.json`
   - `FRONT/src/app/modules/live-sessions/live-sessions.routes.ts`
   - `FRONT/src/app/modules/lives/lives.routes.ts`
-  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.ts`
-  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.html`
+  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.ts` (consumo de `live-ativa` e remoção de fallback errôneo)
+  - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.html` (renderização estrita de `liveAtiva.isLive`)
   - `FRONT/src/app/modules/lives/pages/lista-lives/lista-lives.component.scss`
   - `.gitignore`
+

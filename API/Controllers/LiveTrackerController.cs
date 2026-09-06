@@ -68,6 +68,16 @@ namespace ABrechozeiraApp.Controllers
         }
 
         /// <summary>
+        /// Informa se há uma transmissão ao vivo ativa sendo capturada no Instagram agora
+        /// </summary>
+        [HttpGet("live-ativa")]
+        public IActionResult GetLiveAtiva()
+        {
+            var info = _trackerService.ObterLiveAtiva();
+            return Ok(info);
+        }
+
+        /// <summary>
         /// Obtém o estado atual da live (recuperação de tela/F5)
         /// </summary>
         [HttpGet("estado-atual/{liveId}")]
