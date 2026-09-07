@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +76,82 @@ namespace ABrechozeiraApp.Controllers
         {
             var info = _trackerService.ObterLiveAtiva();
             return Ok(info);
+        }
+
+        /// <summary>
+        /// Obtém informações consolidadas da live (LiveVideoId exato, total de comentários, status)
+        /// </summary>
+        [HttpGet("info/{liveId}")]
+        public async Task<IActionResult> ObterInfoLive(int liveId)
+        {
+            var live = await _context.Live.FindAsync(liveId);
+            if (live == null) return NotFound("Live não encontrada.");
+
+            long? liveVideoId = null;
+
+            // 1. Tentar obter da live ativa em memória
+            var liveAtiva = _trackerService.ObterLiveAtiva();
+            if (liveAtiva.IsLive && liveAtiva.LiveId == liveId && liveAtiva.LiveVideoId.HasValue)
+            {
+                liveVideoId = liveAtiva.LiveVideoId.Value;
+            }
+
+            // 2. Tentar obter do estado em memória
+            if (!liveVideoId.HasValue)
+            {
+                liveVideoId = _trackerService.ObterLiveVideoId(liveId);
+            }
+
+            // 3. Extrair de Observações da Live: "Live Instagram detectada automaticamente (ID: 17966501787169421)"
+            if (!liveVideoId.HasValue && !string.IsNullOrWhiteSpace(live.Observacoes))
+            {
+                var match = Regex.Match(live.Observacoes, @"ID:\s*(\d+)");
+                if (match.Success && long.TryParse(match.Groups[1].Value, out var parsedId))
+                {
+                    liveVideoId = parsedId;
+                }
+            }
+
+            // 4. Se ainda não achou, buscar na tabela ComentarioLive pelo dia da Live
+            if (!liveVideoId.HasValue)
+            {
+                var dataInicio = live.DataLive.Date;
+                var dataFim = dataInicio.AddDays(1);
+                var comentarioMaisRecente = await _context.ComentarioLive
+                    .Where(c => c.CreatedAt >= dataInicio && c.CreatedAt < dataFim && c.LiveSessionId != null)
+                    .OrderByDescending(c => c.Id)
+                    .FirstOrDefaultAsync();
+
+                if (comentarioMaisRecente != null)
+                {
+                    liveVideoId = comentarioMaisRecente.LiveSessionId;
+                }
+            }
+
+            // 5. Vincular no estado em memória para garantir consistência em todas as operações
+            if (liveVideoId.HasValue)
+            {
+                _trackerService.VincularLiveVideoId(liveId, liveVideoId.Value);
+            }
+
+            // Contagem de comentários exclusivos desta live
+            int totalComentarios = 0;
+            if (liveVideoId.HasValue)
+            {
+                totalComentarios = await _context.ComentarioLive
+                    .CountAsync(c => c.LiveSessionId == liveVideoId.Value);
+            }
+
+            return Ok(new
+            {
+                liveId = live.Id,
+                titulo = live.Titulo,
+                dataLive = live.DataLive,
+                googleSheetUrl = live.GoogleSheetUrl,
+                liveVideoId = liveVideoId,
+                totalComentarios = totalComentarios,
+                isLive = liveAtiva.IsLive && liveAtiva.LiveId == liveId
+            });
         }
 
         /// <summary>

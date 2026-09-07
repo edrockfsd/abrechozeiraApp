@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -97,6 +98,30 @@ namespace ABrechozeiraApp.Services
                 LiveId = id,
                 LiveVideoId = liveVideoId
             });
+        }
+
+        public void VincularLiveVideoId(int liveId, long liveVideoId)
+        {
+            var state = ObterOuCriarEstado(liveId, liveVideoId);
+            lock (state.LockObject)
+            {
+                state.LiveVideoId = liveVideoId;
+            }
+        }
+
+        public long? ObterLiveVideoId(int liveId)
+        {
+            if (_lives.TryGetValue(liveId, out var state))
+            {
+                lock (state.LockObject)
+                {
+                    if (state.LiveVideoId.HasValue && state.LiveVideoId.Value > 0)
+                    {
+                        return state.LiveVideoId.Value;
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -337,6 +362,7 @@ namespace ABrechozeiraApp.Services
         /// <summary>
         /// Varre o banco de dados e o buffer em busca de quem já digitou o código nos últimos 5 minutos,
         /// ordenando estritamente por CreatedAt ascendente com precisão de milissegundos.
+        /// ISOLAMENTO ESTRITO: nunca pesquisa comentários de outras lives!
         /// </summary>
         private async Task<List<MatchDto>> ExecutarVarreduraRetroativaAsync(LiveTrackingState state)
         {
@@ -344,24 +370,37 @@ namespace ABrechozeiraApp.Services
             if (string.IsNullOrWhiteSpace(codigo)) return new();
 
             var matches = new List<MatchDto>();
-            var limiteTempo = DateTime.Now.AddMinutes(-5);
+            var limiteTempo = DateTime.Now.AddMinutes(-10);
 
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
 
-                // Buscar comentários recentes da live ordenados por CreatedAt
-                var query = db.ComentarioLive.AsNoTracking()
-                    .Where(c => c.CreatedAt >= limiteTempo);
-
-                if (state.LiveVideoId.HasValue && state.LiveVideoId.Value > 0)
+                // Garante que o LiveVideoId está resolvido para esta live específica
+                if (!state.LiveVideoId.HasValue || state.LiveVideoId.Value <= 0)
                 {
-                    query = query.Where(c => c.LiveSessionId == state.LiveVideoId.Value);
+                    var live = await db.Live.FindAsync(state.LiveId);
+                    if (live?.Observacoes != null)
+                    {
+                        var m = Regex.Match(live.Observacoes, @"ID:\s*(\d+)");
+                        if (m.Success && long.TryParse(m.Groups[1].Value, out var parsedVid))
+                        {
+                            state.LiveVideoId = parsedVid;
+                        }
+                    }
                 }
 
-                // ORDENAÇÃO ESTRITA: CreatedAt ascendente, depois Id para desempate
-                var comentarios = await query
+                // OBRIGATÓRIO: A varredura retroativa DEVE filtrar estritamente pela live atual
+                if (!state.LiveVideoId.HasValue || state.LiveVideoId.Value <= 0)
+                {
+                    _logger.LogWarning("Varredura retroativa ignorada: LiveVideoId não identificado para Live {LiveId}", state.LiveId);
+                    return matches;
+                }
+
+                // Buscar comentários recentes exclusivamente desta live ordenados por CreatedAt
+                var comentarios = await db.ComentarioLive.AsNoTracking()
+                    .Where(c => c.LiveSessionId == state.LiveVideoId.Value && c.CreatedAt >= limiteTempo)
                     .OrderBy(c => c.CreatedAt)
                     .ThenBy(c => c.Id)
                     .ToListAsync();
@@ -413,6 +452,7 @@ namespace ABrechozeiraApp.Services
         /// <summary>
         /// Auditoria completa: busca todos os comentários que acertaram o código na live inteira,
         /// ordenados estritamente por CreatedAt ascendente, com texto formatado para envio a clientes.
+        /// ISOLAMENTO ESTRITO: nunca pesquisa comentários de outras lives!
         /// </summary>
         public async Task<List<AuditoriaMatchDto>> ObterAuditoriaAsync(int liveId, string codigo, long? liveVideoId = null)
         {
@@ -424,25 +464,59 @@ namespace ABrechozeiraApp.Services
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
 
-                var query = db.ComentarioLive.AsNoTracking().AsQueryable();
-                if (liveVideoId.HasValue && liveVideoId.Value > 0)
+                // Garante a resolução autoritativa do LiveVideoId para esta Live específica
+                long? videoIdAutoritativo = null;
+
+                if (_lives.TryGetValue(liveId, out var st) && st.LiveVideoId.HasValue && st.LiveVideoId.Value > 0)
                 {
-                    query = query.Where(c => c.LiveSessionId == liveVideoId.Value);
+                    videoIdAutoritativo = st.LiveVideoId;
+                }
+                else
+                {
+                    var live = await db.Live.FindAsync(liveId);
+                    if (live?.Observacoes != null)
+                    {
+                        var m = Regex.Match(live.Observacoes, @"ID:\s*(\d+)");
+                        if (m.Success && long.TryParse(m.Groups[1].Value, out var parsedVid))
+                        {
+                            videoIdAutoritativo = parsedVid;
+                            VincularLiveVideoId(liveId, parsedVid);
+                        }
+                    }
+
+                    if (!videoIdAutoritativo.HasValue && live != null)
+                    {
+                        // Tenta achar por data da Live
+                        var dataInicio = live.DataLive.Date;
+                        var dataFim = dataInicio.AddDays(1);
+                        var comRecente = await db.ComentarioLive
+                            .Where(c => c.CreatedAt >= dataInicio && c.CreatedAt < dataFim && c.LiveSessionId != null)
+                            .OrderByDescending(c => c.Id)
+                            .FirstOrDefaultAsync();
+
+                        if (comRecente != null)
+                        {
+                            videoIdAutoritativo = comRecente.LiveSessionId;
+                            VincularLiveVideoId(liveId, comRecente.LiveSessionId.Value);
+                        }
+                    }
                 }
 
-                var comentarios = await query
+                // Se não achou na liveId, usa o liveVideoId passado por parâmetro
+                var vidFinal = videoIdAutoritativo ?? liveVideoId;
+
+                // OBRIGATÓRIO: Se ainda assim não encontrar, nunca buscar no banco sem filtro (evita vazar outras lives!)
+                if (!vidFinal.HasValue || vidFinal.Value <= 0)
+                {
+                    _logger.LogWarning("Auditoria cancelada: LiveVideoId não identificado para Live {LiveId}", liveId);
+                    return matches;
+                }
+
+                var comentarios = await db.ComentarioLive.AsNoTracking()
+                    .Where(c => c.LiveSessionId == vidFinal.Value)
                     .OrderBy(c => c.CreatedAt)
                     .ThenBy(c => c.Id)
                     .ToListAsync();
-
-                // Se não encontrou comentários com o filtro de liveVideoId, busca globalmente
-                if (comentarios.Count == 0 && liveVideoId.HasValue && liveVideoId.Value > 0)
-                {
-                    comentarios = await db.ComentarioLive.AsNoTracking()
-                        .OrderBy(c => c.CreatedAt)
-                        .ThenBy(c => c.Id)
-                        .ToListAsync();
-                }
 
                 int pos = 1;
                 foreach (var c in comentarios)

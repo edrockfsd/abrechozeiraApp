@@ -111,11 +111,13 @@ export class GestaoLiveComponent implements OnInit, OnDestroy {
   private carregarDadosLive(): void {
     if (!this.liveId) return;
 
-    // Buscar informações da Live
-    this.http.get<any>(`${environment.apiUrl}/Lives/${this.liveId}`).subscribe({
-      next: live => {
-        this.liveTitulo = live.titulo || `Live #${this.liveId}`;
-        this.googleSheetUrl = live.googleSheetUrl || '';
+    // Buscar informações completas e contextualizadas da Live (incluindo o LiveVideoId correto e total de comentários)
+    this.http.get<any>(`${environment.apiUrl}/LiveTracker/info/${this.liveId}`).subscribe({
+      next: info => {
+        this.liveTitulo = info.titulo || `Live #${this.liveId}`;
+        this.googleSheetUrl = info.googleSheetUrl || '';
+        this.liveVideoId = info.liveVideoId || 0;
+        this.totalComentarios = info.totalComentarios || 0;
 
         // Se a live não tiver planilha configurada, herda a última do sistema ou a padrão
         if (!this.googleSheetUrl) {
@@ -128,22 +130,21 @@ export class GestaoLiveComponent implements OnInit, OnDestroy {
             }
           });
         }
-      },
-      error: () => {}
-    });
 
-    // Buscar LiveSession mais recente para obter o LiveVideoId
-    this.http.get<any[]>(`${environment.apiUrl}/LiveSessions`).subscribe({
-      next: sessions => {
-        if (sessions && sessions.length > 0) {
-          const s = sessions[0];
-          this.liveVideoId = s.liveVideoId || 0;
-          this.totalComentarios = s.totalComentarios || 0;
-        }
         this.iniciarConexaoEAssinaturas();
       },
       error: () => {
-        this.iniciarConexaoEAssinaturas();
+        // Fallback para API de Lives básica caso falhe
+        this.http.get<any>(`${environment.apiUrl}/Lives/${this.liveId}`).subscribe({
+          next: live => {
+            this.liveTitulo = live.titulo || `Live #${this.liveId}`;
+            this.googleSheetUrl = live.googleSheetUrl || '';
+            this.iniciarConexaoEAssinaturas();
+          },
+          error: () => {
+            this.iniciarConexaoEAssinaturas();
+          }
+        });
       }
     });
 
