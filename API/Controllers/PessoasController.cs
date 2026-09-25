@@ -1,11 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using ABrechozeiraApp.Models;
+using ABrechozeiraApp.Services;
 
 namespace ABrechozeiraApp.Controllers
 {
@@ -14,10 +21,20 @@ namespace ABrechozeiraApp.Controllers
     public class PessoasController : ControllerBase
     {
         private readonly AbrechozeiraContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly EmailService _emailService;
+        private readonly ILogger<PessoasController> _logger;
 
-        public PessoasController(AbrechozeiraContext context)
+        public PessoasController(
+            AbrechozeiraContext context,
+            IConfiguration configuration,
+            EmailService emailService,
+            ILogger<PessoasController> logger)
         {
             _context = context;
+            _configuration = configuration;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         // GET: api/Pessoas
@@ -482,6 +499,149 @@ namespace ABrechozeiraApp.Controllers
             return Ok(new { success = true, message = "Seus dados foram atualizados com sucesso!" });
         }
 
+        [HttpPost("SolicitarAcessoEmail")]
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public async Task<IActionResult> SolicitarAcessoEmail([FromBody] SolicitarAcessoEmailDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Identificador))
+            {
+                return BadRequest("Informe seu CPF ou E-mail.");
+            }
+
+            var input = dto.Identificador.Trim();
+            var apenasDigitos = new string(input.Where(char.IsDigit).ToArray());
+
+            Pessoa? pessoa = null;
+
+            // Se tiver 11 dígitos, tenta buscar por CPF (formatado ou limpo)
+            if (apenasDigitos.Length == 11)
+            {
+                string cpfFormatado = Convert.ToUInt64(apenasDigitos).ToString(@"000\.000\.000\-00");
+                pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.CPF == cpfFormatado || p.CPF == apenasDigitos);
+            }
+
+            // Se não encontrou por CPF ou não tem 11 dígitos, busca por E-mail
+            if (pessoa == null)
+            {
+                pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Email != null && p.Email.ToLower() == input.ToLower());
+            }
+
+            // Se ainda não encontrou e tem dígitos, tenta buscar CPF flexível
+            if (pessoa == null && apenasDigitos.Length > 0)
+            {
+                var candidatos = await _context.Pessoa
+                    .Where(p => p.CPF != null && p.CPF != "")
+                    .ToListAsync();
+
+                pessoa = candidatos.FirstOrDefault(p => 
+                    p.CPF != null && new string(p.CPF.Where(char.IsDigit).ToArray()) == apenasDigitos);
+            }
+
+            if (pessoa == null)
+            {
+                return NotFound(new { message = "Nenhum cadastro encontrado com o CPF ou E-mail informado." });
+            }
+
+            if (string.IsNullOrWhiteSpace(pessoa.Email))
+            {
+                return BadRequest(new { message = "Seu cadastro não possui um e-mail registrado. Por favor, entre em contato com nosso suporte via WhatsApp." });
+            }
+
+            // Busca ou cria o usuário correspondente na tabela User
+            var user = await _context.User.FirstOrDefaultAsync(u => (u.PessoaId != null && u.PessoaId == pessoa.Id) || (u.Email != null && u.Email.ToLower() == pessoa.Email.ToLower()));
+            string novaSenhaTemporaria = Guid.NewGuid().ToString().Substring(0, 8);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Name = pessoa.Nome ?? "Cliente",
+                    Email = pessoa.Email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(novaSenhaTemporaria),
+                    IsActive = true,
+                    PessoaId = pessoa.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.User.Add(user);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                if (!user.IsActive) user.IsActive = true;
+                user.PessoaId = pessoa.Id;
+                // Atualiza a senha temporária para que a cliente possa digitar se preferir
+                user.Password = BCrypt.Net.BCrypt.HashPassword(novaSenhaTemporaria);
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
+            // Gerar Token JWT com validade de 2 horas
+            var jwtKey = _configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                _logger.LogError("JWT Key não configurada em appsettings.");
+                return StatusCode(500, "Erro de configuração no servidor de autenticação.");
+            }
+
+            var key = Encoding.ASCII.GetBytes(jwtKey);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email ?? pessoa.Email),
+                    new Claim(ClaimTypes.Name, user.Name ?? pessoa.Nome ?? "Cliente"),
+                    new Claim("client_portal", "true")
+                }),
+                Expires = DateTime.UtcNow.AddHours(2),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+            var jwtToken = tokenHandler.WriteToken(securityToken);
+
+            // Montar link de acesso rápido (Magic Link)
+            string baseUrl = !string.IsNullOrWhiteSpace(dto.ReturnUrl) 
+                ? dto.ReturnUrl.TrimEnd('/') 
+                : "https://abrechozeira.com.br/cadastro-cliente";
+
+            string linkAcesso = $"{baseUrl}?token={jwtToken}";
+
+            // Disparar e-mail via EmailService
+            bool enviado = await _emailService.EnviarLinkAcessoPerfilAsync(pessoa.Email, pessoa.Nome ?? "Cliente", linkAcesso, novaSenhaTemporaria);
+
+            if (!enviado)
+            {
+                return StatusCode(500, new { message = "Falha ao enviar o e-mail de acesso. Tente novamente em instantes." });
+            }
+
+            string emailMascarado = MascararEmail(pessoa.Email);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Link de acesso enviado com sucesso para o seu e-mail!",
+                email = emailMascarado
+            });
+        }
+
+        private static string MascararEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@')) return email;
+            var partes = email.Split('@');
+            var usuario = partes[0];
+            var dominio = partes[1];
+
+            if (usuario.Length <= 2)
+            {
+                return usuario[0] + "***@" + dominio;
+            }
+
+            return usuario.Substring(0, 2) + new string('*', Math.Min(usuario.Length - 2, 5)) + "@" + dominio;
+        }
+
         private static bool ValidaCPF(string cpf)
         {
             if (string.IsNullOrEmpty(cpf)) return false;
@@ -537,5 +697,11 @@ namespace ABrechozeiraApp.Controllers
         public string? Bairro { get; set; }
         public string? Localidade { get; set; }
         public string? Estado { get; set; }
+    }
+
+    public class SolicitarAcessoEmailDto
+    {
+        public string Identificador { get; set; } = string.Empty; // CPF ou E-mail
+        public string? ReturnUrl { get; set; } // URL base da página de cadastro-cliente
     }
 }

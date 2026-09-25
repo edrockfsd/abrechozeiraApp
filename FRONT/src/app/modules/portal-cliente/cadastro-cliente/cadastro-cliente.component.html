@@ -12,6 +12,7 @@
       <p class="subtitle" *ngIf="mode === 'register'">Complete seu cadastro para finalizarmos seu pedido</p>
       <p class="subtitle" *ngIf="mode === 'login'">Faça login no portal para alterar seus dados de entrega</p>
       <p class="subtitle" *ngIf="mode === 'edit'">Gerencie e mantenha seus dados atualizados</p>
+      <p class="subtitle" *ngIf="mode === 'forgot'">Acesso rápido sem senha ao seu cadastro</p>
     </div>
 
     <!-- Toggle de Abas (Apenas se não estiver logada/editando) -->
@@ -24,7 +25,7 @@
       </button>
       <button 
         type="button" 
-        [class.active]="mode === 'login'" 
+        [class.active]="mode === 'login' || mode === 'forgot'" 
         (click)="setMode('login')">
         Já tenho Cadastro / Entrar
       </button>
@@ -47,6 +48,22 @@
     <div class="global-error" *ngIf="errorMessage">
       <i class="material-icons">error_outline</i>
       <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- BANNER: CPF JÁ EXISTENTE DETECTADO NO CADASTRO -->
+    <div class="cpf-detected-banner" *ngIf="cpfExistenteDetectado && mode === 'register'">
+      <div class="banner-icon">
+        <i class="material-icons">notification_important</i>
+      </div>
+      <div class="banner-body">
+        <h4>Você já é nossa cliente!</h4>
+        <p>O CPF <strong>{{ cpfExistenteDetectado }}</strong> já possui cadastro. Clique abaixo para receber um link no seu e-mail e alterar seu endereço ou dados imediatamente:</p>
+        <button type="button" class="btn-banner-action" (click)="onSolicitarAcessoSubmit(cpfExistenteDetectado)" [disabled]="loading">
+          <i class="material-icons">email</i>
+          <span *ngIf="!loading">Receber Link de Acesso no meu E-mail</span>
+          <div class="button-spinner" *ngIf="loading"></div>
+        </button>
+      </div>
     </div>
 
     <!-- 1. TELA DE SUCESSO PÓS-CADASTRO -->
@@ -120,9 +137,104 @@
         <span *ngIf="!loading">Acessar e Alterar Meus Dados</span>
         <div class="button-spinner" *ngIf="loading"></div>
       </button>
+
+      <!-- LINK ESQUECI MINHA SENHA / MAGIC LINK -->
+      <div class="login-helpers">
+        <button type="button" class="btn-magic-link" (click)="setMode('forgot')">
+          <i class="material-icons">mark_email_unread</i>
+          <span>Esqueci a senha / Enviar link de acesso por e-mail</span>
+        </button>
+      </div>
     </form>
 
-    <!-- 3. FORMULÁRIO DE CADASTRO / EDIÇÃO -->
+    <!-- 3. TELA DE RECUPERAÇÃO DE ACESSO / MAGIC LINK -->
+    <div class="forgot-wrapper" *ngIf="mode === 'forgot' && !success">
+      
+      <!-- Formulário de Envio -->
+      <div class="forgot-box" *ngIf="!forgotSuccess">
+        <div class="forgot-header-text">
+          <div class="key-icon-wrapper">
+            <i class="material-icons">vpn_key</i>
+          </div>
+          <h3>Acesso Rápido por E-mail</h3>
+          <p>Não se lembra da senha? Informe seu <strong>CPF</strong> ou <strong>E-mail</strong> para receber um link seguro e entrar direto na edição dos seus dados.</p>
+        </div>
+
+        <form [formGroup]="forgotForm" (ngSubmit)="onSolicitarAcessoSubmit()">
+          <div class="form-group full-width">
+            <label for="identificador">CPF ou E-mail Cadastrado *</label>
+            <input 
+              type="text" 
+              id="identificador" 
+              formControlName="identificador" 
+              placeholder="Digite seu CPF ou E-mail"
+              [class.invalid]="forgotForm.get('identificador')?.touched && forgotForm.get('identificador')?.invalid">
+            <span class="error-text" *ngIf="forgotForm.get('identificador')?.touched && forgotForm.get('identificador')?.errors?.['required']">
+              Informe seu CPF ou E-mail.
+            </span>
+          </div>
+
+          <button 
+            type="submit" 
+            class="submit-button" 
+            [disabled]="loading">
+            <span *ngIf="!loading">Enviar Link de Acesso por E-mail</span>
+            <div class="button-spinner" *ngIf="loading"></div>
+          </button>
+        </form>
+
+        <div class="forgot-footer-actions">
+          <button type="button" class="btn-link-action" (click)="setMode('login')">
+            <i class="material-icons">arrow_back</i> Voltar para tela de Login
+          </button>
+        </div>
+      </div>
+
+      <!-- Sucesso no Envio -->
+      <div class="forgot-success-state" *ngIf="forgotSuccess">
+        <div class="icon-circle email-success">
+          <i class="material-icons">mark_email_read</i>
+        </div>
+        <h3>E-mail Enviado!</h3>
+        <p class="destination-text">
+          Enviamos um link de acesso direto para o endereço:<br>
+          <strong class="highlight-email">{{ forgotEmailMasked }}</strong>
+        </p>
+
+        <div class="instructions-card">
+          <h4>O que fazer agora?</h4>
+          <ul>
+            <li>Abra seu aplicativo ou site de e-mail.</li>
+            <li>Procure pela mensagem <strong>"A Brechozeira — Acesso ao seu cadastro"</strong>.</li>
+            <li>Clique no botão <strong>"Acessar e Alterar Meus Dados"</strong>.</li>
+            <li>Pronto! Você entrará autenticada para atualizar endereço e informações.</li>
+          </ul>
+          <p class="spam-hint">
+            <i class="material-icons">help_outline</i>
+            Não achou? Verifique sua caixa de <strong>Spam</strong> ou <strong>Lixo Eletrônico</strong>.
+          </p>
+        </div>
+
+        <div class="forgot-actions">
+          <button type="button" class="btn-secondary-action" (click)="setMode('login')">
+            Voltar para o Login
+          </button>
+          <button type="button" class="btn-resend-link" (click)="forgotSuccess = false">
+            Tentar outro E-mail ou CPF
+          </button>
+        </div>
+      </div>
+
+      <!-- Escape para Suporte no WhatsApp -->
+      <div class="whatsapp-support-box">
+        <p>Não tem mais acesso ao e-mail cadastrado?</p>
+        <button type="button" class="btn-whatsapp-support" (click)="abrirSuporteWhatsApp()">
+          <i class="material-icons">chat</i> Falar com Suporte no WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. FORMULÁRIO DE CADASTRO / EDIÇÃO -->
     <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="(mode === 'register' || mode === 'edit') && !success">
       
       <!-- Seção: Informações Pessoais -->

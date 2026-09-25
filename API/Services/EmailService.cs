@@ -202,6 +202,96 @@ namespace ABrechozeiraApp.Services
             return await EnviarEmailAsync(destinatarioEmail, assunto, corpo);
         }
 
+        // ─── Enviar Link de Acesso ao Perfil ────────────────────────────────────
+
+        /// <summary>
+        /// Envia e-mail ao cliente com link de acesso rápido (Magic Link) e/ou senha temporária para gerenciar cadastro.
+        /// </summary>
+        public async Task<bool> EnviarLinkAcessoPerfilAsync(
+            string destinatarioEmail,
+            string nomeCliente,
+            string linkAcesso,
+            string? senhaTemporaria = null)
+        {
+            if (string.IsNullOrWhiteSpace(destinatarioEmail))
+            {
+                _logger.LogWarning("E-mail de acesso não enviado: destinatário vazio para {Nome}", nomeCliente);
+                return false;
+            }
+
+            var assunto = "🔐 A Brechozeira — Acesso ao seu cadastro";
+
+            var blocoSenha = !string.IsNullOrWhiteSpace(senhaTemporaria) ? $@"
+            <div style=""background-color: #faf6f6; border: 1px dashed #d4a0a0; border-radius: 8px; padding: 14px; margin: 18px 0; text-align: center;"">
+                <p style=""font-size: 13px; color: #666; margin: 0 0 6px;"">Caso prefira entrar digitando a senha:</p>
+                <p style=""font-size: 18px; font-weight: bold; color: #a34e4e; letter-spacing: 2px; margin: 0; font-family: monospace;"">{WebUtility.HtmlEncode(senhaTemporaria)}</p>
+            </div>" : "";
+
+            var corpo = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""UTF-8"">
+</head>
+<body style=""font-family: Arial, Helvetica, sans-serif; background-color: #f7f3f3; margin: 0; padding: 20px;"">
+    <div style=""max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"">
+        
+        <!-- Header -->
+        <div style=""background: linear-gradient(135deg, #d4a0a0 0%, #b87a7a 100%); padding: 28px 24px; text-align: center;"">
+            <h1 style=""color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1.5px; font-weight: 600;"">A Brechozeira</h1>
+            <p style=""color: #fff0f0; margin: 6px 0 0; font-size: 13px; letter-spacing: 0.5px;"">Portal do Cliente • Brechó e Outlet</p>
+        </div>
+
+        <!-- Corpo -->
+        <div style=""padding: 32px 28px;"">
+            <p style=""font-size: 16px; color: #333; margin-top: 0; margin-bottom: 16px;"">
+                Olá, <strong>{WebUtility.HtmlEncode(nomeCliente)}</strong>! 👋
+            </p>
+            
+            <p style=""font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 24px;"">
+                Você solicitou acesso ao portal da <strong>A Brechozeira</strong> para consultar ou atualizar suas informações cadastrais e endereço de entrega.
+            </p>
+
+            <!-- Card de Ação Principal -->
+            <div style=""background-color: #faf5f5; border: 1px solid #ebdada; border-radius: 8px; padding: 24px 20px; text-align: center; margin: 24px 0;"">
+                <p style=""font-size: 14px; color: #444; margin: 0 0 16px; font-weight: bold;"">
+                    Clique no botão abaixo para acessar seus dados diretamente:
+                </p>
+                <a href=""{linkAcesso}"" 
+                   style=""display: inline-block; background-color: #c97d7d; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 3px 8px rgba(201, 125, 125, 0.35);"">
+                    ✨ Acessar e Alterar Meus Dados
+                </a>
+                <p style=""font-size: 12px; color: #888; margin: 16px 0 0;"">
+                    🔒 Este link de acesso seguro é válido por <strong>2 horas</strong>.
+                </p>
+            </div>
+
+            {blocoSenha}
+
+            <p style=""font-size: 13px; color: #777; line-height: 1.5; margin-top: 24px;"">
+                Se você não solicitou este acesso, por favor desconsidere este e-mail. Seus dados permanecem em segurança.
+            </p>
+
+            <p style=""font-size: 14px; color: #555; margin-top: 24px; margin-bottom: 0;"">
+                Com carinho,<br>
+                <strong>Equipe A Brechozeira 💜</strong>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style=""background-color: #fcf9f9; padding: 18px 24px; text-align: center; border-top: 1px solid #eee;"">
+            <p style=""font-size: 12px; color: #aaa; margin: 0; line-height: 1.5;"">
+                A Brechozeira Brechó e Outlet<br>
+                R. Nicola Pelanda, 1117 – Loja 4 – Pinheirinho, Curitiba/PR
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            return await EnviarEmailAsync(destinatarioEmail, assunto, corpo);
+        }
+
         // ─── Engine SMTP ─────────────────────────────────────────────────────────
 
         private async Task<bool> EnviarEmailAsync(string destinatario, string assunto, string corpoHtml)

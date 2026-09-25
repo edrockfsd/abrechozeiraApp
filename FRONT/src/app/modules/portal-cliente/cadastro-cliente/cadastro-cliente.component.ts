@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -14,9 +15,10 @@ import { environment } from '../../../../environments/environment';
 export class CadastroClienteComponent implements OnInit {
   form!: FormGroup;
   loginForm!: FormGroup;
+  forgotForm!: FormGroup;
   
-  // 'register' | 'login' | 'edit'
-  mode: 'register' | 'login' | 'edit' = 'register';
+  // 'register' | 'login' | 'edit' | 'forgot'
+  mode: 'register' | 'login' | 'edit' | 'forgot' = 'register';
   
   loading = false;
   success = false;
@@ -24,24 +26,43 @@ export class CadastroClienteComponent implements OnInit {
   successMessage = '';
   cepLoading = false;
 
+  // Recuperação de acesso / Magic Link
+  forgotSuccess = false;
+  forgotEmailMasked = '';
+  cpfExistenteDetectado = '';
+
   // Acessos gerados pós-cadastro
   generatedEmail = '';
   generatedPassword = '';
 
   constructor(
     private fb: FormBuilder,
-    private http: HttpClient
+    private http: HttpClient,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.initLoginForm();
+    this.initForgotForm();
     
-    // Verifica se já está logada no portal
-    const savedToken = localStorage.getItem('portal_token');
-    if (savedToken) {
-      this.carregarDadosPerfil(savedToken);
-    }
+    // Verifica se veio com Magic Link (?token=...) na URL
+    this.route.queryParams.subscribe(params => {
+      const magicToken = params['token'];
+      if (magicToken) {
+        localStorage.setItem('portal_token', magicToken);
+        // Limpa o token da URL para manter limpo e seguro
+        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+        this.carregarDadosPerfil(magicToken);
+      } else {
+        // Verifica se já está logada no portal via token salvo anteriormente
+        const savedToken = localStorage.getItem('portal_token');
+        if (savedToken) {
+          this.carregarDadosPerfil(savedToken);
+        }
+      }
+    });
   }
 
   private initForm(): void {
@@ -68,11 +89,18 @@ export class CadastroClienteComponent implements OnInit {
     });
   }
 
+  private initForgotForm(): void {
+    this.forgotForm = this.fb.group({
+      identificador: ['', [Validators.required, Validators.minLength(4)]]
+    });
+  }
+
   // Alternar modos da tela
-  setMode(newMode: 'register' | 'login' | 'edit'): void {
+  setMode(newMode: 'register' | 'login' | 'edit' | 'forgot'): void {
     this.mode = newMode;
     this.errorMessage = '';
     this.successMessage = '';
+    this.cpfExistenteDetectado = '';
     
     if (newMode === 'login') {
       this.loginForm.reset();
@@ -81,6 +109,9 @@ export class CadastroClienteComponent implements OnInit {
       this.form.reset();
       // Se tiver token salvo ao mudar pra registrar, remove
       localStorage.removeItem('portal_token');
+    } else if (newMode === 'forgot') {
+      this.forgotSuccess = false;
+      this.forgotForm.reset();
     }
   }
 
@@ -290,7 +321,13 @@ export class CadastroClienteComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          this.errorMessage = err.error || 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+          const msg = typeof err.error === 'string' ? err.error : (err.error?.message || '');
+          if (msg.includes('já está cadastrado') || msg.toLowerCase().includes('cpf')) {
+            this.cpfExistenteDetectado = rawValue.cpf || '';
+            this.errorMessage = 'Identificamos que seu CPF já possui cadastro no nosso sistema!';
+          } else {
+            this.errorMessage = msg || 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+          }
         }
       });
     } else if (this.mode === 'edit') {
@@ -321,6 +358,46 @@ export class CadastroClienteComponent implements OnInit {
         }
       });
     }
+  }
+
+  // AÇÃO: Solicitar Link de Acesso por E-mail (Magic Link)
+  onSolicitarAcessoSubmit(identificadorManual?: string): void {
+    const identificador = identificadorManual || this.forgotForm.get('identificador')?.value;
+    
+    if (!identificador) {
+      this.forgotForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const payload = {
+      identificador: identificador.toString().trim(),
+      returnUrl: window.location.origin + '/cadastro-cliente'
+    };
+
+    this.http.post<any>(`${environment.apiUrl}/Pessoas/SolicitarAcessoEmail`, payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.forgotSuccess = true;
+        this.forgotEmailMasked = res.email || '';
+        this.successMessage = res.message || 'Link de acesso enviado com sucesso!';
+        this.mode = 'forgot';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || err.error || 'Erro ao solicitar acesso. Verifique os dados digitados.';
+      }
+    });
+  }
+
+  abrirSuporteWhatsApp(): void {
+    const mensagem = 'Olá! Gostaria de atualizar meus dados cadastrais na A Brechozeira, mas preciso de ajuda.';
+    const url = `https://api.whatsapp.com/send?phone=5541985130777&text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   }
 
   // Compartilhamento via WhatsApp
