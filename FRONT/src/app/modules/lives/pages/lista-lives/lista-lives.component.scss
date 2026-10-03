@@ -116,6 +116,29 @@
 ::ng-deep {
 
   // Status badges for lives
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: $border-radius-full;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.status-active {
+      background: rgba(34, 197, 94, 0.15);
+      color: #16a34a;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    &.status-inactive {
+      background: rgba(148, 163, 184, 0.15);
+      color: #64748b;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+  }
+
   .status-agendada {
     display: inline-flex;
     padding: $spacing-1 $spacing-2;

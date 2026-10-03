@@ -110,4 +110,18 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ABrechozeiraApp.Hubs.LiveHub>("/hubs/live-chat");
 
+// Garante que a coluna Ativo existe na tabela Live
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ABrechozeiraApp.Models.AbrechozeiraContext>();
+        db.Database.ExecuteSqlRaw("ALTER TABLE Live ADD COLUMN Ativo TINYINT(1) NOT NULL DEFAULT 1;");
+    }
+    catch (Exception)
+    {
+        // Ignora se a coluna já existir
+    }
+}
+
 app.Run();

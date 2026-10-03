@@ -32,6 +32,10 @@ export class LiveService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  toggleStatus(id: number): Observable<{ id: number; ativo: boolean }> {
+    return this.http.patch<{ id: number; ativo: boolean }>(`${this.apiUrl}/${id}/toggle-status`, {});
+  }
+
   sincronizarPlanilha(liveId: number): Observable<any> {
     // Aponta para a nova rota de sincronização que criamos no ClientPortalController
     return this.http.post<any>(`${environment.apiUrl}/ClientPortal/lives/${liveId}/sync-sheet`, null);

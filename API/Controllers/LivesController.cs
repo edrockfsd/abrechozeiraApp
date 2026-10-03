@@ -106,6 +106,23 @@ namespace ABrechozeiraApp.Controllers
             return _context.Live.Any(e => e.Id == id);
         }
 
+        // PATCH: api/Lives/5/toggle-status
+        [HttpPatch("{id}/toggle-status")]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var live = await _context.Live.FindAsync(id);
+            if (live == null)
+            {
+                return NotFound();
+            }
+
+            live.Ativo = !live.Ativo;
+            live.DataAlteracao = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { id = live.Id, ativo = live.Ativo });
+        }
+
         [HttpGet("GetLiveCompleta")]
         public IActionResult GetLiveCompleta()
         {
@@ -117,10 +134,9 @@ namespace ABrechozeiraApp.Controllers
                             liv.Observacoes,
                             liv.DataLive,
                             liv.DataAlteracao,
+                            liv.Ativo,
                             DiaSemana = DateTimeFormatInfo.CurrentInfo.GetDayName(liv.DataLive.DayOfWeek)
                         };
-
-
 
             return Ok(lives.ToList());
         }
@@ -130,16 +146,21 @@ namespace ABrechozeiraApp.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("GetLivesCombo")]
-        public IActionResult GetLivesCombo()
+        public IActionResult GetLivesCombo([FromQuery] bool apenasAtivos = false)
         {
-            var lives = from liv in _context.Live
+            var query = _context.Live.AsQueryable();
+            if (apenasAtivos)
+            {
+                query = query.Where(liv => liv.Ativo);
+            }
+
+            var lives = from liv in query
+                        orderby liv.DataLive descending
                         select new
                         {
                             liv.Id,
                             liv.Titulo
                         };
-
-
 
             return Ok(lives.ToList());
         }

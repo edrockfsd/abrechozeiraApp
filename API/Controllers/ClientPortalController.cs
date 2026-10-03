@@ -28,6 +28,7 @@ namespace ABrechozeiraApp.Controllers
         public async Task<IActionResult> GetLives()
         {
             var lives = await _context.Live
+                .Where(l => l.Ativo)
                 .OrderByDescending(l => l.DataLive)
                 .Select(l => new
                 {
@@ -46,6 +47,10 @@ namespace ABrechozeiraApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(nickInstagram))
                 return BadRequest(new { message = "Nick do Instagram é obrigatório." });
+
+            var live = await _context.Live.FindAsync(liveId);
+            if (live == null || !live.Ativo)
+                return NotFound(new { message = "Live não encontrada ou inativa." });
 
             var nickFormatado = nickInstagram.Trim().ToLower().Replace("@", "");
 

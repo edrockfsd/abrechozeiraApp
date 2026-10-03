@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
+import { ButtonModule, CheckBoxModule } from '@syncfusion/ej2-angular-buttons';
 import { TextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars';
 import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
@@ -19,6 +19,7 @@ import { ToastService } from '../../../../services/toast.service';
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
+    CheckBoxModule,
     TextBoxModule,
     DateTimePickerModule,
     ToastModule
@@ -67,6 +68,7 @@ export class CadastroLiveComponent implements OnInit {
       observacoes: [''],
       googleSheetUrl: [''],
       dataLive: ['', [Validators.required]],
+      ativo: [true],
       usuarioModificacaoId: [1] // Valor fixo para teste
     });
   }
@@ -79,6 +81,7 @@ export class CadastroLiveComponent implements OnInit {
           observacoes: live.observacoes,
           googleSheetUrl: live.googleSheetUrl,
           dataLive: new Date(live.dataLive),
+          ativo: live.ativo !== false,
           usuarioModificacaoId: live.usuarioModificacaoId
         });
       },

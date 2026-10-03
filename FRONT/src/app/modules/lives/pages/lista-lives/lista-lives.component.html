@@ -51,9 +51,19 @@
           {{formatarData(data.dataLive)}}
         </ng-template>
       </e-column>
-      <e-column field="observacoes" headerText="Observações" width="250"></e-column>
-      <e-column field="usuarioModificacao" headerText="Modificado por" width="150"></e-column>
-      <e-column field="dataAlteracao" headerText="Data Modificação" width="150">
+      <e-column field="observacoes" headerText="Observações" width="220"></e-column>
+      <e-column headerText="Status" width="130" textAlign="Center">
+        <ng-template #template let-data>
+          <span 
+            class="status-badge" 
+            [class.status-active]="data.ativo !== false"
+            [class.status-inactive]="data.ativo === false">
+            {{ data.ativo !== false ? 'Ativa' : 'Desativada' }}
+          </span>
+        </ng-template>
+      </e-column>
+      <e-column field="usuarioModificacao" headerText="Modificado por" width="140"></e-column>
+      <e-column field="dataAlteracao" headerText="Data Modificação" width="140">
         <ng-template #template let-data>
           {{formatarData(data.dataAlteracao)}}
         </ng-template>
@@ -65,7 +75,7 @@
           </button>
         </ng-template>
       </e-column>
-      <e-column headerText="Ações" width="165" textAlign="Center">
+      <e-column headerText="Ações" width="205" textAlign="Center">
         <ng-template #template let-data>
           <div class="action-buttons" style="display: flex; gap: 4px; justify-content: center;">
             <button ejs-button cssClass="e-warning e-small" (click)="onOperarLive(data)" title="Operar Live (Rastrear Peças)">
@@ -73,6 +83,15 @@
             </button>
             <button ejs-button cssClass="e-success e-small" (click)="onSyncSheet(data)" title="Sincronizar Planilha">
               <span class="material-icons" style="font-size: 16px;">cloud_sync</span>
+            </button>
+            <button 
+              ejs-button 
+              [cssClass]="data.ativo !== false ? 'e-outline e-small' : 'e-success e-small'" 
+              (click)="onToggleStatus(data)" 
+              [title]="data.ativo !== false ? 'Desativar Live (ocultar de Meus Arremates)' : 'Ativar Live (exibir em Meus Arremates)'">
+              <span class="material-icons" style="font-size: 16px;">
+                {{ data.ativo !== false ? 'visibility_off' : 'visibility' }}
+              </span>
             </button>
             <button ejs-button cssClass="e-primary e-small" (click)="onEditar(data)" title="Editar">
               <span class="e-btn-icon e-edit e-icons"></span>

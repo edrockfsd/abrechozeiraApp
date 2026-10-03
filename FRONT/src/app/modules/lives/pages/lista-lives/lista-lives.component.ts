@@ -109,6 +109,24 @@ export class ListaLivesComponent implements OnInit {
     }
   }
 
+  onToggleStatus(live: Live): void {
+    const proximoStatus = live.ativo === false;
+    const acao = proximoStatus ? 'ativar' : 'desativar';
+    this.liveService.toggleStatus(live.id).subscribe({
+      next: (res) => {
+        live.ativo = res.ativo;
+        this.toastService.showSuccess(`Live "${live.titulo}" ${res.ativo ? 'ativada' : 'desativada'} com sucesso!`);
+        if (this.grid) {
+          this.grid.refresh();
+        }
+      },
+      error: (erro) => {
+        console.error('Erro ao alternar status da live:', erro);
+        this.toastService.showError(`Erro ao ${acao} a live. Por favor, tente novamente.`);
+      }
+    });
+  }
+
   formatarData(data: string): string {
     if (!data) return '';
     const d = new Date(data);

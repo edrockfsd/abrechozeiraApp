@@ -20,5 +20,7 @@ public partial class Live
 
     [StringLength(500)]
     public string? GoogleSheetUrl { get; set; }
+
+    public bool Ativo { get; set; } = true;
 }
 
