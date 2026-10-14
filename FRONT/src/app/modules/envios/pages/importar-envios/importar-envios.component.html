@@ -149,6 +149,10 @@ R$ 159,00
             <span class="material-icons">{{ cotandoLote ? 'hourglass_empty' : 'calculate' }}</span>
             Cotar Lote
           </button>
+          <button class="btn-sm btn-outline-primary" (click)="onEnviarCotacoesSelecionadas()" [disabled]="enviandoCotacoesLote" title="Enviar cotações aos clientes por e-mail e WhatsApp (pede confirmação)">
+            <span class="material-icons">{{ enviandoCotacoesLote ? 'hourglass_empty' : 'send' }}</span>
+            Enviar Cotações
+          </button>
           <button class="btn-sm btn-primary" (click)="onGerarEtiquetasSelecionados()" [disabled]="gerandoLote" title="Gerar etiquetas para cotados">
             <span class="material-icons">{{ gerandoLote ? 'hourglass_empty' : 'rocket_launch' }}</span>
             Gerar Etiquetas Lote
@@ -258,6 +262,23 @@ R$ 159,00
                     </div>
                     <div class="motivo-texto" [title]="envio.cotacaoMotivoEscolha">{{ envio.cotacaoMotivoEscolha }}</div>
                     <button class="btn-text-sm" (click)="onCotarItem(envio)" *ngIf="!envio.etiquetaGerada">Recotar</button>
+
+                    <!-- Envio da cotação ao cliente (somente após confirmação) -->
+                    <div class="envio-cotacao">
+                      <button *ngIf="podeEnviarCotacao(envio)" class="btn-sm btn-outline-primary" (click)="onEnviarCotacaoItem(envio)" [title]="'Enviar por ' + canaisCotacao(envio)">
+                        <span class="material-icons">send</span>
+                        Enviar ao cliente
+                      </button>
+                      <span class="loading-state" *ngIf="envio.enviandoCotacao">
+                        <span class="material-icons spin">refresh</span> Enviando...
+                      </span>
+                      <span class="cotacao-enviada" *ngIf="envio.cotacaoEnviada">
+                        <span class="material-icons">check_circle</span> Enviada por {{ envio.cotacaoEnviadaCanais }}
+                      </span>
+                      <span class="placeholder-text" *ngIf="!envio.cotacaoTemEmail && !envio.cotacaoTemWhatsApp && !envio.cotacaoEnviada">
+                        Sem e-mail e telefone no cadastro
+                      </span>
+                    </div>
                   </div>
 
                   <!-- Erro -->

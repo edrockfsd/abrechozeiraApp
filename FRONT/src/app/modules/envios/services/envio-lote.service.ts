@@ -10,7 +10,8 @@ import {
   GerarEtiquetasLoteInput,
   GerarEtiquetasLoteResultado,
   CotarEGerarInput,
-  CotarEGerarResultado
+  CotarEGerarResultado,
+  EnviarCotacaoClienteResultado
 } from '../interfaces/envio-lote.interface';
 
 @Injectable({
@@ -66,6 +67,13 @@ export class EnvioLoteService {
   /** Reenvia o e-mail de cotação. */
   reenviarCotacao(transacaoId: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/ReenviarCotacao/${transacaoId}`, null);
+  }
+
+  /** Envia a cotação ao cliente por e-mail e WhatsApp (após confirmação na tela). */
+  enviarCotacaoCliente(transacaoId: string, clienteId?: number | null): Observable<EnviarCotacaoClienteResultado> {
+    const params: any = {};
+    if (clienteId) params.clienteId = clienteId;
+    return this.http.post<EnviarCotacaoClienteResultado>(`${this.apiUrl}/EnviarCotacaoCliente/${transacaoId}`, null, { params });
   }
 
   /** Notifica a cotação via WhatsApp. */

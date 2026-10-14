@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Observable, catchError, concatMap, from, map, of, toArray } from 'rxjs';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { EnvioLoteService } from '../../services/envio-lote.service';
@@ -44,6 +45,7 @@ export class ImportarEnviosComponent {
   cotandoLote = false;
   gerandoLote = false;
   enviandoRastreiosLote = false;
+  enviandoCotacoesLote = false;
   preferenciaLote: 'AUTO' | 'PAC' | 'SEDEX' | '' = '';
 
   toastSettings = {
@@ -215,6 +217,88 @@ export class ImportarEnviosComponent {
     this.showToast('Removidos', `${count} envio(s) removido(s).`, 'e-toast-info');
   }
 
+  // ─── Enviar Cotação ao Cliente (somente após confirmação) ─────────────────
+
+  /** Uma nova cotação gera novo link de pagamento, então volta a ficar pendente de envio. */
+  private aplicarCanaisCotacao(envio: EnvioParseado, temEmail?: boolean, temWhatsApp?: boolean): void {
+    envio.cotacaoTemEmail = !!temEmail;
+    envio.cotacaoTemWhatsApp = !!temWhatsApp;
+    envio.cotacaoEnviada = false;
+    envio.cotacaoEnviadaCanais = undefined;
+  }
+
+  canaisCotacao(envio: EnvioParseado): string {
+    return [envio.cotacaoTemEmail ? 'e-mail' : null, envio.cotacaoTemWhatsApp ? 'WhatsApp' : null]
+      .filter(Boolean).join(' e ');
+  }
+
+  podeEnviarCotacao(envio: EnvioParseado): boolean {
+    return !!envio.cotacaoFeita && !!envio.transacaoId && !envio.cotacaoEnviada && !envio.enviandoCotacao
+      && (!!envio.cotacaoTemEmail || !!envio.cotacaoTemWhatsApp);
+  }
+
+  onEnviarCotacaoItem(envio: EnvioParseado): void {
+    if (!this.podeEnviarCotacao(envio)) return;
+
+    const valor = envio.cotacaoPrecoEscolhido?.toFixed(2).replace('.', ',');
+    const msg = `Enviar a cotação de ${envio.cotacaoServicoNome} R$ ${valor} para ${envio.nome} por ${this.canaisCotacao(envio)}?`;
+    if (!confirm(msg)) return;
+
+    this.enviarCotacao(envio).subscribe(ok => {
+      if (ok) this.showToast('📨 Cotação', `Cotação enviada para ${envio.nome} por ${envio.cotacaoEnviadaCanais}.`, 'e-toast-success');
+    });
+  }
+
+  onEnviarCotacoesSelecionadas(): void {
+    const envios = this.selecionados.filter(e => this.podeEnviarCotacao(e));
+    if (envios.length === 0) {
+      this.showToast('Atenção', 'Nenhum envio selecionado com cotação pendente de envio e com e-mail ou telefone.', 'e-toast-warning');
+      return;
+    }
+
+    const lista = envios
+      .map(e => `• ${e.nome}: ${e.cotacaoServicoNome} R$ ${e.cotacaoPrecoEscolhido?.toFixed(2).replace('.', ',')} (${this.canaisCotacao(e)})`)
+      .join('\n');
+    if (!confirm(`Enviar ${envios.length} cotação(ões) aos clientes?\n\n${lista}`)) return;
+
+    this.enviandoCotacoesLote = true;
+    from(envios).pipe(
+      concatMap(e => this.enviarCotacao(e)),
+      toArray()
+    ).subscribe(resultados => {
+      this.enviandoCotacoesLote = false;
+      const ok = resultados.filter(Boolean).length;
+      const falhas = resultados.length - ok;
+      this.showToast(
+        falhas > 0 ? 'Atenção' : 'Sucesso',
+        `${ok} cotação(ões) enviada(s)${falhas > 0 ? `, ${falhas} com falha` : ''}.`,
+        falhas > 0 ? 'e-toast-warning' : 'e-toast-success'
+      );
+    });
+  }
+
+  /** Envia uma cotação e atualiza o estado da linha. Emite true se ao menos um canal foi enviado. */
+  private enviarCotacao(envio: EnvioParseado): Observable<boolean> {
+    envio.enviandoCotacao = true;
+    return this.envioLoteService.enviarCotacaoCliente(envio.transacaoId!, envio.clienteId).pipe(
+      map(res => {
+        envio.enviandoCotacao = false;
+        const canais = [res.emailEnviado ? 'e-mail' : null, res.whatsAppEnviado ? 'WhatsApp' : null].filter(Boolean);
+        envio.cotacaoEnviada = canais.length > 0;
+        envio.cotacaoEnviadaCanais = canais.join(' e ');
+        if (res.erros.length > 0) {
+          this.showToast('Atenção', `${envio.nome}: ${res.erros.join(', ')}.`, 'e-toast-warning');
+        }
+        return envio.cotacaoEnviada;
+      }),
+      catchError(err => {
+        envio.enviandoCotacao = false;
+        this.showToast('Erro', `${envio.nome}: ${err.error?.message || 'falha ao enviar cotação.'}`, 'e-toast-danger');
+        return of(false);
+      })
+    );
+  }
+
   // ─── Cotar Individual ──────────────────────────────────────────────────────
 
   onCotarItem(envio: EnvioParseado): void {
@@ -242,11 +326,7 @@ export class ImportarEnviosComponent {
           envio.cotacaoPrecoEscolhido = item.precoRecomendado;
           envio.cotacaoMotivoEscolha = item.motivoEscolha;
           (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
-
-          // Notificar que e-mail foi enviado (se cliente tem email)
-          if (envio.destinatarioEmail) {
-            this.showToast('📧 E-mail', `Cotação enviada por e-mail para ${envio.nome}`, 'e-toast-info');
-          }
+          this.aplicarCanaisCotacao(envio, item.temEmail, item.temWhatsApp);
         } else {
           envio.cotacaoErro = item?.erro || 'Erro desconhecido';
           this.showToast('Erro', `Cotação falhou para ${envio.nome}: ${envio.cotacaoErro}`, 'e-toast-danger');
@@ -288,6 +368,7 @@ export class ImportarEnviosComponent {
             envio.cotacaoPrecoEscolhido = item.precoRecomendado;
             envio.cotacaoMotivoEscolha = item.motivoEscolha;
             (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
+            this.aplicarCanaisCotacao(envio, item.temEmail, item.temWhatsApp);
           } else {
             envio.cotacaoErro = item.erro || 'Erro';
           }

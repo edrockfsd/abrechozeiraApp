@@ -130,6 +130,9 @@ namespace ABrechozeiraApp.Controllers
         public decimal PrecoRecomendado { get; set; }
         public string MotivoEscolha { get; set; } = "";
         public string TransacaoId { get; set; } = "";
+        // Canais disponíveis para enviar a cotação ao cliente (o envio só ocorre após confirmação)
+        public bool TemEmail { get; set; }
+        public bool TemWhatsApp { get; set; }
         public bool Sucesso { get; set; }
         public string? Erro { get; set; }
     }
@@ -637,60 +640,11 @@ namespace ABrechozeiraApp.Controllers
                     _context.EnvioLoteMap.Add(map);
                     await _context.SaveChangesAsync();
 
-                    // Enviar e-mail de cotação ao cliente (fire-and-forget, não bloqueia)
-                    if (!string.IsNullOrWhiteSpace(envio.DestinatarioEmail))
-                    {
-                        _logger.LogInformation("➡️ Disparando Task em segundo plano para o e-mail: {Email}", envio.DestinatarioEmail);
-                        var factory = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>();
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                using var scope = factory.CreateScope();
-                                var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
-                                var infinitePayService = scope.ServiceProvider.GetRequiredService<InfinitePayService>();
-                                var logger = scope.ServiceProvider.GetRequiredService<ILogger<EnvioLoteController>>();
-                                var db = scope.ServiceProvider.GetRequiredService<AbrechozeiraContext>();
-
-                                logger.LogInformation("✅ [Task] Escopo criado. Iniciando geração do link de checkout InfinitePay...");
-
-                                var checkoutUrl = await infinitePayService.GerarLinkCheckoutAsync(resultado.PrecoRecomendado, $"Frete {resultado.ServicoRecomendado}", transacaoId, envio.Nome, envio.DestinatarioEmail ?? "");
-                                
-                                logger.LogInformation("✅ [Task] Link gerado com sucesso: {Url}. Iniciando disparo do E-mail...", checkoutUrl);
-
-                                // Atualizar link
-                                var dbMap = await db.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
-                                if (dbMap != null) {
-                                    dbMap.LinkCheckout = checkoutUrl;
-                                    await db.SaveChangesAsync();
-                                }
-
-                                await emailService.EnviarCotacaoAsync(
-                                    envio.DestinatarioEmail,
-                                    envio.Nome,
-                                    resultado.ServicoRecomendado,
-                                    resultado.PrecoRecomendado,
-                                    resultado.PrecoPAC,
-                                    resultado.PrecoSEDEX ?? 0m,
-                                    checkoutUrl);
-
-                                logger.LogInformation("✅ [Task] E-mail de cotação ENVIADO com sucesso para {Email}!", envio.DestinatarioEmail);
-                                
-                                if (dbMap != null) {
-                                    dbMap.EmailCotacaoEnviado = true;
-                                    await db.SaveChangesAsync();
-                                }
-                            }
-                            catch (Exception emailEx)
-                            {
-                                Console.WriteLine($"❌ [Task] ERRO FATAL: {emailEx.Message} - {emailEx.StackTrace}");
-                            }
-                        });
-                    }
-                    else
-                    {
-                        _logger.LogWarning("⚠️ Cliente {Nome} não possui e-mail cadastrado. Pulando envio de e-mail.", envio.Nome);
-                    }
+                    // A cotação não é enviada automaticamente: o envio ao cliente só acontece após confirmação
+                    // no endpoint EnviarCotacaoCliente. Aqui só informamos os canais disponíveis.
+                    var telefoneCliente = await BuscarTelefoneClienteAsync(envio.ClienteId, envio.DestinatarioEmail, null);
+                    resultado.TemEmail = !string.IsNullOrWhiteSpace(envio.DestinatarioEmail);
+                    resultado.TemWhatsApp = WhatsAppConfigurado() && !string.IsNullOrWhiteSpace(telefoneCliente);
                 }
                 catch (Exception ex)
                 {
@@ -1051,6 +1005,109 @@ namespace ABrechozeiraApp.Controllers
             return StatusCode(500, new { message = $"❌ Falha ao enviar template de rastreio para {telefone}. Verifique os logs da API." });
         }
 
+
+        private bool WhatsAppConfigurado() =>
+            !string.IsNullOrWhiteSpace(_config["WhatsApp:ApiToken"]) && !string.IsNullOrWhiteSpace(_config["WhatsApp:PhoneId"]);
+
+        /// <summary>
+        /// Telefone do cliente para o WhatsApp: cadastro vinculado na importação, depois e-mail, depois nome.
+        /// </summary>
+        private async Task<string?> BuscarTelefoneClienteAsync(int? clienteId, string? email, string? nome)
+        {
+            string? telefone = null;
+            if (clienteId.HasValue)
+            {
+                telefone = await _context.Pessoa.Where(p => p.Id == clienteId.Value)
+                    .Select(p => p.Telefone).FirstOrDefaultAsync();
+            }
+            if (string.IsNullOrWhiteSpace(telefone) && !string.IsNullOrWhiteSpace(email))
+            {
+                telefone = await _context.Pessoa.Where(p => p.Email == email)
+                    .Select(p => p.Telefone).FirstOrDefaultAsync();
+            }
+            if (string.IsNullOrWhiteSpace(telefone) && !string.IsNullOrWhiteSpace(nome))
+            {
+                telefone = await _context.Pessoa.Where(p => p.Nome == nome)
+                    .Select(p => p.Telefone).FirstOrDefaultAsync();
+            }
+            return string.IsNullOrWhiteSpace(telefone) ? null : telefone;
+        }
+
+        /// <summary>
+        /// Envia a cotação ao cliente por e-mail e WhatsApp, após confirmação na tela de importação.
+        /// Gera o link de checkout da InfinitePay se ainda não existir.
+        /// </summary>
+        [HttpPost("EnviarCotacaoCliente/{transacaoId}")]
+        public async Task<IActionResult> EnviarCotacaoCliente(string transacaoId, [FromQuery] int? clienteId = null)
+        {
+            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+            if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+
+            var preco = map.PrecoRecomendado.GetValueOrDefault();
+            var servico = map.ServicoRecomendado ?? "PAC";
+            var telefone = await BuscarTelefoneClienteAsync(clienteId, map.Email, map.Nome);
+            var enviarEmail = !string.IsNullOrWhiteSpace(map.Email);
+            var enviarWhatsApp = WhatsAppConfigurado() && !string.IsNullOrWhiteSpace(telefone);
+
+            if (!enviarEmail && !enviarWhatsApp)
+                return BadRequest(new { message = "Cliente sem e-mail e sem telefone cadastrado." });
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(map.LinkCheckout))
+                {
+                    map.LinkCheckout = await _infinitePay.GerarLinkCheckoutAsync(preco, $"Frete {servico}", transacaoId, map.Nome, map.Email ?? "");
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao gerar link de checkout da cotação {TransacaoId}", transacaoId);
+                return StatusCode(500, new { message = $"Falha ao gerar link de pagamento: {ex.Message}" });
+            }
+
+            var erros = new List<string>();
+
+            if (enviarEmail)
+            {
+                try
+                {
+                    var emailOk = await _emailService.EnviarCotacaoAsync(
+                        map.Email, map.Nome, servico, preco,
+                        map.PrecoPAC ?? 0m, map.PrecoSEDEX ?? 0m, map.LinkCheckout);
+                    if (emailOk) map.EmailCotacaoEnviado = true;
+                    else erros.Add("Falha ao enviar e-mail");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao enviar e-mail de cotação para {Email}", map.Email);
+                    erros.Add("Falha ao enviar e-mail");
+                }
+            }
+
+            if (enviarWhatsApp)
+            {
+                var zapOk = await _whatsApp.EnviarCotacaoFreteAsync(
+                    destino: telefone!,
+                    nomeCliente: map.Nome,
+                    valorFrete: preco,
+                    modalidade: servico,
+                    checkoutSlug: ExtrairSlugCheckout(map.LinkCheckout) ?? transacaoId);
+                if (zapOk) map.WhatsAppCotacaoEnviado = true;
+                else erros.Add("Falha ao enviar WhatsApp");
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                emailEnviado = enviarEmail && map.EmailCotacaoEnviado,
+                whatsAppEnviado = enviarWhatsApp && map.WhatsAppCotacaoEnviado,
+                semEmail = !enviarEmail,
+                semWhatsApp = !enviarWhatsApp,
+                erros
+            });
+        }
 
         [HttpPost("ReenviarCotacao/{transacaoId}")]
         public async Task<IActionResult> ReenviarCotacao(string transacaoId)

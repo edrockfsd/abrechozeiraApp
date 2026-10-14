@@ -42,6 +42,12 @@ export interface EnvioParseado {
   cotacaoPrecoEscolhido?: number;
   cotacaoMotivoEscolha?: string;
   cotacaoErro?: string;
+  // Envio da cotação ao cliente (somente após confirmação)
+  cotacaoTemEmail?: boolean;
+  cotacaoTemWhatsApp?: boolean;
+  enviandoCotacao?: boolean;
+  cotacaoEnviada?: boolean;
+  cotacaoEnviadaCanais?: string;
   // Estado de etiqueta
   etiquetaGerada?: boolean;
   gerandoEtiqueta?: boolean;
@@ -101,6 +107,8 @@ export interface CotacaoLoteItem {
   precoRecomendado: number;
   motivoEscolha: string;
   transacaoId?: string;
+  temEmail?: boolean;
+  temWhatsApp?: boolean;
   sucesso: boolean;
   erro: string | null;
 }
@@ -191,4 +199,12 @@ export interface EnviarRastreioLoteResultado {
   totalSucesso: number;
   totalErro: number;
   erros: RastreioLoteItemErro[];
+}
+
+export interface EnviarCotacaoClienteResultado {
+  emailEnviado: boolean;
+  whatsAppEnviado: boolean;
+  semEmail: boolean;
+  semWhatsApp: boolean;
+  erros: string[];
 }

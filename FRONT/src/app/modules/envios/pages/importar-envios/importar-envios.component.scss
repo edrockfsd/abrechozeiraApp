@@ -274,6 +274,8 @@ h1 {
 .resultado-cotacao { display: flex; flex-direction: column; gap: 4px; }
 .preco-destaque { display: flex; align-items: center; gap: 8px; font-size: .95rem; }
 .motivo-texto { font-size: .75rem; color: var(--text-secondary, #888); line-height: 1.2; max-width: 180px; }
+.envio-cotacao { margin-top: 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.cotacao-enviada { display: flex; align-items: center; gap: 4px; font-size: .75rem; color: #00b894; font-weight: 500; .material-icons { font-size: 16px; } }
 .erro-texto { font-size: .8rem; color: #d9534f; display: flex; align-items: center; gap: 4px; .material-icons { font-size: 14px; } }
 
 .resultado-etiqueta { display: flex; flex-direction: column; gap: 4px; }
