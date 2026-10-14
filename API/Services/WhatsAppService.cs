@@ -157,7 +157,7 @@ namespace ABrechozeiraApp.Services
         }
 
         /// <summary>
-        /// cotacao_frete_v4 — cotação de frete com link de pagamento.
+        /// cotacao_frete_v5 — cotação de frete com link de pagamento.
         /// </summary>
         public Task<bool> EnviarCotacaoFreteAsync(
             string destino,
@@ -166,7 +166,7 @@ namespace ABrechozeiraApp.Services
             string modalidade,
             string checkoutSlug)
         {
-            var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v4";
+            var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v5";
             var lang = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "pt_BR";
 
             var bodyParams = new List<string>
@@ -202,7 +202,7 @@ namespace ABrechozeiraApp.Services
         }
 
         /// <summary>
-        /// resumo_compra_v2 — resumo do pedido com link de pagamento.
+        /// resumo_compra_v3 — resumo do pedido com link de pagamento.
         /// </summary>
         public Task<bool> EnviarResumoCompraAsync(
             string destino,
@@ -212,7 +212,7 @@ namespace ABrechozeiraApp.Services
             decimal valorTotal,
             string checkoutSlug)
         {
-            var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v2";
+            var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v3";
             var lang = _config["WhatsApp:TemplateResumoCompraLanguage"] ?? "pt_BR";
 
             var bodyParams = new List<string>

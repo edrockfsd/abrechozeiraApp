@@ -1085,14 +1085,20 @@ namespace ABrechozeiraApp.Controllers
                 }
             }
 
-            if (enviarWhatsApp)
+            var slugCheckout = ExtrairSlugCheckout(map.LinkCheckout);
+            if (enviarWhatsApp && slugCheckout == null)
+            {
+                _logger.LogError("Link de checkout em formato inesperado para o WhatsApp: {Link}", map.LinkCheckout);
+                erros.Add("Link de pagamento em formato inesperado para o WhatsApp");
+            }
+            else if (enviarWhatsApp)
             {
                 var zapOk = await _whatsApp.EnviarCotacaoFreteAsync(
                     destino: telefone!,
                     nomeCliente: map.Nome,
                     valorFrete: preco,
                     modalidade: servico,
-                    checkoutSlug: ExtrairSlugCheckout(map.LinkCheckout) ?? transacaoId);
+                    checkoutSlug: slugCheckout!);
                 if (zapOk) map.WhatsAppCotacaoEnviado = true;
                 else erros.Add("Falha ao enviar WhatsApp");
             }
@@ -1173,12 +1179,16 @@ namespace ABrechozeiraApp.Controllers
             
             if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(phoneId))
             {
+                var slugCheckout = ExtrairSlugCheckout(map.LinkCheckout);
+                if (slugCheckout == null)
+                    return BadRequest(new { message = "Cotação sem link de pagamento válido. Envie a cotação pela tela de importação." });
+
                 var sucesso = await _whatsApp.EnviarCotacaoFreteAsync(
                     destino: telefone,
                     nomeCliente: map.Nome,
                     valorFrete: preco,
                     modalidade: servico,
-                    checkoutSlug: ExtrairSlugCheckout(map.LinkCheckout) ?? transacaoId);
+                    checkoutSlug: slugCheckout);
                 
                 if (sucesso)
                 {
@@ -1197,12 +1207,12 @@ namespace ABrechozeiraApp.Controllers
         }
 
         /// <summary>
-        /// O botão do template de cotação tem a URL fixa "https://checkout.infinitepay.io/abrechozeira/{{1}}",
-        /// então o parâmetro precisa ser apenas o trecho após "abrechozeira/" do link gerado pela InfinitePay.
+        /// O botão dos templates de pagamento tem a URL fixa "https://checkout.infinitepay.io/{{1}}",
+        /// então o parâmetro é o restante do link gerado pela InfinitePay (ex: "abrechozeira?lenc=...").
         /// </summary>
         private static string? ExtrairSlugCheckout(string? linkCheckout)
         {
-            const string prefixo = "https://checkout.infinitepay.io/abrechozeira/";
+            const string prefixo = "https://checkout.infinitepay.io/";
             if (string.IsNullOrWhiteSpace(linkCheckout) || !linkCheckout.StartsWith(prefixo, StringComparison.OrdinalIgnoreCase))
                 return null;
 
