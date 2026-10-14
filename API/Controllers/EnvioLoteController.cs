@@ -1121,7 +1121,7 @@ namespace ABrechozeiraApp.Controllers
                     nomeCliente: map.Nome,
                     valorFrete: preco,
                     modalidade: servico,
-                    checkoutSlug: transacaoId);
+                    checkoutSlug: ExtrairSlugCheckout(map.LinkCheckout) ?? transacaoId);
                 
                 if (sucesso)
                 {
@@ -1137,6 +1137,20 @@ namespace ABrechozeiraApp.Controllers
             map.WhatsAppCotacaoEnviado = true;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Link manual gerado", url = linkManual, hibrido = true });
+        }
+
+        /// <summary>
+        /// O botão do template de cotação tem a URL fixa "https://checkout.infinitepay.io/abrechozeira/{{1}}",
+        /// então o parâmetro precisa ser apenas o trecho após "abrechozeira/" do link gerado pela InfinitePay.
+        /// </summary>
+        private static string? ExtrairSlugCheckout(string? linkCheckout)
+        {
+            const string prefixo = "https://checkout.infinitepay.io/abrechozeira/";
+            if (string.IsNullOrWhiteSpace(linkCheckout) || !linkCheckout.StartsWith(prefixo, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var slug = linkCheckout.Substring(prefixo.Length);
+            return string.IsNullOrWhiteSpace(slug) ? null : slug;
         }
 
         [HttpPost("EnviarWhatsAppRastreio/{etiquetaId}")]

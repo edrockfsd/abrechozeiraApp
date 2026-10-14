@@ -30,9 +30,6 @@ namespace ABrechozeiraApp.Services
             var token = _config["WhatsApp:ApiToken"] ?? "";
             var baseUrl = (_config["WhatsApp:BaseUrl"] ?? "https://graph.facebook.com/v23.0").TrimEnd('/') + "/";
 
-            _logger.LogInformation("[WhatsApp DEBUG] Token primeiros 30 chars: {T} | BaseUrl: {U}", 
-                token.Length > 30 ? token.Substring(0, 30) : token, baseUrl);
-
             var client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -160,7 +157,7 @@ namespace ABrechozeiraApp.Services
         }
 
         /// <summary>
-        /// cotacao_frete_v2 — cotação de frete com link de pagamento.
+        /// cotacao_frete_v4 — cotação de frete com link de pagamento.
         /// </summary>
         public Task<bool> EnviarCotacaoFreteAsync(
             string destino,
@@ -169,7 +166,7 @@ namespace ABrechozeiraApp.Services
             string modalidade,
             string checkoutSlug)
         {
-            var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v2";
+            var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v4";
             var lang = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "pt_BR";
 
             var bodyParams = new List<string>
@@ -205,7 +202,7 @@ namespace ABrechozeiraApp.Services
         }
 
         /// <summary>
-        /// resumo_compra_v1 — resumo do pedido com link de pagamento.
+        /// resumo_compra_v2 — resumo do pedido com link de pagamento.
         /// </summary>
         public Task<bool> EnviarResumoCompraAsync(
             string destino,
@@ -215,7 +212,7 @@ namespace ABrechozeiraApp.Services
             decimal valorTotal,
             string checkoutSlug)
         {
-            var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v1";
+            var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v2";
             var lang = _config["WhatsApp:TemplateResumoCompraLanguage"] ?? "pt_BR";
 
             var bodyParams = new List<string>
