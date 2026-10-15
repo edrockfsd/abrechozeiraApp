@@ -25,6 +25,12 @@ namespace ABrechozeiraApp.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// Liga/desliga o WhatsApp das mensagens com link de pagamento (cotação e resumo de compra).
+        /// O rastreio não depende desta chave.
+        /// </summary>
+        public bool PagamentoHabilitado => _config.GetValue("WhatsApp:PagamentoHabilitado", false);
+
         private HttpClient CriarCliente()
         {
             var token = _config["WhatsApp:ApiToken"] ?? "";
@@ -166,6 +172,12 @@ namespace ABrechozeiraApp.Services
             string modalidade,
             string checkoutSlug)
         {
+            if (!PagamentoHabilitado)
+            {
+                _logger.LogWarning("WhatsApp de cotação desativado (WhatsApp:PagamentoHabilitado = false). Mensagem não enviada para {To}.", destino);
+                return Task.FromResult(false);
+            }
+
             var template = _config["WhatsApp:TemplateCotacao"] ?? "cotacao_frete_v5";
             var lang = _config["WhatsApp:TemplateCotacaoLanguage"] ?? "pt_BR";
 
@@ -212,6 +224,12 @@ namespace ABrechozeiraApp.Services
             decimal valorTotal,
             string checkoutSlug)
         {
+            if (!PagamentoHabilitado)
+            {
+                _logger.LogWarning("WhatsApp de resumo de compra desativado (WhatsApp:PagamentoHabilitado = false). Mensagem não enviada para {To}.", destino);
+                return Task.FromResult(false);
+            }
+
             var template = _config["WhatsApp:TemplateResumoCompra"] ?? "resumo_compra_v3";
             var lang = _config["WhatsApp:TemplateResumoCompraLanguage"] ?? "pt_BR";
 

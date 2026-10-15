@@ -644,7 +644,7 @@ namespace ABrechozeiraApp.Controllers
                     // no endpoint EnviarCotacaoCliente. Aqui só informamos os canais disponíveis.
                     var telefoneCliente = await BuscarTelefoneClienteAsync(envio.ClienteId, envio.DestinatarioEmail, null);
                     resultado.TemEmail = !string.IsNullOrWhiteSpace(envio.DestinatarioEmail);
-                    resultado.TemWhatsApp = WhatsAppConfigurado() && !string.IsNullOrWhiteSpace(telefoneCliente);
+                    resultado.TemWhatsApp = WhatsAppPagamentoDisponivel() && !string.IsNullOrWhiteSpace(telefoneCliente);
                 }
                 catch (Exception ex)
                 {
@@ -1009,6 +1009,9 @@ namespace ABrechozeiraApp.Controllers
         private bool WhatsAppConfigurado() =>
             !string.IsNullOrWhiteSpace(_config["WhatsApp:ApiToken"]) && !string.IsNullOrWhiteSpace(_config["WhatsApp:PhoneId"]);
 
+        /// <summary>WhatsApp para mensagens com link de pagamento (cotação). Rastreio usa apenas WhatsAppConfigurado().</summary>
+        private bool WhatsAppPagamentoDisponivel() => WhatsAppConfigurado() && _whatsApp.PagamentoHabilitado;
+
         /// <summary>
         /// Telefone do cliente para o WhatsApp: cadastro vinculado na importação, depois e-mail, depois nome.
         /// </summary>
@@ -1047,7 +1050,7 @@ namespace ABrechozeiraApp.Controllers
             var servico = map.ServicoRecomendado ?? "PAC";
             var telefone = await BuscarTelefoneClienteAsync(clienteId, map.Email, map.Nome);
             var enviarEmail = !string.IsNullOrWhiteSpace(map.Email);
-            var enviarWhatsApp = WhatsAppConfigurado() && !string.IsNullOrWhiteSpace(telefone);
+            var enviarWhatsApp = WhatsAppPagamentoDisponivel() && !string.IsNullOrWhiteSpace(telefone);
 
             if (!enviarEmail && !enviarWhatsApp)
                 return BadRequest(new { message = "Cliente sem e-mail e sem telefone cadastrado." });
@@ -1148,6 +1151,9 @@ namespace ABrechozeiraApp.Controllers
         [HttpPost("EnviarWhatsAppCotacao/{transacaoId}")]
         public async Task<IActionResult> EnviarWhatsAppCotacao(string transacaoId)
         {
+            if (!_whatsApp.PagamentoHabilitado)
+                return BadRequest(new { message = "Envio de cotação por WhatsApp temporariamente desativado. Use o envio por e-mail." });
+
             var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
             if (map == null) return NotFound(new { message = "Cotação não encontrada." });
 
