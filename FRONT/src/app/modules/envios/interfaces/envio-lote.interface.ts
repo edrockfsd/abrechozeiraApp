@@ -109,6 +109,9 @@ export interface CotacaoLoteItem {
   transacaoId?: string;
   temEmail?: boolean;
   temWhatsApp?: boolean;
+  emailEnviado?: boolean;
+  whatsAppEnviado?: boolean;
+  errosEnvio?: string[];
   sucesso: boolean;
   erro: string | null;
 }

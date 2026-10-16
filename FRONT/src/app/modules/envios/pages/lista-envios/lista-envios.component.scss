@@ -238,3 +238,88 @@ h1 {
 .btn-icon:hover { background: #f0f0f0; }
 .btn-icon.sent { background: #e8f5e9; border-color: #4caf50; }
 .btn-icon.sent .material-icons { color: #4caf50; }
+
+// ─── Reenviar Cotação ─────────────────────────────────────────────────────────
+
+.canal-status {
+  font-size: 18px;
+  color: #c8c8c8;
+
+  &.sent { color: #0984e3; }
+  &.canal-whatsapp.sent { color: #25D366; }
+}
+
+.btn-reenviar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border: 1px solid #e17055;
+  border-radius: 6px;
+  background: #fff;
+  color: #e17055;
+  font-size: 11px;
+  cursor: pointer;
+
+  .material-icons { font-size: 14px; }
+  &:hover { background: #fdf1ee; }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  h3 { margin: 0 0 12px; }
+}
+
+.modal-sub {
+  margin: 12px 0 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.modal-lista {
+  margin: 0;
+  padding-left: 18px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.modal-email { color: #888; }
+
+.modal-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.modal-aviso {
+  color: #d63031;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+
+.modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

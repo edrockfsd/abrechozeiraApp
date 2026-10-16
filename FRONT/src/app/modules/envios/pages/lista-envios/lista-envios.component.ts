@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { catchError, concatMap, from, map, of, toArray } from 'rxjs';
 import { GridComponent, GridModule, PageService, SortService, FilterService, ToolbarService } from '@syncfusion/ej2-angular-grids';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
@@ -306,19 +307,65 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
     return SUPERFRETE_SERVICOS[id] ?? `Serviço ${id}`;
   }
 
-  onReenviarCotacao(row: any): void {
-    if (!row.transacaoId) {
-      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Transação não encontrada.', cssClass: 'e-toast-warning' });
+  // ─── Reenviar Cotação (individual ou em lote, com escolha do canal) ─────────
+
+  reenvioCotacao: { linhas: any[]; email: boolean; whatsapp: boolean; enviando: boolean } | null = null;
+
+  podeReenviarCotacao(row: any): boolean {
+    return !!row.transacaoId && row.statusPagamento === 'Aguardando';
+  }
+
+  abrirReenvioCotacao(linhas: any[]): void {
+    this.reenvioCotacao = { linhas, email: true, whatsapp: true, enviando: false };
+  }
+
+  onReenviarCotacoesSelecionadas(): void {
+    const linhas = (this.grid.getSelectedRecords() as any[]).filter(r => this.podeReenviarCotacao(r));
+    if (linhas.length === 0) {
+      if (this.toast) this.toast.show({ title: 'Atenção', content: 'Selecione ao menos um envio com cotação aguardando pagamento.', cssClass: 'e-toast-warning' });
       return;
     }
-    this.envioLoteService.reenviarCotacao(row.transacaoId).subscribe({
-      next: (res) => {
-        row.emailCotacaoEnviado = true;
-        if (this.toast) this.toast.show({ title: 'Sucesso', content: res.message, cssClass: 'e-toast-success' });
-        this.grid.refresh();
-      },
-      error: (err) => {
-        if (this.toast) this.toast.show({ title: 'Erro', content: 'Falha ao reenviar cotação.', cssClass: 'e-toast-danger' });
+    this.abrirReenvioCotacao(linhas);
+  }
+
+  fecharReenvioCotacao(): void {
+    if (this.reenvioCotacao?.enviando) return;
+    this.reenvioCotacao = null;
+  }
+
+  confirmarReenvioCotacao(): void {
+    const r = this.reenvioCotacao;
+    if (!r || r.enviando || (!r.email && !r.whatsapp)) return;
+
+    r.enviando = true;
+    const canais = { email: r.email, whatsapp: r.whatsapp };
+    const erros: string[] = [];
+
+    from(r.linhas).pipe(
+      concatMap(row => this.envioLoteService.enviarCotacaoCliente(row.transacaoId, null, canais).pipe(
+        map(res => {
+          if (res.emailEnviado) row.emailCotacaoEnviado = true;
+          if (res.whatsAppEnviado) row.whatsAppCotacaoEnviado = true;
+          if (res.erros.length > 0) erros.push(`${row.destinatario}: ${res.erros.join(', ')}`);
+          return res.emailEnviado || res.whatsAppEnviado;
+        }),
+        catchError(err => {
+          erros.push(`${row.destinatario}: ${err.error?.message || 'falha ao enviar'}`);
+          return of(false);
+        })
+      )),
+      toArray()
+    ).subscribe(resultados => {
+      const ok = resultados.filter(Boolean).length;
+      this.reenvioCotacao = null;
+      this.grid.refresh();
+      if (this.toast) {
+        this.toast.show({
+          title: erros.length > 0 ? 'Atenção' : 'Sucesso',
+          content: `${ok} de ${resultados.length} cotação(ões) reenviada(s).${erros.length > 0 ? ' ' + erros.join(' | ') : ''}`,
+          cssClass: erros.length > 0 ? 'e-toast-warning' : 'e-toast-success',
+          timeOut: erros.length > 0 ? 12000 : 5000
+        });
       }
     });
   }

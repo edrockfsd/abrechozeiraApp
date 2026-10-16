@@ -7,6 +7,7 @@ import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ToastComponent, ToastModule } from '@syncfusion/ej2-angular-notifications';
 import { EnvioLoteService } from '../../services/envio-lote.service';
 import {
+  CotacaoLoteItem,
   EnvioParseado,
   EnvioParaCotar,
   EnvioParaGerarEtiqueta
@@ -217,14 +218,21 @@ export class ImportarEnviosComponent {
     this.showToast('Removidos', `${count} envio(s) removido(s).`, 'e-toast-info');
   }
 
-  // ─── Enviar Cotação ao Cliente (somente após confirmação) ─────────────────
+  // ─── Enviar Cotação ao Cliente ─────────────────────────────────────────────
 
-  /** Uma nova cotação gera novo link de pagamento, então volta a ficar pendente de envio. */
-  private aplicarCanaisCotacao(envio: EnvioParseado, temEmail?: boolean, temWhatsApp?: boolean): void {
-    envio.cotacaoTemEmail = !!temEmail;
-    envio.cotacaoTemWhatsApp = !!temWhatsApp;
-    envio.cotacaoEnviada = false;
-    envio.cotacaoEnviadaCanais = undefined;
+  /**
+   * A API já envia a cotação automaticamente ao cotar (e-mail e WhatsApp).
+   * Aqui registramos o resultado; se nenhum canal saiu, o botão "Enviar ao cliente" permite tentar de novo.
+   */
+  private aplicarEnvioCotacao(envio: EnvioParseado, item: CotacaoLoteItem): void {
+    envio.cotacaoTemEmail = !!item.temEmail;
+    envio.cotacaoTemWhatsApp = !!item.temWhatsApp;
+    const canais = [item.emailEnviado ? 'e-mail' : null, item.whatsAppEnviado ? 'WhatsApp' : null].filter(Boolean);
+    envio.cotacaoEnviada = canais.length > 0;
+    envio.cotacaoEnviadaCanais = canais.join(' e ') || undefined;
+    if (item.errosEnvio?.length) {
+      this.showToast('Atenção', `${envio.nome}: ${item.errosEnvio.join(', ')}.`, 'e-toast-warning');
+    }
   }
 
   canaisCotacao(envio: EnvioParseado): string {
@@ -326,12 +334,15 @@ export class ImportarEnviosComponent {
           envio.cotacaoPrecoEscolhido = item.precoRecomendado;
           envio.cotacaoMotivoEscolha = item.motivoEscolha;
           (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
-          this.aplicarCanaisCotacao(envio, item.temEmail, item.temWhatsApp);
+          this.aplicarEnvioCotacao(envio, item);
         } else {
           envio.cotacaoErro = item?.erro || 'Erro desconhecido';
           this.showToast('Erro', `Cotação falhou para ${envio.nome}: ${envio.cotacaoErro}`, 'e-toast-danger');
         }
         envio.cotando = false;
+        if (envio.cotacaoEnviada) {
+          this.showToast('📨 Cotação', `Cotação enviada para ${envio.nome} por ${envio.cotacaoEnviadaCanais}.`, 'e-toast-success');
+        }
       },
       error: (err) => {
         envio.cotando = false;
@@ -368,14 +379,15 @@ export class ImportarEnviosComponent {
             envio.cotacaoPrecoEscolhido = item.precoRecomendado;
             envio.cotacaoMotivoEscolha = item.motivoEscolha;
             (envio as any).transacaoId = item.transacaoId; // Armazena transacaoId
-            this.aplicarCanaisCotacao(envio, item.temEmail, item.temWhatsApp);
+            this.aplicarEnvioCotacao(envio, item);
           } else {
             envio.cotacaoErro = item.erro || 'Erro';
           }
           envio.cotando = false;
         });
         this.cotandoLote = false;
-        this.showToast('Cotação', `${res.totalSucesso} cotação(ões) realizada(s).`, 'e-toast-success');
+        const enviadas = res.resultados.filter(r => r.emailEnviado || r.whatsAppEnviado).length;
+        this.showToast('Cotação', `${res.totalSucesso} cotação(ões) realizada(s), ${enviadas} enviada(s) ao cliente.`, 'e-toast-success');
       },
       error: () => {
         enviosParaCotar.forEach(e => { e.cotando = false; e.cotacaoErro = 'Erro de comunicação'; });

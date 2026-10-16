@@ -69,9 +69,13 @@ export class EnvioLoteService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/ReenviarCotacao/${transacaoId}`, null);
   }
 
-  /** Envia a cotação ao cliente por e-mail e WhatsApp (após confirmação na tela). */
-  enviarCotacaoCliente(transacaoId: string, clienteId?: number | null): Observable<EnviarCotacaoClienteResultado> {
-    const params: any = {};
+  /** Envia (ou reenvia) a cotação ao cliente pelos canais escolhidos. */
+  enviarCotacaoCliente(
+    transacaoId: string,
+    clienteId?: number | null,
+    canais: { email: boolean; whatsapp: boolean } = { email: true, whatsapp: true }
+  ): Observable<EnviarCotacaoClienteResultado> {
+    const params: any = { email: canais.email, whatsapp: canais.whatsapp };
     if (clienteId) params.clienteId = clienteId;
     return this.http.post<EnviarCotacaoClienteResultado>(`${this.apiUrl}/EnviarCotacaoCliente/${transacaoId}`, null, { params });
   }

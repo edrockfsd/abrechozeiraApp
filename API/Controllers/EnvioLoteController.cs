@@ -130,9 +130,12 @@ namespace ABrechozeiraApp.Controllers
         public decimal PrecoRecomendado { get; set; }
         public string MotivoEscolha { get; set; } = "";
         public string TransacaoId { get; set; } = "";
-        // Canais disponíveis para enviar a cotação ao cliente (o envio só ocorre após confirmação)
+        // Canais disponíveis e resultado do envio automático da cotação ao cliente
         public bool TemEmail { get; set; }
         public bool TemWhatsApp { get; set; }
+        public bool EmailEnviado { get; set; }
+        public bool WhatsAppEnviado { get; set; }
+        public List<string> ErrosEnvio { get; set; } = new();
         public bool Sucesso { get; set; }
         public string? Erro { get; set; }
     }
@@ -640,11 +643,13 @@ namespace ABrechozeiraApp.Controllers
                     _context.EnvioLoteMap.Add(map);
                     await _context.SaveChangesAsync();
 
-                    // A cotação não é enviada automaticamente: o envio ao cliente só acontece após confirmação
-                    // no endpoint EnviarCotacaoCliente. Aqui só informamos os canais disponíveis.
-                    var telefoneCliente = await BuscarTelefoneClienteAsync(envio.ClienteId, envio.DestinatarioEmail, null);
-                    resultado.TemEmail = !string.IsNullOrWhiteSpace(envio.DestinatarioEmail);
-                    resultado.TemWhatsApp = WhatsAppPagamentoDisponivel() && !string.IsNullOrWhiteSpace(telefoneCliente);
+                    // Envia a cotação ao cliente automaticamente por e-mail e WhatsApp
+                    var envioCliente = await EnviarCotacaoAoClienteAsync(map, envio.ClienteId, viaEmail: true, viaWhatsApp: true);
+                    resultado.TemEmail = !envioCliente.SemEmail;
+                    resultado.TemWhatsApp = !envioCliente.SemWhatsApp;
+                    resultado.EmailEnviado = envioCliente.EmailEnviado;
+                    resultado.WhatsAppEnviado = envioCliente.WhatsAppEnviado;
+                    resultado.ErrosEnvio = envioCliente.Erros;
                 }
                 catch (Exception ex)
                 {
@@ -1036,85 +1041,123 @@ namespace ABrechozeiraApp.Controllers
             return string.IsNullOrWhiteSpace(telefone) ? null : telefone;
         }
 
-        /// <summary>
-        /// Envia a cotação ao cliente por e-mail e WhatsApp, após confirmação na tela de importação.
-        /// Gera o link de checkout da InfinitePay se ainda não existir.
-        /// </summary>
-        [HttpPost("EnviarCotacaoCliente/{transacaoId}")]
-        public async Task<IActionResult> EnviarCotacaoCliente(string transacaoId, [FromQuery] int? clienteId = null)
+        private class EnvioCotacaoResultado
         {
-            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
-            if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+            public bool EmailEnviado { get; set; }
+            public bool WhatsAppEnviado { get; set; }
+            public bool SemEmail { get; set; }
+            public bool SemWhatsApp { get; set; }
+            public List<string> Erros { get; set; } = new();
+        }
 
+        /// <summary>
+        /// Envia a cotação ao cliente pelos canais pedidos (e-mail e/ou WhatsApp).
+        /// Gera o link de checkout da InfinitePay se ainda não existir. Usado na cotação (automático)
+        /// e no reenvio pela lista de envios.
+        /// </summary>
+        private async Task<EnvioCotacaoResultado> EnviarCotacaoAoClienteAsync(EnvioLoteMap map, int? clienteId, bool viaEmail, bool viaWhatsApp)
+        {
+            var res = new EnvioCotacaoResultado();
             var preco = map.PrecoRecomendado.GetValueOrDefault();
             var servico = map.ServicoRecomendado ?? "PAC";
             var telefone = await BuscarTelefoneClienteAsync(clienteId, map.Email, map.Nome);
-            var enviarEmail = !string.IsNullOrWhiteSpace(map.Email);
-            var enviarWhatsApp = WhatsAppPagamentoDisponivel() && !string.IsNullOrWhiteSpace(telefone);
 
-            if (!enviarEmail && !enviarWhatsApp)
-                return BadRequest(new { message = "Cliente sem e-mail e sem telefone cadastrado." });
+            res.SemEmail = string.IsNullOrWhiteSpace(map.Email);
+            res.SemWhatsApp = !WhatsAppPagamentoDisponivel() || string.IsNullOrWhiteSpace(telefone);
+            var enviarEmail = viaEmail && !res.SemEmail;
+            var enviarWhatsApp = viaWhatsApp && !res.SemWhatsApp;
+
+            if (viaEmail && res.SemEmail) res.Erros.Add("Cliente sem e-mail cadastrado");
+            if (viaWhatsApp && !WhatsAppPagamentoDisponivel()) res.Erros.Add("WhatsApp de cotação desativado");
+            else if (viaWhatsApp && res.SemWhatsApp) res.Erros.Add("Cliente sem telefone cadastrado");
+            if (!enviarEmail && !enviarWhatsApp) return res;
 
             try
             {
                 if (string.IsNullOrWhiteSpace(map.LinkCheckout))
                 {
-                    map.LinkCheckout = await _infinitePay.GerarLinkCheckoutAsync(preco, $"Frete {servico}", transacaoId, map.Nome, map.Email ?? "");
+                    map.LinkCheckout = await _infinitePay.GerarLinkCheckoutAsync(preco, $"Frete {servico}", map.TransacaoId, map.Nome, map.Email ?? "");
                     await _context.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao gerar link de checkout da cotação {TransacaoId}", transacaoId);
-                return StatusCode(500, new { message = $"Falha ao gerar link de pagamento: {ex.Message}" });
+                _logger.LogError(ex, "Erro ao gerar link de checkout da cotação {TransacaoId}", map.TransacaoId);
+                res.Erros.Add($"Falha ao gerar link de pagamento: {ex.Message}");
+                return res;
             }
-
-            var erros = new List<string>();
 
             if (enviarEmail)
             {
                 try
                 {
-                    var emailOk = await _emailService.EnviarCotacaoAsync(
+                    res.EmailEnviado = await _emailService.EnviarCotacaoAsync(
                         map.Email, map.Nome, servico, preco,
                         map.PrecoPAC ?? 0m, map.PrecoSEDEX ?? 0m, map.LinkCheckout);
-                    if (emailOk) map.EmailCotacaoEnviado = true;
-                    else erros.Add("Falha ao enviar e-mail");
+                    if (res.EmailEnviado) map.EmailCotacaoEnviado = true;
+                    else res.Erros.Add("Falha ao enviar e-mail");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erro ao enviar e-mail de cotação para {Email}", map.Email);
-                    erros.Add("Falha ao enviar e-mail");
+                    res.Erros.Add("Falha ao enviar e-mail");
                 }
             }
 
-            var slugCheckout = ExtrairSlugCheckout(map.LinkCheckout);
-            if (enviarWhatsApp && slugCheckout == null)
+            if (enviarWhatsApp)
             {
-                _logger.LogError("Link de checkout em formato inesperado para o WhatsApp: {Link}", map.LinkCheckout);
-                erros.Add("Link de pagamento em formato inesperado para o WhatsApp");
-            }
-            else if (enviarWhatsApp)
-            {
-                var zapOk = await _whatsApp.EnviarCotacaoFreteAsync(
-                    destino: telefone!,
-                    nomeCliente: map.Nome,
-                    valorFrete: preco,
-                    modalidade: servico,
-                    checkoutSlug: slugCheckout!);
-                if (zapOk) map.WhatsAppCotacaoEnviado = true;
-                else erros.Add("Falha ao enviar WhatsApp");
+                var slugCheckout = ExtrairSlugCheckout(map.LinkCheckout);
+                if (slugCheckout == null)
+                {
+                    _logger.LogError("Link de checkout em formato inesperado para o WhatsApp: {Link}", map.LinkCheckout);
+                    res.Erros.Add("Link de pagamento em formato inesperado para o WhatsApp");
+                }
+                else
+                {
+                    try
+                    {
+                        res.WhatsAppEnviado = await _whatsApp.EnviarCotacaoFreteAsync(
+                            destino: telefone!,
+                            nomeCliente: map.Nome,
+                            valorFrete: preco,
+                            modalidade: servico,
+                            checkoutSlug: slugCheckout);
+                        if (res.WhatsAppEnviado) map.WhatsAppCotacaoEnviado = true;
+                        else res.Erros.Add("Falha ao enviar WhatsApp");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Erro ao enviar WhatsApp de cotação para {Nome}", map.Nome);
+                        res.Erros.Add("Falha ao enviar WhatsApp");
+                    }
+                }
             }
 
             await _context.SaveChangesAsync();
+            return res;
+        }
 
+        /// <summary>
+        /// Envia (ou reenvia) a cotação ao cliente pelos canais escolhidos.
+        /// </summary>
+        [HttpPost("EnviarCotacaoCliente/{transacaoId}")]
+        public async Task<IActionResult> EnviarCotacaoCliente(string transacaoId, [FromQuery] int? clienteId = null,
+            [FromQuery] bool email = true, [FromQuery] bool whatsapp = true)
+        {
+            if (!email && !whatsapp)
+                return BadRequest(new { message = "Escolha ao menos um canal de envio." });
+
+            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+            if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+
+            var res = await EnviarCotacaoAoClienteAsync(map, clienteId, email, whatsapp);
             return Ok(new
             {
-                emailEnviado = enviarEmail && map.EmailCotacaoEnviado,
-                whatsAppEnviado = enviarWhatsApp && map.WhatsAppCotacaoEnviado,
-                semEmail = !enviarEmail,
-                semWhatsApp = !enviarWhatsApp,
-                erros
+                emailEnviado = res.EmailEnviado,
+                whatsAppEnviado = res.WhatsAppEnviado,
+                semEmail = res.SemEmail,
+                semWhatsApp = res.SemWhatsApp,
+                erros = res.Erros
             });
         }
 

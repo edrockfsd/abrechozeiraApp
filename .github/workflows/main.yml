@@ -86,7 +86,7 @@ jobs:
               'TemplateResumoCompra': 'resumo_compra_v3',
               'TemplateResumoCompraLanguage': 'pt_BR',
               'TemplateHelloWorld': 'hello_world',
-              'PagamentoHabilitado': 'false',
+              'PagamentoHabilitado': 'true',
               'BaseUrl': 'https://graph.facebook.com/v23.0'
             }
           }

@@ -22,6 +22,10 @@
           <span class="material-icons">{{ verificandoStatus ? 'hourglass_empty' : 'sync' }}</span>
           <span>Atualizar Status</span>
         </button>
+        <button class="btn-refresh" style="border-color: #e17055; color: #e17055;" (click)="onReenviarCotacoesSelecionadas()" title="Reenviar a cotação dos itens selecionados (escolha e-mail e/ou WhatsApp)">
+          <span class="material-icons">request_quote</span>
+          <span>Reenviar Cotações</span>
+        </button>
         <button class="btn-refresh" style="border-color: #0984e3; color: #0984e3;" (click)="onEnviarRastreiosSelecionados()" [disabled]="enviandoRastreiosLote" title="Enviar rastreios por e-mail para os itens selecionados">
           <span class="material-icons">{{ enviandoRastreiosLote ? 'hourglass_empty' : 'forward_to_inbox' }}</span>
           <span>Enviar Rastreios</span>
@@ -126,16 +130,13 @@
             <div class="actions-container" style="display: flex; gap: 8px; justify-content: center;">
               
               <!-- Cotação -->
-              <div class="action-group" style="display: flex; flex-direction: column; align-items: center; gap: 4px;" *ngIf="data.transacaoId && data.statusPagamento === 'Aguardando'">
+              <div class="action-group" style="display: flex; flex-direction: column; align-items: center; gap: 4px;" *ngIf="podeReenviarCotacao(data)">
                 <div style="font-size: 10px; color: #888;">Cotação</div>
-                <div style="display: flex; gap: 4px;">
-                  <!-- E-mail Cotação -->
-                  <button class="btn-icon" [ngClass]="{'sent': data.emailCotacaoEnviado}" (click)="onReenviarCotacao(data)" title="Reenviar E-mail Cotação">
-                    <span class="material-icons" style="font-size: 18px;">mail</span>
-                  </button>
-                  <!-- WhatsApp Cotação -->
-                  <button class="btn-icon" [ngClass]="{'sent': data.whatsAppCotacaoEnviado}" (click)="onEnviarWhatsApp(data, 'cotacao')" title="Enviar WhatsApp Cotação">
-                    <span class="material-icons" style="font-size: 18px; color: #25D366;">chat</span>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                  <span class="material-icons canal-status" [ngClass]="{'sent': data.emailCotacaoEnviado}" [title]="data.emailCotacaoEnviado ? 'E-mail enviado' : 'E-mail não enviado'">mail</span>
+                  <span class="material-icons canal-status canal-whatsapp" [ngClass]="{'sent': data.whatsAppCotacaoEnviado}" [title]="data.whatsAppCotacaoEnviado ? 'WhatsApp enviado' : 'WhatsApp não enviado'">chat</span>
+                  <button class="btn-reenviar" (click)="abrirReenvioCotacao([data])" title="Reenviar cotação (escolha e-mail e/ou WhatsApp)">
+                    <span class="material-icons">send</span> Reenviar
                   </button>
                 </div>
               </div>
@@ -156,6 +157,27 @@
         </e-column>
       </e-columns>
     </ejs-grid>
+  </div>
+
+  <!-- Modal: Reenviar Cotação -->
+  <div class="modal-backdrop" *ngIf="reenvioCotacao as r" (click)="fecharReenvioCotacao()">
+    <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="tituloReenvio">
+      <h3 id="tituloReenvio">Reenviar cotação</h3>
+      <p class="modal-sub">{{ r.linhas.length }} cliente(s):</p>
+      <ul class="modal-lista">
+        <li *ngFor="let l of r.linhas">{{ l.destinatario }}<span *ngIf="l.email" class="modal-email"> · {{ l.email }}</span></li>
+      </ul>
+      <p class="modal-sub">Enviar por:</p>
+      <label class="modal-check"><input type="checkbox" [(ngModel)]="r.email" [disabled]="r.enviando"> E-mail</label>
+      <label class="modal-check"><input type="checkbox" [(ngModel)]="r.whatsapp" [disabled]="r.enviando"> WhatsApp</label>
+      <p class="modal-aviso" *ngIf="!r.email && !r.whatsapp">Escolha ao menos um canal.</p>
+      <div class="modal-acoes">
+        <button class="btn-clear-filters" (click)="fecharReenvioCotacao()" [disabled]="r.enviando">Cancelar</button>
+        <button ejs-button cssClass="e-primary" (click)="confirmarReenvioCotacao()" [disabled]="r.enviando || (!r.email && !r.whatsapp)">
+          {{ r.enviando ? 'Enviando...' : 'Enviar' }}
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Empty state -->

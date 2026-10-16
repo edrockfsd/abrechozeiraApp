@@ -149,7 +149,7 @@ R$ 159,00
             <span class="material-icons">{{ cotandoLote ? 'hourglass_empty' : 'calculate' }}</span>
             Cotar Lote
           </button>
-          <button class="btn-sm btn-outline-primary" (click)="onEnviarCotacoesSelecionadas()" [disabled]="enviandoCotacoesLote" title="Enviar cotações aos clientes por e-mail e WhatsApp (pede confirmação)">
+          <button class="btn-sm btn-outline-primary" (click)="onEnviarCotacoesSelecionadas()" [disabled]="enviandoCotacoesLote" title="A cotação já é enviada ao cotar. Use para tentar de novo as que não foram enviadas (pede confirmação)">
             <span class="material-icons">{{ enviandoCotacoesLote ? 'hourglass_empty' : 'send' }}</span>
             Enviar Cotações
           </button>
