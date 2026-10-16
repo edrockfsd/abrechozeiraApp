@@ -10,6 +10,16 @@ import { SuperfreteService } from '../../services/superfrete.service';
 import { EnvioLoteService } from '../../services/envio-lote.service';
 import { EtiquetaInfo, SUPERFRETE_SERVICOS } from '../../interfaces/superfrete.interface';
 
+type StatusReenvio = 'pendente' | 'enviando' | 'ok' | 'erro';
+
+interface ReenvioCotacao {
+  itens: { row: any; status: StatusReenvio; detalhe?: string }[];
+  email: boolean;
+  whatsapp: boolean;
+  enviando: boolean;
+  concluido: boolean;
+}
+
 @Component({
   selector: 'app-lista-envios',
   templateUrl: './lista-envios.component.html',
@@ -309,14 +319,20 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
 
   // ─── Reenviar Cotação (individual ou em lote, com escolha do canal) ─────────
 
-  reenvioCotacao: { linhas: any[]; email: boolean; whatsapp: boolean; enviando: boolean } | null = null;
+  reenvioCotacao: ReenvioCotacao | null = null;
 
   podeReenviarCotacao(row: any): boolean {
     return !!row.transacaoId && row.statusPagamento === 'Aguardando';
   }
 
   abrirReenvioCotacao(linhas: any[]): void {
-    this.reenvioCotacao = { linhas, email: true, whatsapp: true, enviando: false };
+    this.reenvioCotacao = {
+      itens: linhas.map(row => ({ row, status: 'pendente' })),
+      email: true,
+      whatsapp: true,
+      enviando: false,
+      concluido: false
+    };
   }
 
   onReenviarCotacoesSelecionadas(): void {
@@ -330,43 +346,49 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
 
   fecharReenvioCotacao(): void {
     if (this.reenvioCotacao?.enviando) return;
+    const concluido = this.reenvioCotacao?.concluido;
     this.reenvioCotacao = null;
+    if (concluido) this.grid.refresh();
+  }
+
+  progressoReenvio(r: ReenvioCotacao): { feitos: number; ok: number; falhas: number; pct: number } {
+    const feitos = r.itens.filter(i => i.status === 'ok' || i.status === 'erro').length;
+    const ok = r.itens.filter(i => i.status === 'ok').length;
+    return { feitos, ok, falhas: feitos - ok, pct: Math.round((feitos / r.itens.length) * 100) };
   }
 
   confirmarReenvioCotacao(): void {
     const r = this.reenvioCotacao;
-    if (!r || r.enviando || (!r.email && !r.whatsapp)) return;
+    if (!r || r.enviando || r.concluido || (!r.email && !r.whatsapp)) return;
 
     r.enviando = true;
     const canais = { email: r.email, whatsapp: r.whatsapp };
-    const erros: string[] = [];
 
-    from(r.linhas).pipe(
-      concatMap(row => this.envioLoteService.enviarCotacaoCliente(row.transacaoId, null, canais).pipe(
-        map(res => {
-          if (res.emailEnviado) row.emailCotacaoEnviado = true;
-          if (res.whatsAppEnviado) row.whatsAppCotacaoEnviado = true;
-          if (res.erros.length > 0) erros.push(`${row.destinatario}: ${res.erros.join(', ')}`);
-          return res.emailEnviado || res.whatsAppEnviado;
-        }),
-        catchError(err => {
-          erros.push(`${row.destinatario}: ${err.error?.message || 'falha ao enviar'}`);
-          return of(false);
-        })
-      )),
+    from(r.itens).pipe(
+      concatMap(item => {
+        item.status = 'enviando';
+        return this.envioLoteService.enviarCotacaoCliente(item.row.transacaoId, null, canais).pipe(
+          map(res => {
+            if (res.emailEnviado) item.row.emailCotacaoEnviado = true;
+            if (res.whatsAppEnviado) item.row.whatsAppCotacaoEnviado = true;
+            const enviados = [res.emailEnviado ? 'e-mail' : null, res.whatsAppEnviado ? 'WhatsApp' : null].filter(Boolean);
+            item.status = enviados.length > 0 ? 'ok' : 'erro';
+            item.detalhe = [
+              enviados.length > 0 ? `Enviado por ${enviados.join(' e ')}` : null,
+              res.erros.length > 0 ? res.erros.join(', ') : null
+            ].filter(Boolean).join(' · ');
+          }),
+          catchError(err => {
+            item.status = 'erro';
+            item.detalhe = err.error?.message || 'Falha ao enviar';
+            return of(null);
+          })
+        );
+      }),
       toArray()
-    ).subscribe(resultados => {
-      const ok = resultados.filter(Boolean).length;
-      this.reenvioCotacao = null;
-      this.grid.refresh();
-      if (this.toast) {
-        this.toast.show({
-          title: erros.length > 0 ? 'Atenção' : 'Sucesso',
-          content: `${ok} de ${resultados.length} cotação(ões) reenviada(s).${erros.length > 0 ? ' ' + erros.join(' | ') : ''}`,
-          cssClass: erros.length > 0 ? 'e-toast-warning' : 'e-toast-success',
-          timeOut: erros.length > 0 ? 12000 : 5000
-        });
-      }
+    ).subscribe(() => {
+      r.enviando = false;
+      r.concluido = true;
     });
   }
 

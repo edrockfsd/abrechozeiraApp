@@ -163,19 +163,51 @@
   <div class="modal-backdrop" *ngIf="reenvioCotacao as r" (click)="fecharReenvioCotacao()">
     <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="tituloReenvio">
       <h3 id="tituloReenvio">Reenviar cotação</h3>
-      <p class="modal-sub">{{ r.linhas.length }} cliente(s):</p>
+
+      <ng-container *ngIf="progressoReenvio(r) as p">
+        <div class="progresso" *ngIf="r.enviando || r.concluido">
+          <div class="progresso-texto">
+            <span>{{ r.concluido ? 'Concluído' : 'Enviando...' }} {{ p.feitos }} de {{ r.itens.length }}</span>
+            <span>{{ p.pct }}%</span>
+          </div>
+          <div class="progresso-barra"><div class="progresso-fill" [style.width.%]="p.pct"></div></div>
+          <div class="progresso-resumo" *ngIf="r.concluido">
+            <span class="ok">{{ p.ok }} enviada(s)</span>
+            <span class="erro" *ngIf="p.falhas > 0"> · {{ p.falhas }} com falha</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <p class="modal-sub">{{ r.itens.length }} cliente(s):</p>
       <ul class="modal-lista">
-        <li *ngFor="let l of r.linhas">{{ l.destinatario }}<span *ngIf="l.email" class="modal-email"> · {{ l.email }}</span></li>
+        <li *ngFor="let i of r.itens" [ngClass]="'status-' + i.status">
+          <span class="material-icons status-icone" [class.spin]="i.status === 'enviando'">{{
+            i.status === 'ok' ? 'check_circle' : i.status === 'erro' ? 'error' : i.status === 'enviando' ? 'autorenew' : 'schedule'
+          }}</span>
+          <div class="status-texto">
+            <div>{{ i.row.destinatario }}<span *ngIf="i.row.email" class="modal-email"> · {{ i.row.email }}</span></div>
+            <div class="status-detalhe" *ngIf="i.detalhe || i.status === 'enviando'">{{ i.status === 'enviando' ? 'Enviando agora...' : i.detalhe }}</div>
+          </div>
+        </li>
       </ul>
-      <p class="modal-sub">Enviar por:</p>
-      <label class="modal-check"><input type="checkbox" [(ngModel)]="r.email" [disabled]="r.enviando"> E-mail</label>
-      <label class="modal-check"><input type="checkbox" [(ngModel)]="r.whatsapp" [disabled]="r.enviando"> WhatsApp</label>
-      <p class="modal-aviso" *ngIf="!r.email && !r.whatsapp">Escolha ao menos um canal.</p>
+
+      <ng-container *ngIf="!r.enviando && !r.concluido">
+        <p class="modal-sub">Enviar por:</p>
+        <label class="modal-check"><input type="checkbox" [(ngModel)]="r.email"> E-mail</label>
+        <label class="modal-check"><input type="checkbox" [(ngModel)]="r.whatsapp"> WhatsApp</label>
+        <p class="modal-aviso" *ngIf="!r.email && !r.whatsapp">Escolha ao menos um canal.</p>
+      </ng-container>
+
       <div class="modal-acoes">
-        <button class="btn-clear-filters" (click)="fecharReenvioCotacao()" [disabled]="r.enviando">Cancelar</button>
-        <button ejs-button cssClass="e-primary" (click)="confirmarReenvioCotacao()" [disabled]="r.enviando || (!r.email && !r.whatsapp)">
-          {{ r.enviando ? 'Enviando...' : 'Enviar' }}
-        </button>
+        <ng-container *ngIf="!r.concluido; else fechar">
+          <button class="btn-clear-filters" (click)="fecharReenvioCotacao()" [disabled]="r.enviando">Cancelar</button>
+          <button ejs-button cssClass="e-primary" (click)="confirmarReenvioCotacao()" [disabled]="r.enviando || (!r.email && !r.whatsapp)">
+            {{ r.enviando ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </ng-container>
+        <ng-template #fechar>
+          <button ejs-button cssClass="e-primary" (click)="fecharReenvioCotacao()">Fechar</button>
+        </ng-template>
       </div>
     </div>
   </div>
