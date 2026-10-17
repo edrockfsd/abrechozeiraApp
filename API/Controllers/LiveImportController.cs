@@ -40,7 +40,7 @@ public class LiveImportController : ControllerBase
     }
 
     /// <summary>
-    /// Preview dos dados da planilha (sem salvar no banco)
+    /// Preview dos dados da planilha via Google Sheets URL com sugestões de vinculação de clientes
     /// </summary>
     [HttpGet("preview-url")]
     public async Task<IActionResult> PreviewUrl([FromQuery] string url, [FromQuery] string sheet = "vendas")
@@ -48,10 +48,11 @@ public class LiveImportController : ControllerBase
         try
         {
             var linhas = await _sheetReader.LerPorUrlAsync(url, sheet);
+            var (mapeamentos, clientes) = await GerarPreviewMapeamentosAsync(linhas);
             return Ok(new
             {
                 totalLinhas = linhas.Count,
-                compradores = linhas.Select(l => l.Comprador).Distinct().Count(),
+                compradores = mapeamentos.Count,
                 linhas = linhas.Select(l => new
                 {
                     l.CodigoLive,
@@ -60,13 +61,196 @@ public class LiveImportController : ControllerBase
                     l.Comprador,
                     l.Fila,
                     l.LinhaOriginal
-                })
+                }),
+                mapeamentos,
+                clientes
             });
         }
         catch (Exception ex)
         {
             return BadRequest(new { erro = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Preview dos dados de arquivo .xlsx com sugestões de vinculação de clientes
+    /// </summary>
+    [HttpPost("preview-xlsx")]
+    public async Task<IActionResult> PreviewXlsx([FromForm] IFormFile arquivo)
+    {
+        if (arquivo == null || arquivo.Length == 0)
+            return BadRequest(new { erro = "Nenhum arquivo enviado." });
+
+        try
+        {
+            using var stream = arquivo.OpenReadStream();
+            var linhas = _sheetReader.LerPorXlsx(stream);
+            var (mapeamentos, clientes) = await GerarPreviewMapeamentosAsync(linhas);
+            return Ok(new
+            {
+                totalLinhas = linhas.Count,
+                compradores = mapeamentos.Count,
+                linhas = linhas.Select(l => new
+                {
+                    l.CodigoLive,
+                    l.Descricao,
+                    l.Valor,
+                    l.Comprador,
+                    l.Fila,
+                    l.LinhaOriginal
+                }),
+                mapeamentos,
+                clientes
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { erro = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gera a lista de compradores únicos da planilha e cruza com os clientes cadastrados no sistema
+    /// </summary>
+    private async Task<(List<MapeamentoClienteDto> Mapeamentos, List<ClienteComboDto> Clientes)> GerarPreviewMapeamentosAsync(List<LinhaArremate> linhas)
+    {
+        var clientes = await _context.Pessoa
+            .Where(p => p.StatusId == 1)
+            .OrderBy(p => p.Nome)
+            .Select(p => new ClienteComboDto
+            {
+                Id = p.Id,
+                Nome = p.Nome ?? "",
+                NickName = p.NickName ?? "",
+                Cpf = p.CPF
+            })
+            .ToListAsync();
+
+        var grupos = linhas
+            .Where(l => !string.IsNullOrWhiteSpace(l.Comprador))
+            .GroupBy(l => l.Comprador.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var mapeamentos = new List<MapeamentoClienteDto>();
+
+        foreach (var g in grupos)
+        {
+            var comprador = g.Key;
+            var totalPecas = g.Count();
+            var valorTotal = g.Sum(l => l.Valor);
+
+            var cClean = comprador.TrimStart('@').ToLower();
+            var cAlnum = new string(cClean.Where(char.IsLetterOrDigit).ToArray());
+
+            // 1. Busca exata (NickName com ou sem @)
+            var match = clientes.FirstOrDefault(c =>
+            {
+                var nickClean = (c.NickName ?? "").Trim().TrimStart('@').ToLower();
+                return nickClean == cClean;
+            });
+            string tipoMatch = "EXATO";
+
+            // 2. Busca alfanumérica (ignora . e _)
+            if (match == null && !string.IsNullOrEmpty(cAlnum))
+            {
+                match = clientes.FirstOrDefault(c =>
+                {
+                    var nickAlnum = new string((c.NickName ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLower();
+                    return nickAlnum == cAlnum;
+                });
+                if (match != null) tipoMatch = "EXATO";
+            }
+
+            // 3. Busca por similaridade ou substring
+            if (match == null)
+            {
+                match = clientes.FirstOrDefault(c =>
+                {
+                    var nickClean = (c.NickName ?? "").Trim().TrimStart('@').ToLower();
+                    var nomeClean = (c.Nome ?? "").Trim().ToLower();
+                    return (nickClean.Length >= 4 && cClean.Length >= 4 && (nickClean.Contains(cClean) || cClean.Contains(nickClean)))
+                        || (nomeClean.Length >= 4 && cClean.Length >= 4 && nomeClean.Contains(cClean));
+                });
+                if (match != null) tipoMatch = "SIMILAR";
+            }
+
+            // 4. Busca por distância Levenshtein (erros de digitação: letras duplicadas, trocadas)
+            if (match == null && cClean.Length >= 5)
+            {
+                match = clientes
+                    .Select(c => new
+                    {
+                        Cliente = c,
+                        NickClean = (c.NickName ?? "").Trim().TrimStart('@').ToLower()
+                    })
+                    .Where(x => x.NickClean.Length >= 5 && Math.Abs(x.NickClean.Length - cClean.Length) <= 2)
+                    .Select(x => new { x.Cliente, Dist = LevenshteinDistance(cClean, x.NickClean) })
+                    .Where(x => x.Dist <= 2)
+                    .OrderBy(x => x.Dist)
+                    .Select(x => x.Cliente)
+                    .FirstOrDefault();
+
+                if (match != null) tipoMatch = "SIMILAR";
+            }
+
+            if (match != null)
+            {
+                mapeamentos.Add(new MapeamentoClienteDto
+                {
+                    CompradorPlanilha = comprador,
+                    PessoaId = match.Id,
+                    TotalPecas = totalPecas,
+                    ValorTotal = valorTotal,
+                    SugeridoPessoaId = match.Id,
+                    SugeridoNome = match.Nome,
+                    SugeridoNick = match.NickName,
+                    SugeridoCpf = match.Cpf,
+                    TipoMatch = tipoMatch
+                });
+            }
+            else
+            {
+                mapeamentos.Add(new MapeamentoClienteDto
+                {
+                    CompradorPlanilha = comprador,
+                    PessoaId = null,
+                    TotalPecas = totalPecas,
+                    ValorTotal = valorTotal,
+                    SugeridoPessoaId = null,
+                    SugeridoNome = null,
+                    SugeridoNick = null,
+                    SugeridoCpf = null,
+                    TipoMatch = "NOVO"
+                });
+            }
+        }
+
+        return (mapeamentos.OrderBy(m => m.CompradorPlanilha).ToList(), clientes);
+    }
+
+    private static int LevenshteinDistance(string s, string t)
+    {
+        if (string.IsNullOrEmpty(s)) return t?.Length ?? 0;
+        if (string.IsNullOrEmpty(t)) return s.Length;
+
+        int n = s.Length;
+        int m = t.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        for (int i = 0; i <= n; d[i, 0] = i++) ;
+        for (int j = 0; j <= m; d[0, j] = j++) ;
+
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+        return d[n, m];
     }
 
     /// <summary>
@@ -78,7 +262,7 @@ public class LiveImportController : ControllerBase
         try
         {
             var linhas = await _sheetReader.LerPorUrlAsync(request.GoogleSheetUrl, request.SheetName ?? "vendas");
-            var resultado = await ProcessarImportacao(linhas, request.LiveId);
+            var resultado = await ProcessarImportacao(linhas, request.LiveId, request.Mapeamentos);
             return Ok(resultado);
         }
         catch (Exception ex)
@@ -89,10 +273,10 @@ public class LiveImportController : ControllerBase
     }
 
     /// <summary>
-    /// Importa dados de arquivo .xlsx
+    /// Importa dados de arquivo .xlsx com mapeamento opcional de clientes
     /// </summary>
     [HttpPost("importar-xlsx")]
-    public async Task<IActionResult> ImportarPorXlsx([FromForm] IFormFile arquivo, [FromForm] int liveId)
+    public async Task<IActionResult> ImportarPorXlsx([FromForm] IFormFile arquivo, [FromForm] int liveId, [FromForm] string? mapeamentosJson = null)
     {
         if (arquivo == null || arquivo.Length == 0)
             return BadRequest(new { erro = "Nenhum arquivo enviado." });
@@ -101,7 +285,23 @@ public class LiveImportController : ControllerBase
         {
             using var stream = arquivo.OpenReadStream();
             var linhas = _sheetReader.LerPorXlsx(stream);
-            var resultado = await ProcessarImportacao(linhas, liveId);
+
+            List<MapeamentoClienteDto>? mapeamentos = null;
+            if (!string.IsNullOrWhiteSpace(mapeamentosJson))
+            {
+                try
+                {
+                    mapeamentos = System.Text.Json.JsonSerializer.Deserialize<List<MapeamentoClienteDto>>(
+                        mapeamentosJson,
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Falha ao desserializar mapeamentosJson: {Msg}", ex.Message);
+                }
+            }
+
+            var resultado = await ProcessarImportacao(linhas, liveId, mapeamentos);
             return Ok(resultado);
         }
         catch (Exception ex)
@@ -257,13 +457,28 @@ public class LiveImportController : ControllerBase
         _context.Produto.RemoveRange(produtos);
         await _context.SaveChangesAsync();
 
+        // 7. Deletar Pessoas criadas automaticamente para esta live (sem CPF, sem telefone e sem outros pedidos)
+        var pessoasDosPedidos = pedidos.Select(p => p.ClienteID).Distinct().ToList();
+        var pessoasAutoCriadas = await _context.Pessoa
+            .Where(p => pessoasDosPedidos.Contains(p.Id) &&
+                        (p.CPF == null || p.CPF == "") &&
+                        (p.Telefone == null || p.Telefone == "") &&
+                        !_context.Pedido.Any(outro => outro.ClienteID == p.Id && !pedidoIds.Contains(outro.Id)))
+            .ToListAsync();
+
+        if (pessoasAutoCriadas.Any())
+        {
+            _context.Pessoa.RemoveRange(pessoasAutoCriadas);
+            await _context.SaveChangesAsync();
+        }
+
         return (vendas.Count, nfces.Count, pedidos.Count, arremates.Count, produtos.Count);
     }
 
     /// <summary>
     /// Processa a importação completa: Produto → Arremate → Pedido → Venda
     /// </summary>
-    private async Task<object> ProcessarImportacao(List<LinhaArremate> linhas, int liveId)
+    private async Task<object> ProcessarImportacao(List<LinhaArremate> linhas, int liveId, List<MapeamentoClienteDto>? mapeamentosCustomizados = null)
     {
         // Validar Live
         var live = await _context.Live.FindAsync(liveId);
@@ -330,6 +545,39 @@ public class LiveImportController : ControllerBase
         var arrematesImportados = 0;
         var erros = new List<object>();
 
+        // Identificar compradores desconsiderados (desistência de compra)
+        var compradoresIgnorados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (mapeamentosCustomizados != null && mapeamentosCustomizados.Any())
+        {
+            // 1. Explicitamente marcados como Ignorado
+            foreach (var m in mapeamentosCustomizados.Where(m => m.Ignorado))
+            {
+                var comp = m.CompradorPlanilha?.Trim();
+                if (!string.IsNullOrEmpty(comp))
+                {
+                    compradoresIgnorados.Add(comp);
+                    compradoresIgnorados.Add(comp.TrimStart('@'));
+                }
+            }
+
+            // 2. Compradores que foram completamente excluídos da lista pelo operador
+            var compradoresPresentes = mapeamentosCustomizados
+                .Where(m => !m.Ignorado)
+                .Select(m => m.CompradorPlanilha?.Trim().TrimStart('@'))
+                .Where(n => !string.IsNullOrEmpty(n))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var l in linhas)
+            {
+                var cClean = (l.Comprador ?? "").Trim().TrimStart('@');
+                if (!string.IsNullOrEmpty(cClean) && !compradoresPresentes.Contains(cClean))
+                {
+                    compradoresIgnorados.Add(cClean);
+                    compradoresIgnorados.Add((l.Comprador ?? "").Trim());
+                }
+            }
+        }
+
         // Mapeamento: comprador -> lista de (produtoId, valor, descricao)
         var arrematePorComprador = new Dictionary<string, List<(int produtoId, decimal valor, string descricao)>>(
             StringComparer.OrdinalIgnoreCase);
@@ -337,6 +585,15 @@ public class LiveImportController : ControllerBase
         // ===== ETAPA 1: Para cada linha, criar Produto + Estoque + Arremate =====
         foreach (var linha in linhas)
         {
+            var compItem = (linha.Comprador ?? "").Trim();
+            var compItemClean = compItem.TrimStart('@');
+
+            // Pular compradores desconsiderados por desistência
+            if (compradoresIgnorados.Contains(compItem) || compradoresIgnorados.Contains(compItemClean))
+            {
+                continue;
+            }
+
             try
             {
                 // Chamar IA para desmembrar descrição
@@ -409,6 +666,15 @@ public class LiveImportController : ControllerBase
             }
         }
 
+        if (compradoresIgnorados.Any())
+        {
+            var nomesIgnorados = compradoresIgnorados
+                .Select(c => "@" + c.TrimStart('@'))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            avisos.Add($"Desconsideradas as peças de {nomesIgnorados.Count} comprador(es) por desistência: {string.Join(", ", nomesIgnorados)}");
+        }
+
         // ===== ETAPA 2: Para cada comprador, criar Pedido + PedidoProduto + Venda =====
         var pedidosGerados = 0;
         var vendasGeradas = 0;
@@ -432,23 +698,62 @@ public class LiveImportController : ControllerBase
                              ?? await _context.PessoaGenero.FirstOrDefaultAsync(g => g.Id == 1);
         var generoFemininoId = generoFeminino?.Id ?? 1;
 
+        var mapDict = new Dictionary<string, int?>(StringComparer.OrdinalIgnoreCase);
+        if (mapeamentosCustomizados != null)
+        {
+            foreach (var m in mapeamentosCustomizados)
+            {
+                if (!string.IsNullOrWhiteSpace(m.CompradorPlanilha))
+                    mapDict[m.CompradorPlanilha.Trim()] = m.PessoaId;
+            }
+        }
+
         foreach (var (comprador, itens) in arrematePorComprador)
         {
             try
             {
                 var pessoaCriada = false;
+                Pessoa? pessoa = null;
 
-                // Buscar Pessoa por NickName (case-insensitive)
-                var pessoa = await _context.Pessoa
-                    .FirstOrDefaultAsync(p => p.NickName != null &&
-                        p.NickName.ToLower() == comprador.ToLower());
+                // 1. Se o operador vinculou manualmente a uma Pessoa existente
+                if (mapDict.TryGetValue(comprador, out var idEscolhido) && idEscolhido.HasValue && idEscolhido.Value > 0)
+                {
+                    pessoa = await _context.Pessoa.FirstOrDefaultAsync(p => p.Id == idEscolhido.Value);
+                }
 
+                // 2. Se não veio mapeado explicitamente, buscar por matching inteligente (com/sem @ e pontuação)
                 if (pessoa == null)
                 {
-                    // Criar Pessoa mínima com categoria "Cliente"
+                    var cClean = comprador.Trim().TrimStart('@').ToLower();
+                    var cAlnum = new string(cClean.Where(char.IsLetterOrDigit).ToArray());
+
+                    // Busca exata (NickName com ou sem @)
+                    pessoa = await _context.Pessoa
+                        .FirstOrDefaultAsync(p => p.NickName != null &&
+                            (p.NickName.ToLower().Trim() == cClean ||
+                             p.NickName.ToLower().Trim() == "@" + cClean));
+
+                    // Busca alfanumérica (ignora . e _)
+                    if (pessoa == null && !string.IsNullOrEmpty(cAlnum))
+                    {
+                        var candidatos = await _context.Pessoa
+                            .Where(p => p.NickName != null && p.StatusId == 1)
+                            .ToListAsync();
+
+                        pessoa = candidatos.FirstOrDefault(p =>
+                        {
+                            var nAlnum = new string((p.NickName ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLower();
+                            return nAlnum == cAlnum;
+                        });
+                    }
+                }
+
+                // 3. Se ainda assim não existe, criar Pessoa mínima com categoria "Cliente"
+                if (pessoa == null)
+                {
                     pessoa = new Pessoa
                     {
-                        NickName = comprador,
+                        NickName = comprador.StartsWith("@") ? comprador : "@" + comprador,
                         Nome = comprador,
                         PessoaGeneroId = generoFemininoId,
                         PessoaCategoriaId = categoriaClienteId,
@@ -544,4 +849,27 @@ public class ImportarUrlRequest
     public int LiveId { get; set; }
     public string GoogleSheetUrl { get; set; } = string.Empty;
     public string? SheetName { get; set; } = "vendas";
+    public List<MapeamentoClienteDto>? Mapeamentos { get; set; }
+}
+
+public class MapeamentoClienteDto
+{
+    public string CompradorPlanilha { get; set; } = string.Empty;
+    public int? PessoaId { get; set; }
+    public int TotalPecas { get; set; }
+    public decimal ValorTotal { get; set; }
+    public int? SugeridoPessoaId { get; set; }
+    public string? SugeridoNome { get; set; }
+    public string? SugeridoNick { get; set; }
+    public string? SugeridoCpf { get; set; }
+    public string? TipoMatch { get; set; } // "EXATO", "SIMILAR", "NOVO", "MANUAL"
+    public bool Ignorado { get; set; } = false;
+}
+
+public class ClienteComboDto
+{
+    public int Id { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string NickName { get; set; } = string.Empty;
+    public string? Cpf { get; set; }
 }

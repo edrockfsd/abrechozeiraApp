@@ -888,7 +888,7 @@ public class NfceService
         // <infNFeSupl>
         var qrCodeUrl = GerarQrCodeUrl(chaveAcesso, config);
         xmlStr.Append("<infNFeSupl>");
-        xmlStr.Append($"<qrCode><![CDATA[{qrCodeUrl}]]></qrCode>");
+        xmlStr.Append($"<qrCode>{qrCodeUrl}</qrCode>");
         xmlStr.Append("<urlChave>http://www.fazenda.pr.gov.br/nfce/consulta</urlChave>");
         xmlStr.Append("</infNFeSupl>");
 
@@ -991,7 +991,7 @@ public class NfceService
     /// </summary>
     private string GerarQrCodeUrl(string chaveAcesso, EmpresaFiscal config)
     {
-        var cIdTokenRaw = config.CSCId ?? "1";
+        var cIdTokenRaw = (config.CSCId ?? "1").Trim();
         var cIdToken = int.TryParse(cIdTokenRaw, out var idVal) ? idVal.ToString() : cIdTokenRaw.TrimStart('0');
         if (string.IsNullOrEmpty(cIdToken)) cIdToken = "1";
 

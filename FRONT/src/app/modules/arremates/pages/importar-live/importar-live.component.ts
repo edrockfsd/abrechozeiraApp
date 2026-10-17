@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ComboBoxModule } from '@syncfusion/ej2-angular-dropdowns';
+import { ComboBoxModule, FilteringEventArgs } from '@syncfusion/ej2-angular-dropdowns';
 import { GridComponent, GridModule } from '@syncfusion/ej2-angular-grids';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
 import { ToastModule, ToastComponent } from '@syncfusion/ej2-angular-notifications';
@@ -12,8 +12,27 @@ import {
   LinhaPreview,
   ResultadoImportacaoLive,
   DetalhePedidoLive,
-  StatusLiveImportacao
+  StatusLiveImportacao,
+  MapeamentoCliente,
+  ClienteCombo
 } from '../../services/arremate.service';
+
+export interface ClienteOption {
+  id: number | null;
+  label: string;
+  nome: string;
+  nick: string;
+  cpf: string;
+  searchStr: string;
+  cpfDigits: string;
+}
+
+function normalizarParaBusca(texto: string): string {
+  return (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 
 @Component({
   selector: 'app-importar-live',
@@ -66,6 +85,14 @@ export class ImportarLiveComponent implements OnInit {
   previewData: LinhaPreview[] | null = null;
   previewResumo: { totalLinhas: number; compradores: number } | null = null;
   resultadoImportacao: ResultadoImportacaoLive | null = null;
+
+  // Mapeamento e Vinculação de Clientes
+  mapeamentos: MapeamentoCliente[] = [];
+  clientesCadastrados: ClienteCombo[] = [];
+  clientesOptions: ClienteOption[] = [];
+  public clienteFields: object = { text: 'label', value: 'id' };
+  filtroMapeamento: 'todos' | 'vinculados' | 'parecidos' | 'novos' | 'desconsiderados' = 'todos';
+  buscaComprador: string = '';
   
   mensagem: { tipo: 'success' | 'warning' | 'error'; titulo: string; texto: string } | null = null;
 
@@ -127,40 +154,207 @@ export class ImportarLiveComponent implements OnInit {
       }
       this.selectedFile = file;
       this.selectedFileName = file.name;
+      // Carregar prévia e vínculos automaticamente ao selecionar arquivo
+      this.carregarPreview();
     }
   }
 
   carregarPreview(): void {
-    if (this.modoImportacao === 'url') {
-      if (!this.googleSheetUrl.trim()) {
-        this.showToast('warning', 'URL Obrigatória', 'Informe a URL da Google Sheet.');
-        return;
+    if (this.modoImportacao === 'url' && !this.googleSheetUrl.trim()) {
+      this.showToast('warning', 'URL Obrigatória', 'Informe a URL da Google Sheet.');
+      return;
+    }
+
+    if (this.modoImportacao === 'arquivo' && !this.selectedFile) {
+      this.showToast('warning', 'Arquivo Obrigatório', 'Selecione um arquivo .xlsx para carregar a prévia.');
+      return;
+    }
+
+    this.loadingPreview = true;
+    this.previewData = null;
+    this.mapeamentos = [];
+    this.mensagem = null;
+
+    const request$ = this.modoImportacao === 'url'
+      ? this.arremateService.previewUrl(this.googleSheetUrl, this.sheetName)
+      : this.arremateService.previewXlsx(this.selectedFile!);
+
+    request$.subscribe({
+      next: (res) => {
+        this.previewData = res.linhas;
+        this.previewResumo = {
+          totalLinhas: res.totalLinhas,
+          compradores: res.compradores
+        };
+        this.mapeamentos = res.mapeamentos || [];
+        this.clientesCadastrados = res.clientes || [];
+
+        // Montar opções com índice de busca (Google-like substring em qualquer parte de Nome, Nick ou CPF)
+        this.clientesOptions = [
+          {
+            id: null,
+            label: '➕ Criar Novo Cliente (Auto-cadastro)',
+            nome: '',
+            nick: '',
+            cpf: '',
+            searchStr: 'criar novo cliente auto cadastro novo',
+            cpfDigits: ''
+          },
+          ...this.clientesCadastrados.map(c => {
+            const cpfNum = (c.cpf || '').replace(/\D/g, '');
+            const label = `${c.nome} (${c.nickName || 'sem @'})${c.cpf ? ' - CPF: ' + c.cpf : ''}`;
+            const searchStr = normalizarParaBusca(`${c.nome} ${c.nickName || ''} ${c.cpf || ''} ${cpfNum}`);
+            return {
+              id: c.id,
+              label,
+              nome: c.nome,
+              nick: c.nickName || '',
+              cpf: c.cpf || '',
+              searchStr,
+              cpfDigits: cpfNum
+            };
+          })
+        ];
+
+        this.loadingPreview = false;
+        const vinculados = this.totalVinculados;
+        const novos = this.totalNovos;
+        this.showToast(
+          'success',
+          'Prévia Carregada',
+          `${res.totalLinhas} peças e ${res.compradores} compradores encontrados (${vinculados} vinculados, ${novos} novos).`
+        );
+      },
+      error: (err) => {
+        this.loadingPreview = false;
+        console.error('Erro ao carregar prévia:', err);
+        const erroMsg = err.error?.erro || 'Erro ao ler os dados da planilha.';
+        this.showToast('error', 'Erro na Prévia', erroMsg);
+      }
+    });
+  }
+
+  // Busca inteligente tipo Google no Dropdown (filtra por qualquer termo em nome, sobrenome, nick ou CPF)
+  onFilteringCliente(e: FilteringEventArgs): void {
+    const rawText = (e.text || '').trim();
+    e.preventDefaultAction = true;
+
+    if (!rawText) {
+      e.updateData(this.clientesOptions as any);
+      return;
+    }
+
+    const tokens = normalizarParaBusca(rawText).split(/\s+/).filter(t => t.length > 0);
+    const cleanDigits = rawText.replace(/\D/g, '');
+
+    const filtered = this.clientesOptions.filter(opt => {
+      if (!opt.id) return false;
+      // Todos os tokens digitados precisam existir em qualquer parte da string de busca
+      const allTokensMatch = tokens.every(token => opt.searchStr.includes(token));
+      if (allTokensMatch) return true;
+
+      // Busca por dígitos de CPF
+      if (cleanDigits.length >= 3 && opt.cpfDigits && opt.cpfDigits.includes(cleanDigits)) {
+        return true;
       }
 
-      this.loadingPreview = true;
-      this.previewData = null;
-      this.mensagem = null;
+      return false;
+    });
 
-      this.arremateService.previewUrl(this.googleSheetUrl, this.sheetName).subscribe({
-        next: (res) => {
-          this.previewData = res.linhas;
-          this.previewResumo = {
-            totalLinhas: res.totalLinhas,
-            compradores: res.compradores
-          };
-          this.loadingPreview = false;
-          this.showToast('success', 'Preview Carregado', `${res.totalLinhas} linhas encontradas com ${res.compradores} compradores.`);
-        },
-        error: (err) => {
-          this.loadingPreview = false;
-          console.error('Erro ao carregar preview:', err);
-          const erroMsg = err.error?.erro || 'Erro ao ler os dados da planilha via URL.';
-          this.showToast('error', 'Erro no Preview', erroMsg);
-        }
-      });
+    e.updateData(filtered as any);
+  }
+
+  // Alternar desconsiderar comprador (desistência de compra)
+  toggleDesconsiderarComprador(item: MapeamentoCliente): void {
+    item.ignorado = !item.ignorado;
+    if (item.ignorado) {
+      this.showToast('warning', 'Comprador Desconsiderado', `@${item.compradorPlanilha} (${item.totalPecas} peças) não será importado.`);
     } else {
-      this.showToast('info', 'Importação Direta', 'Para arquivos locais (.xlsx), clique diretamente em "Processar e Importar".');
+      this.showToast('success', 'Comprador Restaurado', `@${item.compradorPlanilha} foi restaurado para a importação.`);
     }
+  }
+
+  // Getters para a UI de Mapeamento
+  get totalAtivos(): number {
+    return this.mapeamentos.filter(m => !m.ignorado).length;
+  }
+
+  get totalIgnorados(): number {
+    return this.mapeamentos.filter(m => !!m.ignorado).length;
+  }
+
+  get totalVinculados(): number {
+    return this.mapeamentos.filter(m => !m.ignorado && m.pessoaId !== null && m.pessoaId !== undefined && m.tipoMatch !== 'SIMILAR').length;
+  }
+
+  get totalParecidos(): number {
+    return this.mapeamentos.filter(m => !m.ignorado && m.pessoaId !== null && m.pessoaId !== undefined && m.tipoMatch === 'SIMILAR').length;
+  }
+
+  get totalNovos(): number {
+    return this.mapeamentos.filter(m => !m.ignorado && (m.pessoaId === null || m.pessoaId === undefined)).length;
+  }
+
+  get totalPecasImportar(): number {
+    return this.mapeamentos.filter(m => !m.ignorado).reduce((acc, m) => acc + m.totalPecas, 0);
+  }
+
+  get totalPecasIgnoradas(): number {
+    return this.mapeamentos.filter(m => !!m.ignorado).reduce((acc, m) => acc + m.totalPecas, 0);
+  }
+
+  get mapeamentosFiltrados(): MapeamentoCliente[] {
+    let lista = this.mapeamentos;
+
+    if (this.filtroMapeamento === 'vinculados') {
+      lista = lista.filter(m => !m.ignorado && m.pessoaId !== null && m.pessoaId !== undefined && m.tipoMatch !== 'SIMILAR');
+    } else if (this.filtroMapeamento === 'parecidos') {
+      lista = lista.filter(m => !m.ignorado && m.pessoaId !== null && m.pessoaId !== undefined && m.tipoMatch === 'SIMILAR');
+    } else if (this.filtroMapeamento === 'novos') {
+      lista = lista.filter(m => !m.ignorado && (m.pessoaId === null || m.pessoaId === undefined));
+    } else if (this.filtroMapeamento === 'desconsiderados') {
+      lista = lista.filter(m => !!m.ignorado);
+    }
+
+    if (this.buscaComprador.trim()) {
+      const q = normalizarParaBusca(this.buscaComprador.trim());
+      lista = lista.filter(m =>
+        normalizarParaBusca(m.compradorPlanilha).includes(q) ||
+        (m.sugeridoNome && normalizarParaBusca(m.sugeridoNome).includes(q)) ||
+        (m.sugeridoNick && normalizarParaBusca(m.sugeridoNick).includes(q)) ||
+        (m.sugeridoCpf && m.sugeridoCpf.includes(q))
+      );
+    }
+
+    return lista;
+  }
+
+  onClienteChange(item: MapeamentoCliente, event: any): void {
+    const novoId = event.value ? Number(event.value) : null;
+    item.pessoaId = novoId;
+
+    if (novoId) {
+      const cliente = this.clientesCadastrados.find(c => c.id === novoId);
+      if (cliente) {
+        item.sugeridoNome = cliente.nome;
+        item.sugeridoNick = cliente.nickName;
+        item.sugeridoCpf = cliente.cpf;
+        item.tipoMatch = item.sugeridoPessoaId === novoId ? (item.tipoMatch || 'EXATO') : 'MANUAL';
+      }
+    } else {
+      item.sugeridoNome = null;
+      item.sugeridoNick = null;
+      item.sugeridoCpf = null;
+      item.tipoMatch = 'NOVO';
+    }
+  }
+
+  desvincularCliente(item: MapeamentoCliente): void {
+    item.pessoaId = null;
+    item.sugeridoNome = null;
+    item.sugeridoNick = null;
+    item.sugeridoCpf = null;
+    item.tipoMatch = 'NOVO';
   }
 
   executarImportacao(): void {
@@ -186,10 +380,10 @@ export class ImportarLiveComponent implements OnInit {
 
     let confirmMsg = `Confirma a importação dos arremates da live selecionada?
 Isso irá:
-1. Cadastrar as peças como Produtos (desmembradas por IA)
+1. Cadastrar as peças como Produtos (${this.totalPecasImportar} peças)
 2. Gerar registros de Arremates
-3. Criar Pedidos e Vendas para cada cliente
-4. Vincular para posterior emissão de NFC-e`;
+3. Criar Pedidos e Vendas vinculando ${this.totalVinculados + this.totalParecidos} clientes existentes e criando ${this.totalNovos} novos
+${this.totalIgnorados > 0 ? `4. Desconsiderar ${this.totalIgnorados} comprador(es) (${this.totalPecasIgnoradas} peças) por desistência\n` : ''}5. Deixar pronto para posterior emissão de NFC-e`;
 
     if (this.statusLive && this.statusLive.totalVendas > 0) {
       confirmMsg = `⚠️ ATENÇÃO: Esta Live já possui ${this.statusLive.totalVendas} vendas geradas anteriormente (sem NFC-e autorizada).
@@ -212,7 +406,7 @@ Deseja iniciar o processamento?`;
     this.mensagem = null;
 
     if (this.modoImportacao === 'url') {
-      this.arremateService.importarPlanilhaUrl(this.selectedLiveId, this.googleSheetUrl, this.sheetName).subscribe({
+      this.arremateService.importarPlanilhaUrl(this.selectedLiveId, this.googleSheetUrl, this.sheetName, this.mapeamentos).subscribe({
         next: (res) => {
           this.resultadoImportacao = res;
           this.loadingImport = false;
@@ -228,7 +422,7 @@ Deseja iniciar o processamento?`;
         }
       });
     } else if (this.selectedFile) {
-      this.arremateService.importarPlanilhaXlsx(this.selectedFile, this.selectedLiveId).subscribe({
+      this.arremateService.importarPlanilhaXlsx(this.selectedFile, this.selectedLiveId, this.mapeamentos).subscribe({
         next: (res) => {
           this.resultadoImportacao = res;
           this.loadingImport = false;

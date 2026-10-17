@@ -136,16 +136,15 @@
       </div>
     </div>
 
-    <!-- Barra de Ações -->
-    <div class="actions-bar">
+    <!-- Barra de Ações do Passo 2 (Carregar Prévia) -->
+    <div class="actions-bar" *ngIf="mapeamentos.length === 0">
       <button 
-        *ngIf="modoImportacao === 'url'"
         class="btn btn-secondary" 
         (click)="carregarPreview()" 
-        [disabled]="loadingPreview || loadingImport">
+        [disabled]="loadingPreview || loadingImport || !selectedLiveId">
         <span class="material-icons" *ngIf="!loadingPreview">visibility</span>
         <span class="spinner" *ngIf="loadingPreview"></span>
-        {{ loadingPreview ? 'Carregando Dados...' : 'Visualizar Preview' }}
+        {{ loadingPreview ? 'Lendo Planilha e Cruzando Clientes...' : 'Carregar Prévia & Vincular Clientes' }}
       </button>
 
       <button 
@@ -154,8 +153,253 @@
         [disabled]="loadingImport || loadingPreview || !selectedLiveId || statusLive?.bloqueadoParaImportacao">
         <span class="material-icons" *ngIf="!loadingImport">auto_awesome</span>
         <span class="spinner" *ngIf="loadingImport"></span>
-        {{ loadingImport ? 'Processando com IA & Importando...' : (statusLive?.bloqueadoParaImportacao ? 'Importação Bloqueada (NFC-e Autorizada)' : 'Processar & Importar com IA') }}
+        {{ loadingImport ? 'Processando...' : (statusLive?.bloqueadoParaImportacao ? 'Importação Bloqueada (NFC-e Autorizada)' : 'Importar Direto com IA') }}
       </button>
+    </div>
+  </div>
+
+  <!-- Passo 3: Conferência e Vinculação de Clientes -->
+  <div class="config-card mapping-card" *ngIf="mapeamentos.length > 0 && !resultadoImportacao">
+    <div class="card-section">
+      <div class="section-title space-between">
+        <div class="title-with-step">
+          <span class="step-num">3</span>
+          <div>
+            <h3>Vinculação de Clientes da Planilha com Cadastros do Sistema</h3>
+            <p class="section-desc">
+              Confira ou altere o cliente cadastrado para cada comprador. Ideal para associar perfis de maridos/filhos ou corrigir pequenas divergências de digitação no Instagram antes de emitir a NFC-e.
+            </p>
+          </div>
+        </div>
+
+        <button class="btn btn-reload" (click)="carregarPreview()" [disabled]="loadingPreview || loadingImport" title="Recarregar dados da planilha">
+          <span class="material-icons">refresh</span> Recarregar Planilha
+        </button>
+      </div>
+
+      <!-- KPIs do Mapeamento -->
+      <div class="mapping-kpis">
+        <div class="kpi-mini">
+          <span class="kpi-mini-icon material-icons">groups</span>
+          <div>
+            <span class="kpi-mini-val">{{ totalAtivos }}</span>
+            <span class="kpi-mini-lbl">Compradores a Importar</span>
+          </div>
+        </div>
+        <div class="kpi-mini success">
+          <span class="kpi-mini-icon material-icons">verified_user</span>
+          <div>
+            <span class="kpi-mini-val">{{ totalVinculados }}</span>
+            <span class="kpi-mini-lbl">Identificados com Certeza</span>
+          </div>
+        </div>
+        <div class="kpi-mini similar" *ngIf="totalParecidos > 0">
+          <span class="kpi-mini-icon material-icons">psychology</span>
+          <div>
+            <span class="kpi-mini-val">{{ totalParecidos }}</span>
+            <span class="kpi-mini-lbl">Sugestões IA (Verifique)</span>
+          </div>
+        </div>
+        <div class="kpi-mini warning">
+          <span class="kpi-mini-icon material-icons">person_add</span>
+          <div>
+            <span class="kpi-mini-val">{{ totalNovos }}</span>
+            <span class="kpi-mini-lbl">Novos Cadastros</span>
+          </div>
+        </div>
+        <div class="kpi-mini danger" *ngIf="totalIgnorados > 0">
+          <span class="kpi-mini-icon material-icons">block</span>
+          <div>
+            <span class="kpi-mini-val">{{ totalIgnorados }}</span>
+            <span class="kpi-mini-lbl">Desconsiderados (Desistiram)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Ferramentas / Filtros -->
+      <div class="mapping-toolbar">
+        <div class="search-box">
+          <span class="material-icons">search</span>
+          <input 
+            type="text" 
+            [(ngModel)]="buscaComprador" 
+            placeholder="Pesquisar comprador na planilha ou cliente..." 
+            class="search-input" />
+          <button *ngIf="buscaComprador" (click)="buscaComprador = ''" class="btn-clear-search">×</button>
+        </div>
+
+        <div class="filter-pills">
+          <button 
+            type="button" 
+            class="pill-btn" 
+            [class.active]="filtroMapeamento === 'todos'"
+            (click)="filtroMapeamento = 'todos'">
+            Todos ({{ mapeamentos.length }})
+          </button>
+          <button 
+            type="button" 
+            class="pill-btn success" 
+            [class.active]="filtroMapeamento === 'vinculados'"
+            (click)="filtroMapeamento = 'vinculados'">
+            ✓ Vinculados ({{ totalVinculados }})
+          </button>
+          <button 
+            *ngIf="totalParecidos > 0"
+            type="button" 
+            class="pill-btn similar" 
+            [class.active]="filtroMapeamento === 'parecidos'"
+            (click)="filtroMapeamento = 'parecidos'">
+            ~ Sugestões IA ({{ totalParecidos }})
+          </button>
+          <button 
+            type="button" 
+            class="pill-btn warning" 
+            [class.active]="filtroMapeamento === 'novos'"
+            (click)="filtroMapeamento = 'novos'">
+            + Novos ({{ totalNovos }})
+          </button>
+          <button 
+            *ngIf="totalIgnorados > 0"
+            type="button" 
+            class="pill-btn danger" 
+            [class.active]="filtroMapeamento === 'desconsiderados'"
+            (click)="filtroMapeamento = 'desconsiderados'">
+            🚫 Desconsiderados ({{ totalIgnorados }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela de Mapeamento -->
+      <div class="mapping-table-wrapper">
+        <table class="mapping-table">
+          <thead>
+            <tr>
+              <th style="width: 280px;">Comprador na Planilha</th>
+              <th style="width: 140px;">Status</th>
+              <th>Cliente Vinculado no Sistema</th>
+              <th style="width: 110px; text-align: center;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of mapeamentosFiltrados" 
+                [class.unlinked-row]="!item.pessoaId && !item.ignorado" 
+                [class.similar-row]="item.pessoaId && item.tipoMatch === 'SIMILAR' && !item.ignorado"
+                [class.ignored-row]="item.ignorado">
+              <td class="col-comprador">
+                <div class="buyer-info" [class.buyer-ignored]="item.ignorado">
+                  <span class="buyer-name">&#64;{{ item.compradorPlanilha }}</span>
+                  <span class="buyer-stats">
+                    {{ item.totalPecas }} {{ item.totalPecas === 1 ? 'peça' : 'peças' }} • {{ formatCurrency(item.valorTotal) }}
+                  </span>
+                  <span class="buyer-ignored-badge" *ngIf="item.ignorado">
+                    <span class="material-icons mini-icon">cancel</span> Desistência da compra
+                  </span>
+                </div>
+              </td>
+              <td class="col-status">
+                <span class="badge-tag ignored-tag" *ngIf="item.ignorado">
+                  <span class="material-icons mini-icon">block</span> Desconsiderado
+                </span>
+                <ng-container *ngIf="!item.ignorado">
+                  <span class="badge-tag exist-tag" *ngIf="item.pessoaId && item.tipoMatch !== 'SIMILAR'">
+                    <span class="material-icons mini-icon">check_circle</span> Vinculado
+                  </span>
+                  <span class="badge-tag similar-tag" *ngIf="item.pessoaId && item.tipoMatch === 'SIMILAR'">
+                    <span class="material-icons mini-icon">help_outline</span> Parecido
+                  </span>
+                  <span class="badge-tag new-tag" *ngIf="!item.pessoaId">
+                    <span class="material-icons mini-icon">add_circle_outline</span> Novo
+                  </span>
+                </ng-container>
+              </td>
+              <td class="col-cliente">
+                <div class="combobox-wrapper" [class.opacity-50]="item.ignorado">
+                  <ejs-combobox
+                    [dataSource]="clientesOptions"
+                    [fields]="clienteFields"
+                    [value]="item.pessoaId"
+                    (change)="onClienteChange(item, $event)"
+                    (filtering)="onFilteringCliente($event)"
+                    [allowFiltering]="true"
+                    [showClearButton]="true"
+                    [autofill]="false"
+                    [ignoreAccent]="true"
+                    [filterType]="'Contains'"
+                    [popupHeight]="'320px'"
+                    [enabled]="!item.ignorado"
+                    placeholder="Buscar por Nome, Instagram ou CPF..."
+                    cssClass="e-outline custom-combobox-mapping">
+                  </ejs-combobox>
+
+                  <div class="customer-preview" *ngIf="item.pessoaId && !item.ignorado">
+                    <span class="cpf-badge" *ngIf="item.sugeridoCpf">
+                      <span class="material-icons mini-icon">badge</span> CPF: {{ item.sugeridoCpf }}
+                    </span>
+                    <span class="cpf-badge warning-cpf" *ngIf="!item.sugeridoCpf">
+                      <span class="material-icons mini-icon">warning</span> Sem CPF cadastrado
+                    </span>
+                    <span class="match-type" *ngIf="item.tipoMatch === 'EXATO'">
+                      ✓ Auto-detectado
+                    </span>
+                    <span class="match-type similar" *ngIf="item.tipoMatch === 'SIMILAR'">
+                      ~ Sugestão IA (Confira)
+                    </span>
+                    <span class="match-type manual" *ngIf="item.tipoMatch === 'MANUAL'">
+                      👤 Vinculado Manualmente
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td class="col-actions">
+                <div class="actions-group">
+                  <button 
+                    *ngIf="item.pessoaId && !item.ignorado"
+                    type="button" 
+                    class="btn-unlink" 
+                    (click)="desvincularCliente(item)"
+                    title="Desvincular e criar como novo cliente">
+                    <span class="material-icons">person_remove</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn-ignore-buyer" 
+                    [class.active-ignored]="item.ignorado"
+                    (click)="toggleDesconsiderarComprador(item)"
+                    [title]="item.ignorado ? 'Restaurar comprador para a live' : 'Desconsiderar / Excluir da live (desistência de compra)'">
+                    <span class="material-icons">{{ item.ignorado ? 'replay' : 'delete_outline' }}</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="mapeamentosFiltrados.length === 0">
+              <td colspan="4" class="no-records">
+                Nenhum comprador encontrado com o filtro atual.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Barra de Confirmação e Importação -->
+      <div class="mapping-actions-bar">
+        <div class="mapping-summary-text">
+          Pronto para importar <strong>{{ totalPecasImportar }} peças</strong> para <strong>{{ totalAtivos }} compradores</strong>: 
+          <span class="text-success"><strong>{{ totalVinculados + totalParecidos }}</strong> vinculados a cadastros existentes</span> e 
+          <span class="text-warning"><strong>{{ totalNovos }}</strong> serão cadastrados como novos</span>.
+          <span class="text-danger" *ngIf="totalIgnorados > 0">
+            (<strong>{{ totalIgnorados }}</strong> comprador(es) e <strong>{{ totalPecasIgnoradas }}</strong> peça(s) desconsiderados por desistência).
+          </span>
+        </div>
+
+        <button 
+          class="btn btn-primary btn-large" 
+          (click)="executarImportacao()" 
+          [disabled]="loadingImport || loadingPreview || !selectedLiveId || statusLive?.bloqueadoParaImportacao">
+          <span class="material-icons" *ngIf="!loadingImport">auto_awesome</span>
+          <span class="spinner" *ngIf="loadingImport"></span>
+          {{ loadingImport ? 'Processando com IA & Importando...' : 'Confirmar Vínculos & Importar com IA' }}
+        </button>
+      </div>
     </div>
   </div>
 

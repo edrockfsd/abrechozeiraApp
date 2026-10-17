@@ -50,10 +50,32 @@ export interface LinhaPreview {
   linhaOriginal: number;
 }
 
+export interface MapeamentoCliente {
+  compradorPlanilha: string;
+  pessoaId: number | null;
+  totalPecas: number;
+  valorTotal: number;
+  sugeridoPessoaId?: number | null;
+  sugeridoNome?: string | null;
+  sugeridoNick?: string | null;
+  sugeridoCpf?: string | null;
+  tipoMatch?: 'EXATO' | 'SIMILAR' | 'NOVO' | 'MANUAL';
+  ignorado?: boolean;
+}
+
+export interface ClienteCombo {
+  id: number;
+  nome: string;
+  nickName: string;
+  cpf?: string;
+}
+
 export interface PreviewResultado {
   totalLinhas: number;
   compradores: number;
   linhas: LinhaPreview[];
+  mapeamentos: MapeamentoCliente[];
+  clientes: ClienteCombo[];
 }
 
 export interface DetalhePedidoLive {
@@ -134,18 +156,28 @@ export class ArremateService {
     );
   }
 
-  importarPlanilhaUrl(liveId: number, googleSheetUrl: string, sheetName: string = 'vendas'): Observable<ResultadoImportacaoLive> {
+  previewXlsx(arquivo: File): Observable<PreviewResultado> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    return this.http.post<PreviewResultado>(`${this.apiUrl}/LiveImport/preview-xlsx`, formData);
+  }
+
+  importarPlanilhaUrl(liveId: number, googleSheetUrl: string, sheetName: string = 'vendas', mapeamentos?: MapeamentoCliente[]): Observable<ResultadoImportacaoLive> {
     return this.http.post<ResultadoImportacaoLive>(`${this.apiUrl}/LiveImport/importar-url`, {
       liveId,
       googleSheetUrl,
-      sheetName
+      sheetName,
+      mapeamentos
     });
   }
 
-  importarPlanilhaXlsx(arquivo: File, liveId: number): Observable<ResultadoImportacaoLive> {
+  importarPlanilhaXlsx(arquivo: File, liveId: number, mapeamentos?: MapeamentoCliente[]): Observable<ResultadoImportacaoLive> {
     const formData = new FormData();
     formData.append('arquivo', arquivo);
     formData.append('liveId', liveId.toString());
+    if (mapeamentos && mapeamentos.length > 0) {
+      formData.append('mapeamentosJson', JSON.stringify(mapeamentos));
+    }
     return this.http.post<ResultadoImportacaoLive>(`${this.apiUrl}/LiveImport/importar-xlsx`, formData);
   }
 }
