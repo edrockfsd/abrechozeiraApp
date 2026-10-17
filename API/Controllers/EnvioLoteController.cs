@@ -1196,7 +1196,7 @@ namespace ABrechozeiraApp.Controllers
             var usuario = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "desconhecido";
             _logger.LogWarning("Cotação {TransacaoId} marcada como paga manualmente por {Usuario}.", transacaoId, usuario);
 
-            await _pagamentoFrete.ConfirmarPagamentoAsync(map, PagamentoFreteService.OrigemManual, usuario);
+            var erroLiberacao = await _pagamentoFrete.ConfirmarPagamentoAsync(map, PagamentoFreteService.OrigemManual, usuario);
 
             return Ok(new
             {
@@ -1209,7 +1209,7 @@ namespace ABrechozeiraApp.Controllers
                     ? "Pagamento registrado. A etiqueta será liberada quando for gerada."
                     : map.StatusSuperfrete == "Liberada"
                         ? "Pagamento registrado e etiqueta liberada no Superfrete."
-                        : "Pagamento registrado, mas houve erro ao liberar a etiqueta no Superfrete."
+                        : $"Pagamento registrado, mas o Superfrete recusou a liberação da etiqueta: {erroLiberacao}"
             });
         }
 
@@ -1423,6 +1423,8 @@ namespace ABrechozeiraApp.Controllers
                 {
                     if (dict.TryGetValue(transacaoId, out var info))
                     {
+                        string? erroCheckout = null;
+
                         // Sincroniza em tempo real com a Superfrete (caso o rastreio ou status mudou lá)
                         if (!string.IsNullOrEmpty(info.EtiquetaId))
                         {
@@ -1434,14 +1436,11 @@ namespace ABrechozeiraApp.Controllers
                                     info.StatusSuperfrete = etiquetaInfo.Status;
                                 }
 
-                                // Se está pago na loja mas falhou/ainda está no carrinho na Superfrete, tenta o checkout de novo!
-                                if (info.StatusPagamento == "Pago" && info.StatusSuperfrete != "Liberada" && info.StatusSuperfrete != "Cancelada")
+                                // Pago na loja mas a etiqueta ainda está no carrinho do Superfrete: tenta o checkout de novo
+                                var etiquetaPendente = info.StatusSuperfrete is "pending" or "Carrinho" or "Erro Checkout";
+                                if (info.StatusPagamento == "Pago" && etiquetaPendente)
                                 {
-                                    var sucessoCheckout = await _superfrete.CheckoutAsync(info.EtiquetaId);
-                                    if (sucessoCheckout)
-                                    {
-                                        info.StatusSuperfrete = "Liberada";
-                                    }
+                                    erroCheckout = await _pagamentoFrete.LiberarEtiquetaAsync(info);
                                 }
                             }
                             catch (Exception ex)
@@ -1454,7 +1453,8 @@ namespace ABrechozeiraApp.Controllers
                         {
                             TransacaoId = transacaoId,
                             StatusPagamento = info.StatusPagamento,
-                            StatusSuperfrete = info.StatusSuperfrete
+                            StatusSuperfrete = info.StatusSuperfrete,
+                            ErroCheckout = erroCheckout
                         });
                     }
                     else

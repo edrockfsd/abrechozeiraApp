@@ -31,8 +31,9 @@ namespace ABrechozeiraApp.Services
         /// <summary>
         /// Marca a cotação como paga, registrando a origem (automático/manual), e libera a etiqueta se ela já existir.
         /// Sem etiqueta, o pagamento fica registrado e a liberação acontece quando a etiqueta for gerada.
+        /// Devolve a mensagem de erro do Superfrete se a liberação falhar.
         /// </summary>
-        public async Task ConfirmarPagamentoAsync(EnvioLoteMap map, string origem, string? usuario = null)
+        public async Task<string?> ConfirmarPagamentoAsync(EnvioLoteMap map, string origem, string? usuario = null)
         {
             if (map.StatusPagamento != "Pago")
             {
@@ -45,21 +46,23 @@ namespace ABrechozeiraApp.Services
             }
 
             if (!string.IsNullOrEmpty(map.EtiquetaId) && map.StatusSuperfrete != "Liberada")
-                await LiberarEtiquetaAsync(map);
+                return await LiberarEtiquetaAsync(map);
+            return null;
         }
 
         /// <summary>
         /// Faz o checkout da etiqueta no Superfrete e, em seguida, envia o e-mail de rastreio em segundo plano.
+        /// Devolve null em caso de sucesso ou a mensagem de erro do Superfrete.
         /// </summary>
-        public async Task<bool> LiberarEtiquetaAsync(EnvioLoteMap map)
+        public async Task<string?> LiberarEtiquetaAsync(EnvioLoteMap map)
         {
-            var sucesso = await _superfrete.CheckoutAsync(map.EtiquetaId);
+            var (sucesso, erro) = await _superfrete.CheckoutAsync(map.EtiquetaId);
             if (!sucesso)
             {
-                _logger.LogError("Erro ao processar checkout da etiqueta {EtiquetaId} no Superfrete após pagamento.", map.EtiquetaId);
+                _logger.LogError("Erro ao processar checkout da etiqueta {EtiquetaId} no Superfrete após pagamento: {Erro}", map.EtiquetaId, erro);
                 map.StatusSuperfrete = "Erro Checkout";
                 await _context.SaveChangesAsync();
-                return false;
+                return erro ?? "Erro desconhecido no Superfrete";
             }
 
             _logger.LogInformation("Checkout da etiqueta {EtiquetaId} realizado com sucesso!", map.EtiquetaId);
@@ -92,7 +95,7 @@ namespace ABrechozeiraApp.Services
                 }
             });
 
-            return true;
+            return null;
         }
     }
 }

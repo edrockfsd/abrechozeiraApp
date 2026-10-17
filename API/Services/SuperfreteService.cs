@@ -495,7 +495,11 @@ namespace ABrechozeiraApp.Services
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<EtiquetaInfo>(json);
         }
-        public async Task<bool> CheckoutAsync(string etiquetaId)
+        /// <summary>
+        /// Paga a etiqueta com o saldo da conta Superfrete. Em caso de falha, devolve a mensagem do Superfrete
+        /// (ex.: saldo insuficiente) para ser mostrada ao usuário.
+        /// </summary>
+        public async Task<(bool Sucesso, string? Erro)> CheckoutAsync(string etiquetaId)
         {
             var client = CriarCliente();
             var payload = new { orders = new[] { etiquetaId } };
@@ -506,10 +510,32 @@ namespace ABrechozeiraApp.Services
             {
                 var error = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Falha no Checkout do Superfrete para etiqueta {Id}: {Status} - {Erro}", etiquetaId, response.StatusCode, error);
-                return false;
+                return (false, ExtrairMensagemErro(error) ?? $"Superfrete respondeu {(int)response.StatusCode}");
             }
 
-            return true;
+            return (true, null);
+        }
+
+        /// <summary>Tira a mensagem legível de uma resposta de erro do Superfrete (campos "message"/"error"/"errors").</summary>
+        private static string? ExtrairMensagemErro(string corpo)
+        {
+            if (string.IsNullOrWhiteSpace(corpo)) return null;
+            try
+            {
+                using var doc = JsonDocument.Parse(corpo);
+                var raiz = doc.RootElement;
+                if (raiz.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var campo in new[] { "message", "error", "errors" })
+                    {
+                        if (!raiz.TryGetProperty(campo, out var valor)) continue;
+                        if (valor.ValueKind == JsonValueKind.String) return valor.GetString();
+                        if (valor.ValueKind != JsonValueKind.Null) return valor.GetRawText();
+                    }
+                }
+            }
+            catch (JsonException) { }
+            return corpo.Length > 300 ? corpo[..300] : corpo;
         }
     }
 }

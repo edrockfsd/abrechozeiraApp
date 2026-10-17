@@ -232,7 +232,19 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
         this.filtrarDados(); // refresh grid
         this.grid.refresh();
         this.verificandoStatus = false;
-        if (this.toast) this.toast.show({ title: 'Sucesso', content: 'Status atualizados!', cssClass: 'e-toast-success' });
+        const erros = resultados
+          .filter(res => res.erroCheckout)
+          .map(res => {
+            const envio = this.rawData.find(e => (e as any).transacaoId === res.transacaoId) as any;
+            return `${envio?.destinatario ?? res.transacaoId}: ${res.erroCheckout}`;
+          });
+        if (this.toast) {
+          if (erros.length > 0) {
+            this.toast.show({ title: 'Atenção', content: `Superfrete recusou a liberação — ${erros.join(' | ')}`, cssClass: 'e-toast-warning', timeOut: 15000 });
+          } else {
+            this.toast.show({ title: 'Sucesso', content: 'Status atualizados!', cssClass: 'e-toast-success' });
+          }
+        }
       },
       error: (err) => {
         console.error('Erro ao verificar status:', err);
