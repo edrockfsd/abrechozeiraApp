@@ -218,3 +218,176 @@
     }
   }
 }
+
+// ─── Aviso de live por WhatsApp ───────────────────────────────────────────────
+
+.header-botoes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-avisar-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #25D366;
+  border-radius: 6px;
+  background: #fff;
+  color: #128C7E;
+  font-weight: 600;
+  cursor: pointer;
+
+  .material-icons { font-size: 18px; }
+  &:hover { background: #eafaf1; }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  h3 { margin: 0 0 12px; }
+}
+
+.modal-label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal-nota {
+  font-size: 12px;
+  color: #666;
+  margin: 8px 0 0;
+}
+
+.modal-carregando {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0;
+  color: #666;
+}
+
+.modal-sub {
+  margin: 12px 0 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.modal-aviso {
+  color: #d63031;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+
+.modal-tel { color: #888; }
+
+.modal-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+  font-size: 13px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .status-icone { font-size: 18px; color: #b2bec3; }
+  .status-enviando { background: #f5f9ff; .status-icone { color: #0984e3; } }
+  .status-ok .status-icone { color: #00b894; }
+  .status-erro .status-icone { color: #d63031; }
+  .status-erro .status-detalhe { color: #d63031; }
+}
+
+.status-texto { min-width: 0; }
+
+.status-detalhe {
+  font-size: 12px;
+  color: #0984e3;
+  margin-top: 2px;
+}
+
+.spin { animation: girar-aviso 1s linear infinite; }
+@keyframes girar-aviso { to { transform: rotate(360deg); } }
+
+.progresso { margin-bottom: 8px; }
+
+.progresso-texto {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.progresso-barra {
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: #25D366;
+  transition: width 0.3s ease;
+}
+
+.progresso-resumo {
+  margin-top: 6px;
+  font-size: 13px;
+
+  .ok { color: #00b894; }
+  .erro { color: #d63031; }
+}
+
+.btn-modal-secundario {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

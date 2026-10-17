@@ -8,10 +8,16 @@
   <div class="header">
     <div class="header-content">
       <h1>Lives</h1>
-      <button ejs-button cssClass="e-primary" (click)="onNovaLive()">
-        <span class="e-btn-icon e-add e-icons e-icon-left"></span>
-        Nova Live
-      </button>
+      <div class="header-botoes">
+        <button class="btn-avisar-live" (click)="abrirAvisoLive()" title="Avisar as clientes por WhatsApp que a live vai começar">
+          <span class="material-icons">campaign</span>
+          Avisar clientes
+        </button>
+        <button ejs-button cssClass="e-primary" (click)="onNovaLive()">
+          <span class="e-btn-icon e-add e-icons e-icon-left"></span>
+          Nova Live
+        </button>
+      </div>
     </div>
   </div>
 
@@ -32,6 +38,73 @@
       <button ejs-button cssClass="e-flat" (click)="liveAtiva = null" title="Fechar aviso" style="color: #fff; min-width: 32px; padding: 4px 8px;">
         <span class="material-icons" style="font-size: 18px;">close</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Modal: Aviso de live por WhatsApp -->
+  <div class="modal-backdrop" *ngIf="avisoLive as a" (click)="fecharAvisoLive()">
+    <div class="modal-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="tituloAvisoLive">
+      <h3 id="tituloAvisoLive">Avisar clientes da live (WhatsApp)</h3>
+
+      <ng-container *ngIf="!a.enviando && !a.concluido">
+        <label class="modal-label" for="linkLive">Link da live no Instagram</label>
+        <input id="linkLive" class="modal-input" type="url" [(ngModel)]="a.link"
+               placeholder="https://www.instagram.com/abrechozeira/live/...">
+        <p class="modal-aviso" *ngIf="a.link && !linkInstagramValido(a.link)">O link precisa ser do Instagram.</p>
+        <p class="modal-nota">
+          A cliente recebe: "Oi, Maria! 🎉 A live da A Brechozeira já vai começar! …" com o botão <strong>Assistir à live</strong>.
+          Mensagens de marketing são cobradas por cliente pela Meta.
+        </p>
+      </ng-container>
+
+      <div class="modal-carregando" *ngIf="a.carregando">
+        <span class="material-icons spin">autorenew</span> Carregando clientes...
+      </div>
+
+      <ng-container *ngIf="!a.carregando">
+        <ng-container *ngIf="progressoAviso(a) as p">
+          <div class="progresso" *ngIf="a.enviando || a.concluido">
+            <div class="progresso-texto">
+              <span>{{ a.concluido ? (a.interrompido ? 'Interrompido' : 'Concluído') : 'Enviando...' }} {{ p.feitos }} de {{ a.itens.length }}</span>
+              <span>{{ p.pct }}%</span>
+            </div>
+            <div class="progresso-barra"><div class="progresso-fill" [style.width.%]="p.pct"></div></div>
+            <div class="progresso-resumo" *ngIf="a.concluido">
+              <span class="ok">{{ p.ok }} enviada(s)</span>
+              <span class="erro" *ngIf="p.falhas > 0"> · {{ p.falhas }} com falha</span>
+              <span *ngIf="a.interrompido"> · {{ a.itens.length - p.feitos }} não enviada(s)</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <p class="modal-sub">{{ a.itens.length }} cliente(s) com telefone:</p>
+        <p class="modal-aviso" *ngIf="a.itens.length === 0">Nenhuma cliente ativa com telefone cadastrado.</p>
+        <ul class="modal-lista">
+          <li *ngFor="let i of a.itens" [ngClass]="'status-' + i.status">
+            <span class="material-icons status-icone" [class.spin]="i.status === 'enviando'">{{
+              i.status === 'ok' ? 'check_circle' : i.status === 'erro' ? 'error' : i.status === 'enviando' ? 'autorenew' : 'schedule'
+            }}</span>
+            <div class="status-texto">
+              <div>{{ i.nome }} <span class="modal-tel">· {{ i.telefone }}</span></div>
+              <div class="status-detalhe" *ngIf="i.status === 'enviando' || i.status === 'erro'">{{ i.status === 'enviando' ? 'Enviando agora...' : i.detalhe }}</div>
+            </div>
+          </li>
+        </ul>
+      </ng-container>
+
+      <div class="modal-acoes">
+        <ng-container *ngIf="!a.concluido; else fecharAviso">
+          <button class="btn-modal-secundario" *ngIf="!a.enviando" (click)="fecharAvisoLive()">Cancelar</button>
+          <button class="btn-modal-secundario" *ngIf="a.enviando" (click)="pararAvisoLive()">Parar</button>
+          <button ejs-button cssClass="e-primary" (click)="confirmarAvisoLive()"
+                  [disabled]="a.enviando || a.carregando || a.itens.length === 0 || !linkInstagramValido(a.link)">
+            {{ a.enviando ? 'Enviando...' : 'Enviar para ' + a.itens.length + ' cliente(s)' }}
+          </button>
+        </ng-container>
+        <ng-template #fecharAviso>
+          <button ejs-button cssClass="e-primary" (click)="fecharAvisoLive()">Fechar</button>
+        </ng-template>
+      </div>
     </div>
   </div>
 

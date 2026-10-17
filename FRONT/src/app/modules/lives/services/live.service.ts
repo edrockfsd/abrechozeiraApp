@@ -32,6 +32,16 @@ export class LiveService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  /** Clientes ativas com telefone que recebem o aviso de live por WhatsApp. */
+  destinatariosAvisoLive(): Observable<{ id: number; nome: string; telefone: string }[]> {
+    return this.http.get<{ id: number; nome: string; telefone: string }[]>(`${this.apiUrl}/AvisoLive/Destinatarios`);
+  }
+
+  /** Envia o aviso de live (template aviso_live_v1) para uma cliente. */
+  enviarAvisoLive(pessoaId: number, linkLive: string): Observable<{ enviado: boolean; erro: string | null }> {
+    return this.http.post<{ enviado: boolean; erro: string | null }>(`${this.apiUrl}/AvisoLive/Enviar`, { pessoaId, linkLive });
+  }
+
   toggleStatus(id: number): Observable<{ id: number; ativo: boolean }> {
     return this.http.patch<{ id: number; ativo: boolean }>(`${this.apiUrl}/${id}/toggle-status`, {});
   }

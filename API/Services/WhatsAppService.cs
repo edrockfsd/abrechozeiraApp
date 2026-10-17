@@ -192,6 +192,17 @@ namespace ABrechozeiraApp.Services
         }
 
         /// <summary>
+        /// aviso_live_v1 (Marketing) — avisa a cliente que a live vai começar.
+        /// O botão "Assistir à live" abre https://www.instagram.com/{instagramPath}.
+        /// </summary>
+        public Task<bool> EnviarAvisoLiveAsync(string destino, string nomeCliente, string instagramPath)
+        {
+            var template = _config["WhatsApp:TemplateAvisoLive"] ?? "aviso_live_v1";
+            var lang = _config["WhatsApp:TemplateAvisoLiveLanguage"] ?? "pt_BR";
+            return SendTemplateMessageAsync(destino, template, new List<string> { nomeCliente }, instagramPath, lang);
+        }
+
+        /// <summary>
         /// rastreio_envio_v2 — aviso de postagem com rastreio dos Correios.
         /// </summary>
         public Task<bool> EnviarRastreioEnvioAsync(

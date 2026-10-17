@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subscription, catchError, concatMap, from, map, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { GridComponent, GridModule } from '@syncfusion/ej2-angular-grids';
 import { ButtonModule } from '@syncfusion/ej2-angular-buttons';
@@ -10,6 +12,17 @@ import { ToastService } from '../../../../services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 
+type StatusAviso = 'pendente' | 'enviando' | 'ok' | 'erro';
+
+interface AvisoLive {
+  link: string;
+  carregando: boolean;
+  itens: { id: number; nome: string; telefone: string; status: StatusAviso; detalhe?: string }[];
+  enviando: boolean;
+  concluido: boolean;
+  interrompido: boolean;
+}
+
 @Component({
   selector: 'app-lista-lives',
   templateUrl: './lista-lives.component.html',
@@ -19,7 +32,8 @@ import { environment } from '../../../../../environments/environment';
     CommonModule,
     GridModule,
     ButtonModule,
-    ToastModule
+    ToastModule,
+    FormsModule
   ]
 })
 export class ListaLivesComponent implements OnInit {
@@ -125,6 +139,80 @@ export class ListaLivesComponent implements OnInit {
         this.toastService.showError(`Erro ao ${acao} a live. Por favor, tente novamente.`);
       }
     });
+  }
+
+  // ─── Aviso de live por WhatsApp ────────────────────────────────────────────
+
+  public avisoLive: AvisoLive | null = null;
+  private envioAvisoSub?: Subscription;
+
+  abrirAvisoLive(): void {
+    this.avisoLive = { link: '', carregando: true, itens: [], enviando: false, concluido: false, interrompido: false };
+    this.liveService.destinatariosAvisoLive().subscribe({
+      next: (lista) => {
+        if (!this.avisoLive) return;
+        this.avisoLive.itens = lista.map(c => ({ ...c, status: 'pendente' as StatusAviso }));
+        this.avisoLive.carregando = false;
+      },
+      error: () => {
+        this.avisoLive = null;
+        this.toastService.showError('Não foi possível carregar as clientes com telefone.');
+      }
+    });
+  }
+
+  linkInstagramValido(link: string): boolean {
+    return /(^|\/\/|\.)instagram\.com\/\S+/i.test((link || '').trim());
+  }
+
+  progressoAviso(a: AvisoLive): { feitos: number; ok: number; falhas: number; pct: number } {
+    const feitos = a.itens.filter(i => i.status === 'ok' || i.status === 'erro').length;
+    const ok = a.itens.filter(i => i.status === 'ok').length;
+    return { feitos, ok, falhas: feitos - ok, pct: a.itens.length ? Math.round((feitos / a.itens.length) * 100) : 0 };
+  }
+
+  confirmarAvisoLive(): void {
+    const a = this.avisoLive;
+    if (!a || a.enviando || a.concluido || !this.linkInstagramValido(a.link) || a.itens.length === 0) return;
+    if (!confirm(`Enviar o aviso de live por WhatsApp para ${a.itens.length} cliente(s)?\n\nCada mensagem de marketing é cobrada pela Meta.`)) return;
+
+    a.enviando = true;
+    const link = a.link.trim();
+    this.envioAvisoSub = from(a.itens).pipe(
+      concatMap(item => {
+        item.status = 'enviando';
+        return this.liveService.enviarAvisoLive(item.id, link).pipe(
+          map(res => {
+            item.status = res.enviado ? 'ok' : 'erro';
+            item.detalhe = res.enviado ? 'Enviado' : (res.erro || 'Falha ao enviar');
+          }),
+          catchError(err => {
+            item.status = 'erro';
+            item.detalhe = err.error?.message || 'Falha ao enviar';
+            return of(null);
+          })
+        );
+      })
+    ).subscribe({ complete: () => this.finalizarAvisoLive(false) });
+  }
+
+  pararAvisoLive(): void {
+    if (!this.avisoLive?.enviando) return;
+    this.envioAvisoSub?.unsubscribe();
+    this.avisoLive.itens.filter(i => i.status === 'enviando').forEach(i => { i.status = 'pendente'; i.detalhe = undefined; });
+    this.finalizarAvisoLive(true);
+  }
+
+  private finalizarAvisoLive(interrompido: boolean): void {
+    if (!this.avisoLive) return;
+    this.avisoLive.enviando = false;
+    this.avisoLive.concluido = true;
+    this.avisoLive.interrompido = interrompido;
+  }
+
+  fecharAvisoLive(): void {
+    if (this.avisoLive?.enviando) return;
+    this.avisoLive = null;
   }
 
   formatarData(data: string): string {
