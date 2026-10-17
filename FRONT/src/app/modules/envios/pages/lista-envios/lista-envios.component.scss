@@ -378,3 +378,20 @@ h1 {
   gap: 8px;
   margin-top: 20px;
 }
+
+.btn-marcar-pago {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border: 1px solid #00b894;
+  border-radius: 6px;
+  background: #fff;
+  color: #00b894;
+  font-size: 11px;
+  cursor: pointer;
+
+  .material-icons { font-size: 14px; }
+  &:hover:not(:disabled) { background: #eafaf5; }
+  &:disabled { opacity: 0.6; cursor: wait; }
+}

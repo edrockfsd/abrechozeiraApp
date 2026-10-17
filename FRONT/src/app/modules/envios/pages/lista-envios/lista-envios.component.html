@@ -112,8 +112,9 @@
         <e-column field="statusPagamento" headerText="Pgto (Loja)" width="150">
           <ng-template #template let-data>
             <span class="badge" 
-                  [ngClass]="data.statusPagamento === 'Pago' ? 'badge-delivered' : 'badge-pending'">
-              {{ data.statusPagamento }}
+                  [ngClass]="data.statusPagamento === 'Pago' ? 'badge-delivered' : 'badge-pending'"
+                  [title]="data.origemPagamento === 'Manual' ? 'Marcado como pago manualmente' + (data.pagoManualPor ? ' por ' + data.pagoManualPor : '') : ''">
+              {{ data.statusPagamento }}{{ data.statusPagamento === 'Pago' && data.origemPagamento === 'Manual' ? ' (manual)' : '' }}
             </span>
           </ng-template>
         </e-column>
@@ -139,6 +140,9 @@
                     <span class="material-icons">send</span> Reenviar
                   </button>
                 </div>
+                <button class="btn-marcar-pago" (click)="onMarcarComoPago(data)" [disabled]="data.marcandoPago" title="Use se o pagamento foi feito mas não foi atualizado automaticamente">
+                  <span class="material-icons">{{ data.marcandoPago ? 'hourglass_empty' : 'paid' }}</span> Marcar como pago
+                </button>
               </div>
 
               <!-- Rastreio -->

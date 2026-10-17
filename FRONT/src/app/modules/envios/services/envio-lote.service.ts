@@ -80,6 +80,11 @@ export class EnvioLoteService {
     return this.http.post<EnviarCotacaoClienteResultado>(`${this.apiUrl}/EnviarCotacaoCliente/${transacaoId}`, null, { params });
   }
 
+  /** Marca a cotação como paga manualmente (fica registrado como origem "Manual") e libera a etiqueta. */
+  marcarComoPago(transacaoId: string): Observable<{ statusPagamento: string; statusSuperfrete: string; origemPagamento: string; pagoManualPor: string; message: string }> {
+    return this.http.post<any>(`${this.apiUrl}/MarcarComoPago/${transacaoId}`, null);
+  }
+
   /** Notifica a cotação via WhatsApp. */
   enviarWhatsAppCotacao(transacaoId: string): Observable<{ message: string, url: string, hibrido: boolean }> {
     return this.http.post<{ message: string, url: string, hibrido: boolean }>(`${this.apiUrl}/EnviarWhatsAppCotacao/${transacaoId}`, null);

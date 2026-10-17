@@ -30,6 +30,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ABrechozeiraApp.Services.NfceService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.SuperfreteService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.InfinitePayService>();
+builder.Services.AddScoped<ABrechozeiraApp.Services.PagamentoFreteService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.EmailService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.WhatsAppService>();
 builder.Services.AddScoped<ABrechozeiraApp.Services.VendaService>();

@@ -407,6 +407,17 @@ namespace ABrechozeiraApp.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<string>("OrigemPagamento")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("PagoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PagoManualPor")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
                     b.Property<decimal?>("PrecoPAC")
                         .HasColumnType("decimal(18,2)");
 

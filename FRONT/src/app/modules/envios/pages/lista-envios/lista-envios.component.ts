@@ -124,7 +124,9 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
                 emailCotacaoEnviado: mapInfo ? (mapInfo.emailCotacaoEnviado || mapInfo.EmailCotacaoEnviado) : false,
                 emailRastreioEnviado: mapInfo ? (mapInfo.emailRastreioEnviado || mapInfo.EmailRastreioEnviado) : false,
                 whatsAppCotacaoEnviado: mapInfo ? (mapInfo.whatsAppCotacaoEnviado || mapInfo.WhatsAppCotacaoEnviado) : false,
-                whatsAppRastreioEnviado: mapInfo ? (mapInfo.whatsAppRastreioEnviado || mapInfo.WhatsAppRastreioEnviado) : false
+                whatsAppRastreioEnviado: mapInfo ? (mapInfo.whatsAppRastreioEnviado || mapInfo.WhatsAppRastreioEnviado) : false,
+                origemPagamento: mapInfo ? (mapInfo.origemPagamento || mapInfo.OrigemPagamento) : null,
+                pagoManualPor: mapInfo ? (mapInfo.pagoManualPor || mapInfo.PagoManualPor) : null
               };
             });
 
@@ -342,6 +344,35 @@ export class ListaEnviosComponent implements OnInit, AfterViewInit {
       return;
     }
     this.abrirReenvioCotacao(linhas);
+  }
+
+  onMarcarComoPago(row: any): void {
+    const msg = `Marcar o frete de ${row.destinatario} como PAGO?\n\n`
+      + 'Use apenas se você confirmou o pagamento na InfinitePay. A etiqueta será liberada no Superfrete '
+      + 'e ficará registrado que o pagamento foi marcado manualmente por você.';
+    if (!confirm(msg)) return;
+
+    row.marcandoPago = true;
+    this.envioLoteService.marcarComoPago(row.transacaoId).subscribe({
+      next: (res) => {
+        row.marcandoPago = false;
+        row.statusPagamento = res.statusPagamento;
+        row.statusSuperfrete = res.statusSuperfrete;
+        row.origemPagamento = res.origemPagamento;
+        row.pagoManualPor = res.pagoManualPor;
+        if (res.statusSuperfrete === 'Liberada') {
+          row.statusLabel = 'Aguardando Postagem';
+          row.status = 'released';
+        }
+        this.grid.refresh();
+        const ok = res.statusSuperfrete === 'Liberada';
+        if (this.toast) this.toast.show({ title: ok ? 'Sucesso' : 'Atenção', content: res.message, cssClass: ok ? 'e-toast-success' : 'e-toast-warning' });
+      },
+      error: (err) => {
+        row.marcandoPago = false;
+        if (this.toast) this.toast.show({ title: 'Erro', content: err.error?.message || 'Falha ao marcar como pago.', cssClass: 'e-toast-danger' });
+      }
+    });
   }
 
   fecharReenvioCotacao(): void {

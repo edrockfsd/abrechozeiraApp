@@ -11,21 +11,21 @@ namespace ABrechozeiraApp.Controllers
     public class InfinitePayWebhookController : ControllerBase
     {
         private readonly InfinitePayService _infinitePay;
-        private readonly SuperfreteService _superfrete;
-        private readonly EmailService _emailService;
+        private readonly PagamentoFreteService _pagamentoFrete;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<InfinitePayWebhookController> _logger;
         private readonly AbrechozeiraContext _context;
 
         public InfinitePayWebhookController(
             InfinitePayService infinitePay,
-            SuperfreteService superfrete,
-            EmailService emailService,
+            PagamentoFreteService pagamentoFrete,
+            IWebHostEnvironment env,
             ILogger<InfinitePayWebhookController> logger,
             AbrechozeiraContext context)
         {
             _infinitePay = infinitePay;
-            _superfrete = superfrete;
-            _emailService = emailService;
+            _pagamentoFrete = pagamentoFrete;
+            _env = env;
             _logger = logger;
             _context = context;
         }
@@ -41,18 +41,6 @@ namespace ABrechozeiraApp.Controllers
                 _logger.LogError(ex, "Erro ao ler mapeamento do PIX para etiqueta");
             }
             return null;
-        }
-
-        private void SalvarMapeamento(string transacaoId, EnvioLoteMap info)
-        {
-            try
-            {
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao salvar mapeamento atualizado");
-            }
         }
 
         [HttpPost]
@@ -83,9 +71,9 @@ namespace ABrechozeiraApp.Controllers
                     return BadRequest("Invalid fields");
 
                 bool isPaid;
-                if (transactionNsu == "teste123")
+                if (transactionNsu == "teste123" && _env.IsDevelopment())
                 {
-                    isPaid = true; // Bypass para teste local
+                    isPaid = true; // Bypass apenas para teste local (em produção qualquer um poderia marcar como pago)
                 }
                 else
                 {
@@ -101,57 +89,15 @@ namespace ABrechozeiraApp.Controllers
                 _logger.LogInformation("Pagamento do frete confirmado! OrderNsu (TransacaoId): {OrderNsu}", orderNsu);
 
                 var mapInfo = ObterMapeamentoPorTransacao(orderNsu);
-                if (mapInfo == null || string.IsNullOrEmpty(mapInfo.EtiquetaId))
+                if (mapInfo == null)
                 {
-                    _logger.LogWarning("Transação {OrderNsu} paga, mas não há mapeamento para EtiquetaId do Superfrete.", orderNsu);
+                    _logger.LogWarning("Transação {OrderNsu} paga, mas não existe cotação com esse TransacaoId.", orderNsu);
                     return Ok();
                 }
 
-                // Atualizar StatusPagamento para Pago
-                mapInfo.StatusPagamento = "Pago";
-                SalvarMapeamento(orderNsu, mapInfo);
-
-                var sucessoCheckout = await _superfrete.CheckoutAsync(mapInfo.EtiquetaId);
-                if (sucessoCheckout)
-                {
-                    _logger.LogInformation("Checkout da etiqueta {EtiquetaId} realizado com sucesso!", mapInfo.EtiquetaId);
-                    
-                    // Atualizar StatusSuperfrete para Liberada
-                    mapInfo.StatusSuperfrete = "Liberada";
-                    SalvarMapeamento(orderNsu, mapInfo);
-
-                    var factory = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>();
-                    _ = Task.Run(async () =>
-                    {
-                        using var scope = factory.CreateScope();
-                        var superfrete = scope.ServiceProvider.GetRequiredService<SuperfreteService>();
-                        var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
-                        var logger = scope.ServiceProvider.GetRequiredService<ILogger<InfinitePayWebhookController>>();
-
-                        try
-                        {
-                            await Task.Delay(3000); 
-                            var info = await superfrete.ObterEtiquetaAsync(mapInfo.EtiquetaId);
-                            if (info != null && !string.IsNullOrWhiteSpace(info.Tracking) && !string.IsNullOrWhiteSpace(mapInfo.Email))
-                            {
-                                await emailService.EnviarRastreioAsync(mapInfo.Email, mapInfo.Nome, info.Tracking, info.ServiceName);
-                                logger.LogInformation("E-mail de rastreio automático enviado para {Email}.", mapInfo.Email);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, "Erro ao enviar e-mail de rastreio pós-checkout.");
-                        }
-                    });
-                }
-                else
-                {
-                    _logger.LogError("Erro ao processar checkout da etiqueta {EtiquetaId} no Superfrete após pagamento.", mapInfo.EtiquetaId);
-                    
-                    // Atualizar StatusSuperfrete para Erro
-                    mapInfo.StatusSuperfrete = "Erro Checkout";
-                    SalvarMapeamento(orderNsu, mapInfo);
-                }
+                // Registra o pagamento mesmo sem etiqueta: a cliente pode pagar antes da etiqueta ser gerada.
+                // Nesse caso a etiqueta é liberada no Superfrete assim que for gerada.
+                await _pagamentoFrete.ConfirmarPagamentoAsync(mapInfo, PagamentoFreteService.OrigemAutomatico);
 
                 return Ok();
             }

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using ABrechozeiraApp.Models;
 using ABrechozeiraApp.Services;
@@ -180,6 +182,9 @@ namespace ABrechozeiraApp.Controllers
         public bool EmailRastreioEnviado { get; set; }
         public bool WhatsAppCotacaoEnviado { get; set; }
         public bool WhatsAppRastreioEnviado { get; set; }
+        public string? OrigemPagamento { get; set; }
+        public DateTime? PagoEm { get; set; }
+        public string? PagoManualPor { get; set; }
     }
 
     public class GerarEtiquetasLoteResultado
@@ -227,6 +232,7 @@ namespace ABrechozeiraApp.Controllers
         private readonly AbrechozeiraContext _context;
         private readonly IConfiguration _config;
         private readonly WhatsAppService _whatsApp;
+        private readonly PagamentoFreteService _pagamentoFrete;
 
         public EnvioLoteController(
             EmailService emailService,
@@ -235,7 +241,8 @@ namespace ABrechozeiraApp.Controllers
             ILogger<EnvioLoteController> logger,
             AbrechozeiraContext context,
             IConfiguration config,
-            WhatsAppService whatsApp)
+            WhatsAppService whatsApp,
+            PagamentoFreteService pagamentoFrete)
         {
             _emailService = emailService;
             _superfrete = superfrete;
@@ -244,6 +251,7 @@ namespace ABrechozeiraApp.Controllers
             _context = context;
             _config = config;
             _whatsApp = whatsApp;
+            _pagamentoFrete = pagamentoFrete;
         }
 
         /// <summary>
@@ -813,6 +821,10 @@ namespace ABrechozeiraApp.Controllers
             }
         }
 
+        /// <summary>
+        /// Vincula a etiqueta à cotação. Se a cliente já pagou (pagamento chegou antes da etiqueta),
+        /// libera a etiqueta no Superfrete na hora.
+        /// </summary>
         private async Task SalvarMapeamento(string transacaoId, string etiquetaId, string email, string nome, string statusPagamento)
         {
             try
@@ -837,9 +849,14 @@ namespace ABrechozeiraApp.Controllers
                     map.EtiquetaId = etiquetaId;
                     map.Email = email;
                     map.Nome = nome;
-                    map.StatusPagamento = statusPagamento;
                 }
                 await _context.SaveChangesAsync();
+
+                if (map.StatusPagamento == "Pago")
+                {
+                    _logger.LogInformation("Cotação {TransacaoId} já estava paga; liberando a etiqueta {EtiquetaId}.", transacaoId, etiquetaId);
+                    await _pagamentoFrete.LiberarEtiquetaAsync(map);
+                }
             }
             catch (Exception ex)
             {
@@ -865,7 +882,10 @@ namespace ABrechozeiraApp.Controllers
                     EmailCotacaoEnviado = x.EmailCotacaoEnviado,
                     EmailRastreioEnviado = x.EmailRastreioEnviado,
                     WhatsAppCotacaoEnviado = x.WhatsAppCotacaoEnviado,
-                    WhatsAppRastreioEnviado = x.WhatsAppRastreioEnviado
+                    WhatsAppRastreioEnviado = x.WhatsAppRastreioEnviado,
+                    OrigemPagamento = x.OrigemPagamento,
+                    PagoEm = x.PagoEm,
+                    PagoManualPor = x.PagoManualPor
                 });
                 return Ok(dict);
             }
@@ -1158,6 +1178,38 @@ namespace ABrechozeiraApp.Controllers
                 semEmail = res.SemEmail,
                 semWhatsApp = res.SemWhatsApp,
                 erros = res.Erros
+            });
+        }
+
+        /// <summary>
+        /// Marca a cotação como paga manualmente (ex.: o aviso da InfinitePay não chegou) e libera a etiqueta.
+        /// Fica registrado no banco como origem "Manual", com data e usuário.
+        /// </summary>
+        [Authorize]
+        [HttpPost("MarcarComoPago/{transacaoId}")]
+        public async Task<IActionResult> MarcarComoPago(string transacaoId)
+        {
+            var map = await _context.EnvioLoteMap.FirstOrDefaultAsync(x => x.TransacaoId == transacaoId);
+            if (map == null) return NotFound(new { message = "Cotação não encontrada." });
+            if (map.StatusPagamento == "Pago") return BadRequest(new { message = "Esta cotação já está paga." });
+
+            var usuario = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "desconhecido";
+            _logger.LogWarning("Cotação {TransacaoId} marcada como paga manualmente por {Usuario}.", transacaoId, usuario);
+
+            await _pagamentoFrete.ConfirmarPagamentoAsync(map, PagamentoFreteService.OrigemManual, usuario);
+
+            return Ok(new
+            {
+                statusPagamento = map.StatusPagamento,
+                statusSuperfrete = map.StatusSuperfrete,
+                origemPagamento = map.OrigemPagamento,
+                pagoEm = map.PagoEm,
+                pagoManualPor = map.PagoManualPor,
+                message = string.IsNullOrEmpty(map.EtiquetaId)
+                    ? "Pagamento registrado. A etiqueta será liberada quando for gerada."
+                    : map.StatusSuperfrete == "Liberada"
+                        ? "Pagamento registrado e etiqueta liberada no Superfrete."
+                        : "Pagamento registrado, mas houve erro ao liberar a etiqueta no Superfrete."
             });
         }
 
